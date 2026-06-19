@@ -1,0 +1,631 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超级无敌魔导书V8 — AI绘画提示词组合器</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header id="toolbar">
+  <div class="toolbar-left">
+    <span class="app-title">🔥 超级无敌魔导书V8</span>
+  </div>
+  <div class="toolbar-right">
+    <button id="btn-quality" class="tool-btn">✨ 基础质量词</button>
+    <label class="rand-count-label" title="随机标签数量上限">
+      <span id="rand-count-display">10</span>
+      <input type="range" id="rand-count" min="3" max="100" value="10">
+    </label>
+    <button id="btn-random" class="tool-btn">🎲 手气不错</button>
+    <button id="btn-nsfw" class="tool-btn" title="是否在随机中包含NSFW标签">🔞 NSFW</button>
+    <button id="btn-rand-weight" class="tool-btn" title="随机时是否生成随机权重(关闭则默认1.0)">⚖ 随机权重</button>
+    <button id="btn-export-batch" class="tool-btn" title="批量导出随机提示词到txt文件">📄 批量导出</button>
+    <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none">⚠ 免责声明</button>
+    <button id="btn-clear" class="tool-btn danger">🗑 清空全部</button>
+  </div>
+</header>
+
+<!-- 手机端免责弹窗 -->
+<div id="disclaimer-modal">
+  <div class="dm-content">
+    <p style="margin-bottom:10px"><b>⚠️ 免责声明</b></p>
+    <p>本工具仅供学习、研究和交流使用。用户在使用本工具生成 AI 绘画提示词及图像时，应遵守相关法律法规及 AI 平台的使用条款。</p>
+    <p style="margin-top:6px">使用者须对生成内容承担全部责任，包括但不限于确保内容不侵犯他人合法权益、不违反公序良俗。本工具开发者不对用户使用本工具产生的任何内容及后果承担任何法律责任。</p>
+    <p style="margin-top:6px">AI 生成内容可能存在偏差或不当之处，请理性辨别和使用。</p>
+    <button id="btn-disclaimer-close" class="action-btn" style="margin-top:12px;width:100%">关闭</button>
+  </div>
+</div>
+
+<!-- 手机端底部导航 -->
+<div id="m-tabbar" style="display:none">
+  <div class="m-tab active" data-view="browser">
+    <span class="m-icon">📁</span>标签
+  </div>
+  <div class="m-tab" data-view="prompt">
+    <span class="m-icon">📝</span>提示词
+  </div>
+  <div class="m-tab" data-view="comfy">
+    <span class="m-icon">🎨</span>生图
+  </div>
+</div>
+
+<!-- 手机端左侧抽屉 -->
+<div id="m-overlay"></div>
+<div id="m-drawer">
+  <div class="drawer-header">
+    <span>📁 标签分类</span>
+    <button class="drawer-close" id="m-drawer-close">✕</button>
+  </div>
+  <div class="drawer-hint">点子类浏览 · 右侧 +/- 控制每次随机上限</div>
+  <div id="m-cat-list"></div>
+  <div class="m-bottom-actions">
+    <div class="m-action" id="m-action-favs">⭐ 我的收藏 <span id="m-fav-count" style="color:var(--text-muted);font-size:11px"></span></div>
+    <div id="m-favs-content" style="display:none"></div>
+    <div class="m-action" id="m-action-presets">📦 预设组合</div>
+    <div id="m-presets-content" style="display:none"></div>
+    <div class="m-action" id="m-action-history">🕐 历史记录</div>
+  </div>
+</div>
+
+<div id="app">
+  <!-- ====== 左侧栏 ====== -->
+  <aside id="sidebar">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="搜索标签 (中/英文)...">
+      <button id="btn-search-clear" class="search-clear" style="display:none">✕</button>
+    </div>
+
+    <div class="sidebar-head">
+      <span class="nav-section-title">📁 标签分类</span>
+      <button id="btn-tag-mode" class="tool-btn" title="切换标签库：短语标签 ↔ 单一标签" style="font-size:10px;padding:2px 8px">🏷 单一标签</button>
+      <button id="btn-add-category" class="mini-btn" title="新建大类">✚</button>
+    </div>
+    <nav id="category-tree"></nav>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-head">
+      <span class="nav-section-title" id="fav-toggle" style="cursor:pointer">⭐ 我的收藏 <span id="fav-count"></span></span>
+    </div>
+    <div id="favorites-list" class="mini-list" style="display:none"></div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="nav-section-title">📦 预设组合</div>
+    <div id="presets-list" class="mini-list"></div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="nav-section-title">🕐 历史记录</div>
+    <div id="history-list" class="mini-list"></div>
+  </aside>
+
+  <!-- ====== 中间 ====== -->
+  <main id="tag-browser">
+    <div class="search-on-mobile" style="display:none">
+      <input type="text" id="search-input-m" placeholder="🔍 搜索标签 (中/英文)...">
+      <button id="btn-search-clear-m" style="display:none;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-muted);font-size:11px;cursor:pointer">✕</button>
+    </div>
+    <div id="browser-header">
+      <h2 id="browser-title">请从左侧选择一个子类别开始浏览</h2>
+      <div id="browser-actions"></div>
+    </div>
+    <div id="tag-grid"></div>
+    <div id="comfyui-gallery" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="font-size:13px;color:var(--accent);margin:0">🖼 生成结果 <span id="gallery-count" style="font-size:10px;color:var(--text-muted);font-weight:normal"></span></h3>
+        <button id="btn-gallery-clear" class="mini-btn" style="font-size:10px" title="清空所有图片">🗑 清空</button>
+      </div>
+      <div id="comfyui-gallery-imgs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+    </div>
+    <div id="search-results-info" style="display:none"></div>
+    <div id="m-selected-bar">
+      <div class="bar-title">✅ 已选标签 <span id="m-sel-pos-count"></span> | ❌ <span id="m-sel-neg-count"></span></div>
+      <div class="bar-tags" id="m-sel-tags"></div>
+    </div>
+  </main>
+
+  <!-- ====== 右侧面板 ====== -->
+  <aside id="prompt-panel">
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-tab="positive">✅ 正面提示词</button>
+      <button class="panel-tab" data-tab="negative">❌ 负面提示词</button>
+    </div>
+
+    <div id="panel-positive" class="panel-content">
+      <div class="panel-toolbar">
+        <label class="sort-toggle">
+          <input type="checkbox" id="auto-sort-positive" checked>
+          <span>自然语言排序</span>
+        </label>
+        <span id="positive-count" class="tag-count">已选 0 个</span>
+      </div>
+      <div id="selected-tags-positive" class="selected-tags">
+        <div class="empty-hint">点击左侧标签添加到此处</div>
+      </div>
+    </div>
+
+    <div id="panel-negative" class="panel-content" style="display:none">
+      <div class="panel-toolbar">
+        <label class="sort-toggle">
+          <input type="checkbox" id="auto-sort-negative" checked>
+          <span>自然语言排序</span>
+        </label>
+        <span id="negative-count" class="tag-count">已选 0 个</span>
+      </div>
+      <div id="selected-tags-negative" class="selected-tags">
+        <div class="empty-hint">点击左侧标签添加到负面提示词</div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="preview-header">
+        <h3>📝 生成的提示词</h3>
+        <select id="export-format">
+          <option value="generic">通用格式</option>
+          <option value="novelai">NovelAI</option>
+          <option value="sdwebui">SD WebUI</option>
+        </select>
+        <button id="btn-weights" class="tool-btn active" title="默认标签是否加权重语法(手动调整始终生效)">⚡ 权重</button>
+        <button id="btn-space-mode" class="tool-btn" title="提示词空格转换: 关闭/空格→_/_→空格">🔄 空隔转换</button>
+      </div>
+      <textarea id="prompt-output" readonly placeholder="选择标签后这里会显示完整提示词..."></textarea>
+      <div class="preview-btns">
+        <button id="btn-copy" class="action-btn primary">📋 复制英文</button>
+        <button id="btn-copy-cn" class="action-btn">📋 复制中文</button>
+        <button id="btn-batch-add" class="action-btn">📝 批量添加</button>
+        <button id="btn-save-preset" class="action-btn">💾 保存预设</button>
+      </div>
+      <div class="template-section">
+        <div class="template-toggle" id="btn-template-toggle" title="提示词模板 - 在标签前后添加固定内容">📐 提示词模板 ▾</div>
+        <div id="template-body" style="display:none;padding:4px 12px 8px">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.6">
+            💡 <b>{tags}</b> = 标签组合位置，前后可加固定文字<br>
+            🎯 <b>用途</b>：放 LoRA 触发词、画风前缀等，<span style="color:var(--accent)">AI润色不会影响模板内容</span>。<br>
+            例：<code style="background:var(--bg-primary);padding:1px 4px;border-radius:3px">&lt;lora:style:0.8&gt;, score_9, {tags}</code><br>
+            留空不使用模板。
+          </div>
+          <textarea id="template-input" placeholder="例如：score_9, score_8_up, {tags}" rows="3"></textarea>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10px">
+            <button id="btn-template-save" class="mini-btn" style="font-size:10px" title="保存当前模板">💾 保存</button>
+            <button id="btn-template-load" class="mini-btn" style="font-size:10px" title="加载已保存的模板">📂 加载</button>
+            <button id="btn-template-reset" class="mini-btn" style="font-size:10px;margin-left:auto">重置</button>
+          </div>
+        </div>
+      </div>
+      <div class="template-section" style="border-top:1px solid var(--border)">
+        <div class="template-toggle" id="btn-neg-template-toggle" title="负面提示词预设 - 生图时自动注入">🚫 负面提示词预设 ▾</div>
+        <div id="neg-template-body" style="display:none;padding:4px 12px 8px">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.6">
+            💡 这里的负面提示词会<b>自动附加</b>到每次 ComfyUI 生图的负面节点。<br>
+            🎯 与你在负面面板选的标签<b>叠加生效</b>，互不影响。
+          </div>
+          <textarea id="neg-template-input" placeholder="例如：low quality, blurry, bad anatomy&#10;或中文：低质量, 模糊, 结构崩坏" rows="4"></textarea>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10px">
+            <label style="display:flex;align-items:center;gap:3px;cursor:pointer;flex:1">
+              <input type="checkbox" id="neg-template-auto"> 🚀 生图时自动发送
+            </label>
+            <button id="btn-neg-template-save" class="mini-btn" style="font-size:10px" title="保存当前">💾 保存</button>
+            <button id="btn-neg-template-load" class="mini-btn" style="font-size:10px" title="加载已保存">📂 加载</button>
+            <button id="btn-neg-template-reset" class="mini-btn" style="font-size:10px;margin-left:auto">重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="llm-section">
+      <div class="template-toggle" id="btn-llm-toggle" title="接入大模型将提示词转为自然语言">🤖 AI润色 ▾</div>
+      <div id="llm-body" style="display:none;padding:4px 12px 8px">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.6">
+          💡 将标签提示词发送给大模型，转为自然语言描述。
+        </div>
+        <select id="llm-provider" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px">
+          <option value="openai">OpenAI</option>
+          <option value="lmstudio">LM Studio (本地)</option>
+          <option value="ollama">Ollama (本地)</option>
+          <option value="custom">自定义</option>
+        </select>
+        <select id="llm-lang" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px">
+          <option value="en">发送语言: 英文标签</option>
+          <option value="zh">发送语言: 中文标签</option>
+        </select>
+        <input type="text" id="llm-url" placeholder="API地址: http://127.0.0.1:1234/v1" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px;outline:none">
+        <input type="text" id="llm-model" placeholder="模型名: gpt-4o-mini / qwen2.5" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px;outline:none">
+        <input type="password" id="llm-key" placeholder="API Key（本地可留空）" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px;outline:none">
+        <textarea id="llm-sysprompt" placeholder="系统指令（给大模型的条件）：&#10;你是一个AI绘画提示词转换器。将用户输入的标签式提示词转换成一段通顺的自然语言描述，保留所有关键元素。" rows="3" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:6px;outline:none;resize:vertical;font-family:sans-serif"></textarea>
+        <div style="display:flex;gap:6px">
+          <button id="btn-llm-send" class="action-btn primary" style="font-size:11px;flex:1">🤖 发送润色</button>
+          <button id="btn-llm-copy" class="action-btn" style="font-size:11px">📋 复制结果</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer">
+          <input type="checkbox" id="llm-auto-refine"> 🎨 生图前自动润色
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer">
+          <input type="checkbox" id="llm-concurrent"> 🚀 允许并发（性能强可开启）
+        </label>
+        <div style="display:flex;gap:4px;margin-bottom:6px">
+          <button id="btn-llm-save-preset" class="action-btn" style="font-size:11px;flex:1">💾 保存预设</button>
+          <button id="btn-llm-load-preset" class="action-btn" style="font-size:11px;flex:1">📂 加载预设</button>
+        </div>
+        <div id="llm-result" style="font-size:11px;color:var(--text-secondary);margin-top:6px;padding:6px 8px;background:var(--bg-primary);border-radius:3px;min-height:40px;max-height:200px;overflow-y:auto;line-height:1.5;white-space:pre-wrap;word-break:break-word"></div>
+        <button id="btn-llm-history" class="action-btn" style="font-size:11px;margin-top:6px;width:100%">📜 润色记录</button>
+      </div>
+    </div>
+
+    <div class="comfyui-panel">
+      <div class="preview-header">
+        <h3>🎨 ComfyUI</h3>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="comfyui-status" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted)"></span>
+          <span id="comfyui-status-text" style="font-size:11px;color:var(--text-muted)">未检测</span>
+          <button id="btn-comfyui-refresh" class="mini-btn">⟳</button>
+          <button id="btn-comfyui-help" class="mini-btn" title="使用说明">❓</button>
+        </div>
+      </div>
+      <div id="comfyui-help-box" style="display:none;padding:6px 12px;font-size:10px;color:var(--text-muted);background:var(--bg-primary);border-bottom:1px solid var(--border);line-height:1.6">
+        1️⃣ ComfyUI: <b>Workflow → Export (API)</b> → 保存JSON到程序的 <b>workflows/</b> 文件夹<br>
+        2️⃣ 刷新页面 → 下拉选择工作流 → 设定 <b>✅正向/❌负面</b> 节点 → 💾 保存<br>
+        3️⃣ ⚙ 设置可改采样器/步数/CFG/尺寸 → 🚀 生图<br>
+        💡 节点映射保存后永不再错，换工作流互不干扰
+      </div>
+      <div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <button id="btn-comfyui-lang" class="tool-btn active" style="font-size:11px;padding:3px 8px">EN</button>
+        <select id="comfyui-workflow" style="flex:1;min-width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-secondary);font-size:11px">
+          <option value="">-- 选择工作流 --</option>
+        </select>
+        <button id="btn-comfyui-send" class="tool-btn" style="background:var(--accent-dim);color:#fff;font-size:11px">🚀 生图</button>
+      </div>
+      <div style="padding:0 12px 4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button id="btn-comfyui-clipbind" class="tool-btn" title="绑定正负向提示词到CLIP节点" style="font-size:11px;padding:3px 8px">🔗 正负绑定</button>
+        <button id="btn-comfyui-settings" class="tool-btn" title="修改工作流参数（采样器/步数/CFG/种子等）" style="font-size:11px;padding:3px 8px">⚙ 工作流参数</button>
+        <button id="btn-comfyui-conn" class="tool-btn" title="设置ComfyUI地址和端口" style="font-size:11px;padding:3px 8px">🌐 端口</button>
+        <button id="btn-comfyui-models" class="mini-btn" title="选择模型和LoRA" style="font-size:11px">🎭 模型</button>
+      </div>
+      <div style="padding:0 12px 6px;display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted)">
+        <span>宽</span><input type="number" id="comfyui-width" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <span>高</span><input type="number" id="comfyui-height" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <span>张</span><input type="number" id="comfyui-count" value="1" min="1" max="9999" title="生图张数(普通/随机共用)" style="width:44px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <button id="btn-comfyui-size" class="mini-btn" title="从工作流读取尺寸">📐</button>
+        <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text-muted);cursor:pointer;margin-left:4px">
+          <input type="checkbox" id="comfyui-rand-seed" checked> 🎲 随机种子
+        </label>
+      </div>
+      <div style="padding:0 12px 6px;display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted)">
+        <button id="btn-comfyui-random" class="tool-btn" style="font-size:11px;padding:3px 10px" title="每次随机标签再生成，张张不同，张数由上方的「张」控制">🎲 随机生图</button>
+        <button id="btn-comfyui-manual" class="tool-btn" style="font-size:11px;padding:3px 10px;margin-left:auto" title="手写正向提示词直接发送生图">✏ 手写生图</button>
+        <button id="btn-comfyui-loadimg" class="tool-btn" style="font-size:13px;padding:5px 14px" title="加载图片作为输入，生图时自动发送。支持拖拽图片到按钮">🖼 加载图片</button>
+      </div>
+      <div id="comfyui-queue" style="display:none;padding:0 12px 4px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:2px;padding-top:4px">
+        <span id="comfyui-queue-text">队列: 0/0</span>
+        <button id="btn-comfyui-stop" style="margin-left:4px;border:none;background:none;color:var(--danger);cursor:pointer;font-size:10px;display:none" title="终止队列(当前任务完成后停止)">⏹ 终止</button>
+        <button id="btn-comfyui-clear-queue" style="margin-left:4px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:10px;display:none">清空</button>
+      </div>
+      <div id="comfyui-progress" style="display:none;padding:0 12px 4px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:2px">
+          <span id="comfyui-time">⏳ 0s</span>
+          <span id="comfyui-progress-text">生成中...</span>
+        </div>
+        <div style="height:3px;background:var(--bg-primary);border-radius:2px;overflow:hidden">
+          <div id="comfyui-bar" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div id="comfyui-result" style="font-size:10px;color:var(--text-muted);padding:0 12px 4px;word-break:break-all"></div>
+
+    </div>
+  </aside>
+</div>
+
+<!-- 模态框: 批量添加 -->
+<div id="modal-batch" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>📝 批量添加标签</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">输入标签名称（英文或中文），用逗号、空格或换行分隔。系统会自动查找匹配的标签添加到当前面板。</p>
+    <textarea id="batch-input" placeholder="例如: 1girl, smile, sunset, masterpiece&#10;或每行一个" rows="8"></textarea>
+    <p id="batch-result" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></p>
+    <div class="modal-actions">
+      <button id="btn-batch-confirm" class="action-btn primary">添加到正面</button>
+      <button id="btn-batch-neg" class="action-btn">添加到负面</button>
+      <button id="btn-batch-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 保存预设 -->
+<div id="modal-save" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>保存预设</h3>
+    <input type="text" id="save-preset-name" placeholder="输入预设名称...">
+    <div class="modal-actions">
+      <button id="btn-save-confirm" class="action-btn primary">保存</button>
+      <button id="btn-save-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 导入预设 -->
+<div id="modal-import" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>导入预设</h3>
+    <textarea id="import-preset-json" placeholder="粘贴预设JSON数据..." rows="8"></textarea>
+    <div class="modal-actions">
+      <button id="btn-import-confirm" class="action-btn primary">导入</button>
+      <button id="btn-import-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 新建大类 -->
+<div id="modal-new-cat" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>新建大类</h3>
+    <input type="text" id="new-cat-name" placeholder="大类名称">
+    <div class="modal-actions">
+      <button id="btn-new-cat-confirm" class="action-btn primary">创建</button>
+      <button id="btn-new-cat-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 新建子类别 -->
+<div id="modal-new-sc" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>新建子类别</h3>
+    <p id="new-sc-cat-name" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></p>
+    <input type="text" id="new-sc-name" placeholder="子类别名称">
+    <div class="modal-actions">
+      <button id="btn-new-sc-confirm" class="action-btn primary">创建</button>
+      <button id="btn-new-sc-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 批量添加标签到子类别 -->
+<div id="modal-batch-sc" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>✚ 批量添加标签</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">目标: <b id="sc-batch-cat"></b> › <b id="sc-batch-sc"></b></p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">每行一个标签，英文和中文用逗号分隔（中文可选）</p>
+    <textarea id="sc-batch-input" placeholder="例如:&#10;sunset, 日落&#10;1girl, 一个女孩&#10;smile" rows="10"></textarea>
+    <p id="sc-batch-result" style="font-size:12px;margin-bottom:8px"></p>
+    <div class="modal-actions">
+      <button id="btn-sc-batch-confirm" class="action-btn primary">批量添加</button>
+      <button id="btn-sc-batch-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 批量删除标签 -->
+<div id="modal-batch-del" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>🗑 批量删除标签</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">目标: <b id="batch-del-cat"></b> › <b id="batch-del-sc"></b></p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">每行一个标签关键词（英文或中文），将删除匹配的标签</p>
+    <textarea id="batch-del-input" placeholder="例如:&#10;1girl&#10;smile&#10;脸红" rows="10"></textarea>
+    <p id="batch-del-result" style="font-size:12px;margin-bottom:8px"></p>
+    <div class="modal-actions">
+      <button id="btn-batch-del-confirm" class="action-btn primary">批量删除</button>
+      <button id="btn-batch-del-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 添加/编辑标签 -->
+<div id="modal-tag-form" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3 id="tag-form-title">添加标签</h3>
+    <p id="tag-form-info" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></p>
+    <div class="form-row">
+      <input type="text" id="tag-form-en" placeholder="英文标签">
+      <input type="text" id="tag-form-zh" placeholder="中文翻译 (可选)">
+    </div>
+    <input type="hidden" id="tag-form-old-en">
+    <div class="modal-actions">
+      <button id="btn-tag-form-confirm" class="action-btn primary">确定</button>
+      <button id="btn-tag-form-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 批量导出 -->
+<div id="modal-export-batch" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>📄 批量导出随机提示词</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">每次随机生成一组标签，共生成指定数量的提示词到 txt 文件</p>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--text-secondary)">生成</span>
+      <input type="number" id="export-batch-count" value="50" min="1" max="1000" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-primary);text-align:center;outline:none">
+      <span style="font-size:12px;color:var(--text-secondary)">组提示词</span>
+    </div>
+    <div class="modal-actions">
+      <button id="btn-export-batch-confirm" class="action-btn primary">导出 TXT</button>
+      <button id="btn-export-batch-cancel" class="action-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 模型选择 -->
+<div id="modal-models" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:500px">
+    <h3>🎭 选择模型 & LoRA</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">从工作流中读取的节点，选好后点 🚀 生图 即可生效</p>
+    <div id="modal-models-body"></div>
+    <div class="modal-actions">
+      <button id="btn-models-close" class="action-btn">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 工作流参数设置 -->
+<div id="modal-wf-settings" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:540px">
+    <h3>⚙ 工作流参数设置</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px" id="wf-settings-wf-name">当前工作流: --</p>
+    <div id="wf-settings-body" style="max-height:450px;overflow-y:auto">
+      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">请先选择一个工作流</div>
+    </div>
+    <div class="modal-actions">
+      <button id="btn-wf-settings-refresh" class="action-btn" title="重新读取工作流参数">🔄 刷新</button>
+      <button id="btn-wf-settings-apply" class="action-btn primary">✅ 应用并关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 正负面提示词绑定 -->
+<div id="modal-clipbind" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:440px">
+    <h3>🔗 正负面提示词绑定</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px" id="clipbind-wf-name">当前工作流: --</p>
+    <p style="font-size:10px;color:var(--text-muted);margin-bottom:8px">选择哪个CLIP节点接收<span style="color:var(--success)">正向</span>/<span style="color:var(--danger)">负面</span>提示词，保存后生图时自动注入。</p>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;color:var(--success);margin-bottom:3px">✅ 正向提示词 →</div>
+      <select id="clip-pos" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--bg-primary);color:var(--text-primary);outline:none"><option value="">自动</option></select>
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;color:var(--danger);margin-bottom:3px">❌ 负面提示词 →</div>
+      <select id="clip-neg" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--bg-primary);color:var(--text-primary);outline:none"><option value="">自动</option></select>
+    </div>
+    <div class="modal-actions">
+      <button id="btn-clipbind-save" class="action-btn primary">💾 保存并关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: ComfyUI端口设置 -->
+<div id="modal-conn" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:380px">
+    <h3>🌐 ComfyUI 连接设置</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">设置ComfyUI的访问地址和端口</p>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">地址</div>
+      <input id="conn-url" placeholder="http://127.0.0.1:8188" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--bg-primary);color:var(--text-primary);outline:none;font-family:monospace">
+    </div>
+    <div class="modal-actions">
+      <button id="btn-conn-test" class="action-btn">🔍 测试连接</button>
+      <button id="btn-conn-save" class="action-btn primary">💾 保存</button>
+    </div>
+    <div id="conn-result" style="font-size:11px;margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- 模态框: 润色记录 -->
+<div id="modal-llm-history" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:800px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0">📜 润色记录 <span id="llm-history-count" style="font-size:11px;color:var(--text-muted);font-weight:normal"></span></h3>
+      <button id="btn-llm-history-clear" class="action-btn" style="color:var(--danger);font-size:11px;padding:4px 10px">清空记录</button>
+    </div>
+    <div id="llm-history-pager-top" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:8px;font-size:12px"></div>
+    <div id="llm-history-list" style="max-height:500px;overflow-y:auto;border:1px solid var(--border);border-radius:4px"></div>
+    <div id="llm-history-pager-bottom" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;font-size:12px"></div>
+    <div class="modal-actions" style="margin-top:8px">
+      <button id="btn-llm-history-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 润色预设 -->
+<div id="modal-llm-presets" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:650px">
+    <h3>📂 润色预设</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">点击预设加载配置，点击 <span style="color:var(--danger)">🗑</span> 连点3次删除</p>
+    <div id="llm-presets-list" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:4px"></div>
+    <div class="modal-actions" style="margin-top:8px">
+      <button id="btn-llm-presets-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 加载图片 -->
+<div id="modal-loadimg" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:480px">
+    <h3>🖼 加载图片到 ComfyUI</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">选择要绑定的 LoadImage 节点，上传图片后每次生图自动注入。</p>
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">目标节点</div>
+      <select id="loadimg-node" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:12px;outline:none">
+        <option value="">-- 请先选择工作流 --</option>
+      </select>
+    </div>
+    <div style="margin-bottom:8px">
+      <input type="file" id="loadimg-file" accept="image/*" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:12px;outline:none">
+    </div>
+    <div id="loadimg-preview" style="display:none;margin-bottom:8px;text-align:center">
+      <img id="loadimg-preview-img" style="max-height:150px;max-width:100%;border-radius:4px;border:1px solid var(--border)">
+    </div>
+    <div id="loadimg-status" style="font-size:11px;color:var(--success);margin-bottom:6px"></div>
+    <div class="modal-actions">
+      <button id="btn-loadimg-upload" class="action-btn primary">⬆ 上传并绑定</button>
+      <button id="btn-loadimg-clear" class="action-btn" style="color:var(--danger);font-weight:600">🗑 清除绑定</button>
+      <button id="btn-loadimg-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 手写生图 -->
+<div id="modal-manual-prompt" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:550px">
+    <h3>✏ 手写正向提示词生图</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">自己写正向提示词直接发送到 ComfyUI 生图。<br>负面提示词会使用 <b>负面面板标签 + 负面预设</b>。</p>
+    <textarea id="manual-prompt-input" placeholder="在这里写正面提示词...&#10;例如：a beautiful girl sitting in a cyberpunk city, neon lights, rain, masterpiece" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-primary);color:var(--text-primary);font-size:12px;font-family:&quot;JetBrains Mono&quot;,monospace;resize:vertical;outline:none"></textarea>
+    <div class="modal-actions" style="margin-top:8px">
+      <button id="btn-manual-prompt-send" class="action-btn primary">🚀 发送生图</button>
+      <button id="btn-manual-prompt-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 加载模板 -->
+<div id="modal-template-load" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:500px">
+    <h3>📂 加载模板</h3>
+    <div id="template-load-list" style="max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button id="btn-template-load-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 大图预览弹窗 -->
+<div id="img-preview-modal">
+  <div class="img-preview-toolbar">
+    <div class="img-preview-info">
+      <span id="img-preview-zoom">100%</span>
+      <span id="img-preview-res">--</span>
+    </div>
+    <button class="img-preview-close" id="btn-img-preview-close" title="关闭">✕</button>
+  </div>
+  <div class="img-preview-container" id="img-preview-container">
+    <button id="img-preview-prev" class="img-preview-nav" title="上一张">‹</button>
+    <img id="img-preview-img" src="" draggable="false">
+    <button id="img-preview-next" class="img-preview-nav" title="下一张">›</button>
+  </div>
+  <div class="img-preview-controls" id="img-preview-controls">
+    <button class="img-preview-btn" id="btn-zoom-out" title="缩小">−</button>
+    <button class="img-preview-btn" id="btn-zoom-reset" title="原始大小">1:1</button>
+    <button class="img-preview-btn" id="btn-zoom-fit" title="适应窗口">⊡</button>
+    <button class="img-preview-btn" id="btn-zoom-in" title="放大">+</button>
+    <button class="img-preview-btn" id="btn-img-download" title="下载原图">⬇</button>
+  </div>
+</div>
+
+<!-- 免责声明 -->
+<footer id="disclaimer">
+  <button id="btn-disclaimer-desktop" class="disclaimer-btn" title="点击查看完整免责声明">⚠️ 免责声明：本工具仅供学习交流使用，使用者对生成内容承担全部责任，AI 生成可能存在偏差请理性辨别</button>
+</footer>
+<div id="disclaimer-modal-desktop" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:500px">
+    <h3>⚠️ 免责声明</h3>
+    <p style="margin-top:8px;line-height:1.8;font-size:12px;color:var(--text-secondary)">本工具仅供学习、研究和交流使用。用户在使用本工具生成 AI 绘画提示词及图像时，应遵守相关法律法规及 AI 平台的使用条款。</p>
+    <p style="line-height:1.8;font-size:12px;color:var(--text-secondary)">使用者须对生成内容承担全部责任，包括但不限于确保内容不侵犯他人合法权益、不违反公序良俗。本工具开发者不对用户使用本工具产生的任何内容及后果承担任何法律责任。</p>
+    <p style="line-height:1.8;font-size:12px;color:var(--text-secondary)">AI 生成内容可能存在偏差或不当之处，请理性辨别和使用。</p>
+    <div class="modal-actions" style="margin-top:10px">
+      <button id="btn-disclaimer-desktop-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js?v=80"></script>
+</body>
+</html>

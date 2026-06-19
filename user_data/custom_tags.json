@@ -1,0 +1,34 @@
+{
+  "categories": [
+    {
+      "id": "c_艺术风格",
+      "name": "艺术风格",
+      "subcategories": [
+        {
+          "name": "动漫画风",
+          "tags": [
+            {
+              "en": "Anime style",
+              "zh": "二次元/动漫风"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c_人物主体",
+      "name": "人物主体",
+      "subcategories": [
+        {
+          "name": "人数与性别",
+          "tags": [
+            {
+              "en": "A beautiful Asian beauty",
+              "zh": "一个漂亮的亚洲美女"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
