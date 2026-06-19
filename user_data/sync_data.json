@@ -1,6 +1,6 @@
 {
   "randWeight": false,
-  "tagMode": "phrase",
+  "spaceMode": 2,
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -147,7 +147,7 @@
     "人物主体": "sc"
   },
   "allowNsfw": false,
-  "spaceMode": 2,
+  "tagMode": "phrase",
   "templates": [
     {
       "name": "1girl",
@@ -422,6 +422,5 @@
     "randCount": 49,
     "randSeed": true,
     "template": ""
-  },
-  "gallery": []
+  }
 }
