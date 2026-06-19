@@ -1,6 +1,12 @@
 {
-  "spaceMode": 2
-}   "人物": 0,
+  "favs": {
+    "A beautiful Asian beauty": true,
+    "Anime style": true,
+    "Anime": true,
+    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
+  },
+  "catLimits": {
+    "人物": 0,
     "NSFW": 1,
     "场景道具": 4,
     "表情": 2,
@@ -32,46 +38,6 @@
     "2_构图视角": 0,
     "五官与表情": 2,
     "服装与配饰": 0
-  },
-  "catModes": {
-    "镜头": "cat",
-    "服饰": "cat",
-    "动作": "sc",
-    "场景道具": "cat",
-    "表情": "cat",
-    "人物": "sc",
-    "NSFW": "sc",
-    "画质与渲染": "sc",
-    "艺术风格": "sc",
-    "负面提示词": "cat",
-    "动作姿态": "sc",
-    "构图与视角": "sc",
-    "色彩与氛围": "sc",
-    "场景与背景": "cat",
-    "服装与配饰": "sc",
-    "发型与发色": "cat",
-    "动植物与自然": "sc",
-    "0_画质基础": "cat",
-    "12_负面提示": "cat",
-    "11_动植物": "cat",
-    "10_物品道具": "cat",
-    "9_动作姿态": "cat",
-    "8_色彩光线": "cat",
-    "7_场景背景": "cat",
-    "6_服装配饰": "cat",
-    "5_五官表情": "cat",
-    "4_发型发色": "cat",
-    "3_人物主体": "sc",
-    "2_构图视角": "cat",
-    "人物主体": "sc"
-  },
-  "randWeight": false,
-  "tagMode": "phrase",
-  "favs": {
-    "A beautiful Asian beauty": true,
-    "Anime style": true,
-    "Anime": true,
-    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
   },
   "scLimits": {
     "镜头|景别": 0,
@@ -146,8 +112,42 @@
     "画质与渲染|光影效果": 0,
     "画质与渲染|渲染特效": 1
   },
+  "catModes": {
+    "镜头": "cat",
+    "服饰": "cat",
+    "动作": "sc",
+    "场景道具": "cat",
+    "表情": "cat",
+    "人物": "sc",
+    "NSFW": "sc",
+    "画质与渲染": "sc",
+    "艺术风格": "sc",
+    "负面提示词": "cat",
+    "动作姿态": "sc",
+    "构图与视角": "sc",
+    "色彩与氛围": "sc",
+    "场景与背景": "cat",
+    "服装与配饰": "sc",
+    "发型与发色": "cat",
+    "动植物与自然": "sc",
+    "0_画质基础": "cat",
+    "12_负面提示": "cat",
+    "11_动植物": "cat",
+    "10_物品道具": "cat",
+    "9_动作姿态": "cat",
+    "8_色彩光线": "cat",
+    "7_场景背景": "cat",
+    "6_服装配饰": "cat",
+    "5_五官表情": "cat",
+    "4_发型发色": "cat",
+    "3_人物主体": "sc",
+    "2_构图视角": "cat",
+    "人物主体": "sc"
+  },
   "allowNsfw": false,
+  "randWeight": false,
   "spaceMode": 2,
+  "tagMode": "phrase",
   "templates": [
     {
       "name": "1girl",
@@ -328,6 +328,11 @@
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00685_.png&subfolder=&type=output",
       "filename": "ComfyUI_00685_.png",
       "prompt": "这是一幅二次元动漫风格的插画，描绘了一位独自静立的美丽女性。她的长发如丝绸般垂落肩头，发色乌黑亮泽。面容精致，五官立体，眼神清澈平和，略带一丝淡然与专注。她身着一件设计简约的白色连衣裙，搭配一条黑色细皮质短靴，整体造型干净优雅。\n\n画面采用4K高清画质，细节高度细腻，完美呈现人物比例与结构，视觉质感无可挑剔。光线以柔和自然光为主，从左上方均匀洒落，在面部和发丝形成微妙阴影，光影层次丰富却不失统一。\n\n- **具体场景**：无明显背景元素\n- **美学风格**：二次元动漫风，细腻精致的美女性描绘\n\n- **空间结构**：主体居中，景深浅淡，单一焦点构图\n\n- **光线设计**：左上方主光源，柔光质，高光与阴影有清晰但不生硬的反差\n\n- **色彩影调**：整体偏冷白基调，黑白为主，发丝与服装呈现自然哑光质感\n\n【镜头：2.0/16-32/5m/主体/无景深-保留景物】"
+    },
+    {
+      "filename": "ComfyUI_00654_.png",
+      "prompt": "candlelit warm glow, intimate atmosphere, light scattering through atmosphere, depth and distance conveyed, a courtesan in a lavish room, fan hiding a knowing smile, heart-shaped face with high cheekbones, innocent puppy eye makeup, a music themed town, streets named after notes, instruments as architecture, hands clasped behind the back, formal and polite, a half-eaten slice of cake on a delicate plate, crumbs scattered",
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00654_.png&subfolder=&type=output"
     }
   ],
   "negtpl_list": [

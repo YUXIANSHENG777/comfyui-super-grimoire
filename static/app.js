@@ -513,12 +513,15 @@ el('btn-reverse-load-preset').addEventListener('click',function(){
     el('modal-reverse-presets').style.display='none';
     toast('已加载: '+p.name);
   });});
-  qsa('.rev-preset-del',div).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();
-    var s=parseInt(this.dataset.strike||'0');s++;this.dataset.strike=s;
+  qsa('.rev-preset-del',div).forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();
+    var s=(parseInt(this.dataset.strike)||0)+1;this.dataset.strike=s;
     if(s>=3){
-      var nl=list.filter(function(_,j){return j!==parseInt(b.dataset.idx);});
+      var idx=parseInt(this.dataset.idx);
+      var nl=list.filter(function(_,j){return j!==idx;});
       localStorage.setItem('grimoire2_reverse_presets',JSON.stringify(nl));
-      div.removeChild(this.parentElement);toast('已删除');
+      list.splice(idx,1);
+      this.parentElement.remove();
+      toast('已删除');
     }else{this.textContent='🗑'+(3-s);this.style.color='var(--danger)';}
   });});
   el('modal-reverse-presets').style.display='';
