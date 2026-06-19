@@ -471,6 +471,7 @@ el('btn-reverse-generate').addEventListener('click',function(){
         S.comfyuiQueue.push({idx:S.comfyuiQueue.length,body:{prompt:reversePrompt,workflow:wf,width:w,height:h,overrides:over,rand_seed:rs,wf_settings:wfs,clip_mapping:clipmap,neg_template:negTpl,load_image:S.loadImage||null},done:false});
         if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();
         _saveGenHistory(reversePrompt);
+        S.llmHistory.unshift(reversePrompt);if(S.llmHistory.length>100)S.llmHistory.pop();saveLlmHistory();
         el('modal-loadimg').style.display='none';
         toast('✅ 反推完成，已发送到队列');
       }else{
