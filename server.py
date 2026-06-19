@@ -1056,6 +1056,44 @@ def api_custom_tags_add_subcategory():
     write_json(CUSTOM_DIR / "custom_tags.json", custom)
     return jsonify({"ok": True})
 
+# ===== 版本更新 =====
+import io, zipfile, shutil, tempfile
+
+@app.route("/api/update/install", methods=["POST"])
+def api_update_install():
+    data = request.get_json()
+    url = data.get("url", "").strip()
+    if not url: return jsonify({"error": "缺少下载地址"}), 400
+    try:
+        # 下载 ZIP
+        req = urllib.request.Request(url, headers={"User-Agent": "ComfyUI-Grimoire"})
+        resp = urllib.request.urlopen(req, timeout=120)
+        zip_bytes = resp.read()
+        # 解压到临时目录
+        tmp = tempfile.mkdtemp()
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+            zf.extractall(tmp)
+        # GitHub zip 包含一层目录，找到实际内容目录
+        dirs = [d for d in Path(tmp).iterdir() if d.is_dir()]
+        src = dirs[0] if dirs else Path(tmp)
+        # 复制文件到项目根（跳过 user_data）
+        project_root = Path(__file__).parent
+        for item in src.iterdir():
+            if item.name == "user_data":
+                continue
+            dst = project_root / item.name
+            if item.is_dir():
+                if dst.exists():
+                    shutil.rmtree(dst, ignore_errors=True)
+                shutil.copytree(item, dst)
+            else:
+                shutil.copy2(item, dst)
+        # 清理临时目录
+        shutil.rmtree(tmp, ignore_errors=True)
+        return jsonify({"ok": True, "message": "更新完成，请重启服务器"})
+    except Exception as e:
+        return jsonify({"error": f"{type(e).__name__}: {str(e)[:200]}"}), 500
+
 @app.route("/api/llm/translate", methods=["POST"])
 def api_llm_translate():
     data = request.get_json()

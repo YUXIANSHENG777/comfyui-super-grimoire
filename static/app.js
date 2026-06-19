@@ -312,27 +312,83 @@ el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positiv
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
 var CURRENT_VERSION='1.0.4';
-el('btn-check-update').addEventListener('click',function(){
-  var btn=this;btn.textContent='⏳ 检查中...';btn.disabled=true;
+var _updateInfo=null;
+
+function _checkUpdate(silent){
+  if(silent)return; // 非静默时才弹窗
   fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
     .then(function(r){return r.json();})
     .then(function(data){
-      var latest=data.tag_name||'';
-      if(latest.replace('v','')>CURRENT_VERSION.replace('v','')){
-        toast('🆕 发现新版本 '+latest+'！当前 '+CURRENT_VERSION);
-        if(confirm('发现新版本 '+latest+'，要打开下载页面吗？')){
-          window.open(data.html_url,'_blank');
-        }
+      var latest=(data.tag_name||'').replace('v','');
+      if(latest>CURRENT_VERSION.replace('v','')){
+        _updateInfo={version:'v'+latest,url:data.zipball_url||data.html_url};
+        el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
+        el('modal-update').style.display='';
+      }else if(!silent){
+        toast('✅ 已是最新版本 v'+CURRENT_VERSION);
+      }
+    })
+    .catch(function(){});
+}
+
+// 手动检查
+el('btn-check-update').addEventListener('click',function(){
+  var btn=this;btn.textContent='⏳ 检查中...';btn.disabled=true;
+  var t=setTimeout(function(){btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查超时');},10000);
+  fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      clearTimeout(t);
+      var latest=(data.tag_name||'').replace('v','');
+      if(latest>CURRENT_VERSION.replace('v','')){
+        _updateInfo={version:'v'+latest,url:data.zipball_url};
+        el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
+        el('modal-update').style.display='';
       }else{
-        toast('✅ 已是最新版本 '+CURRENT_VERSION);
+        toast('✅ 已是最新版本 v'+CURRENT_VERSION);
       }
       btn.textContent='🔄 检查更新';btn.disabled=false;
     })
     .catch(function(){
+      clearTimeout(t);
       toast('❌ 检查失败，请确保能访问 GitHub');
       btn.textContent='🔄 检查更新';btn.disabled=false;
     });
 });
+
+// 自动更新按钮
+el('btn-update-install').addEventListener('click',function(){
+  if(!_updateInfo)return;
+  el('update-progress').style.display='block';
+  el('update-status').textContent='正在下载更新包...';
+  el('update-bar').style.width='20%';
+  this.disabled=true;el('btn-update-ignore').disabled=true;
+  api('/api/update/install',{method:'POST',body:{url:_updateInfo.url}})
+    .then(function(r){
+      if(r.ok){
+        el('update-bar').style.width='100%';
+        el('update-status').textContent='✅ 更新完成！请重启服务器以生效';
+        toast('✅ 更新完成！请关闭并重新打开 start.bat');
+        setTimeout(function(){location.reload();},3000);
+      }else{
+        el('update-status').textContent='❌ 更新失败: '+(r.error||'未知');
+      }
+    })
+    .catch(function(e){
+      el('update-status').textContent='❌ 更新失败: 网络错误';
+    });
+});
+el('btn-update-ignore').addEventListener('click',function(){el('modal-update').style.display='none';});
+
+// 页面启动时自动检查
+(function(){
+  var lastCheck=localStorage.getItem('grimoire2_update_last_check')||'';
+  var today=new Date().toDateString();
+  if(lastCheck===today)return;
+  localStorage.setItem('grimoire2_update_last_check',today);
+  setTimeout(function(){_checkUpdate(true);},3000);
+})();
+
 el('rand-count').addEventListener('input',function(){el('rand-count-display').textContent=this.value;});
 el('rand-count').addEventListener('change',saveUiSettings);
 el('btn-random').addEventListener('click',function(){if(!S.allData)return;var lockedPos=S.posTags.filter(function(t){return t.locked;});var lockedNeg=S.negTags.filter(function(t){return t.locked;});_pushUndo();S.posTags=[];S.negTags=[];for(var i=0;i<lockedNeg.length;i++)S.negTags.push(lockedNeg[i]);var pk=_genRandomTags(lockedPos);S.posTags=pk;refreshPanel('positive');updatePreview();if(!S.isSearching)renderGrid();toast('随机生成 '+pk.length+' 个标签');});

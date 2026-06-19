@@ -40,6 +40,24 @@
   </div>
 </div>
 
+<!-- 模态框: 版本更新 -->
+<div id="modal-update" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:420px;text-align:center">
+    <h3 style="margin:0 0 8px">🆕 发现新版本！</h3>
+    <p id="update-version-info" style="font-size:13px;color:var(--text-secondary);margin-bottom:16px"></p>
+    <div id="update-progress" style="display:none;margin-bottom:12px">
+      <div style="height:4px;background:var(--bg-primary);border-radius:2px">
+        <div id="update-bar" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
+      </div>
+      <div id="update-status" style="font-size:11px;color:var(--text-muted);margin-top:4px">准备下载...</div>
+    </div>
+    <div class="modal-actions" style="justify-content:center">
+      <button id="btn-update-install" class="action-btn primary">⬇ 自动更新</button>
+      <button id="btn-update-ignore" class="action-btn">忽略</button>
+    </div>
+  </div>
+</div>
+
 <!-- 手机端底部导航 -->
 <div id="m-tabbar" style="display:none">
   <div class="m-tab active" data-view="browser">
