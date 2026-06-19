@@ -1,4 +1,6 @@
 {
+  "randWeight": false,
+  "spaceMode": 2,
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -143,8 +145,6 @@
     "人物主体": "sc"
   },
   "allowNsfw": false,
-  "randWeight": false,
-  "spaceMode": 2,
   "tagMode": "phrase",
   "templates": [
     {
@@ -232,6 +232,11 @@
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
   ],
   "gallery": [
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00684_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00684_.png",
+      "prompt": "这是一位独立女性在户外场景中进行的闲散行为-二次元/动漫风\n\n- **具体场景**：一位美丽的独处女孩，独自一人，正闲散站立于城市公园或广场的开阔日光下，周围环境空旷无人，树影婆娑与光影交错。\n- **美学风格**：二次元/动漫风，4K高清，高度细致，专业级, 完美人体结构，无可挑剔的比例\n- **材质细节**：皮肤光滑细腻，发丝柔顺有光泽，衣物质感柔软轻盈，边缘线条清晰锐利\n- **空间结构**：画面以人物为中心的构图，背景与主体间存在明显的景深层次，树影与地面形成中远景布局，前景为清晰的站立姿态\n- **光线设计**：主光源来自左上方的日光/自然光，光线柔和均匀，硬软结合，光比适中，无强反光或暗部死黑区\n- **色彩影调**：整体色调偏冷白与淡灰的清新亮堂色系，环境明亮明快，氛围轻松惬意，带有日间户外的开阔感\n\n【镜头：1.5/0.9/fine focus/清晰背景处理/适合原因】"
+    },
     {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00683_.png&subfolder=&type=output",
       "filename": "ComfyUI_00683_.png",
