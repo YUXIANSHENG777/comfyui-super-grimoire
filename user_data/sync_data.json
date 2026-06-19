@@ -1,10 +1,4 @@
 {
-  "favs": {
-    "A beautiful Asian beauty": true,
-    "Anime style": true,
-    "Anime": true,
-    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
-  },
   "catLimits": {
     "人物": 0,
     "NSFW": 1,
@@ -38,6 +32,14 @@
     "2_构图视角": 0,
     "五官与表情": 2,
     "服装与配饰": 0
+  },
+  "allowNsfw": false,
+  "spaceMode": 2,
+  "favs": {
+    "A beautiful Asian beauty": true,
+    "Anime style": true,
+    "Anime": true,
+    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
   },
   "scLimits": {
     "镜头|景别": 0,
@@ -142,9 +144,7 @@
     "2_构图视角": "cat",
     "人物主体": "sc"
   },
-  "allowNsfw": false,
   "randWeight": false,
-  "spaceMode": 2,
   "tagMode": "phrase",
   "templates": [
     {
