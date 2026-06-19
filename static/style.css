@@ -235,9 +235,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei"
 /* ========== 手机端适配 (max-width: 768px) ========== */
 @media (max-width: 768px) {
   body { overflow-y: auto; height: 100dvh; padding-bottom: 50px; }
-  #toolbar { height: 44px; padding: 0 6px; gap: 2px; overflow-x: auto; flex-wrap: nowrap; }
+  #toolbar { min-height: 44px; padding: 4px 6px; gap: 4px; overflow-x: hidden; flex-wrap: wrap; }
   #toolbar .app-title { display: none; }
-  #toolbar .tool-btn { font-size: 10px; padding: 3px 6px; white-space: nowrap; }
+  #toolbar .tool-btn { font-size: 10px; padding: 3px 8px; white-space: nowrap; }
   #toolbar .rand-count-label { display: none; }
   #toolbar #btn-quality, #toolbar #btn-rand-weight, #toolbar #btn-export-batch { display: none; }
 
