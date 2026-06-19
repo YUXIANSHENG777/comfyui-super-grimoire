@@ -981,25 +981,18 @@ function _popupSendMeta(){
   var gi=_galleryImages[_previewState.index];if(!gi)return;
   var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}
   var raw=gi.prompt||'';var negIdx=raw.indexOf('\n--neg ');if(negIdx<0)negIdx=raw.indexOf('--neg ');
-  var pr=negIdx>=0?raw.substring(0,negIdx).trim():raw.trim();
-  if(!pr.trim()){toast('该图片无提示词记录');return;}
+  var prompt=negIdx>=0?raw.substring(0,negIdx).trim():raw.trim();
+  if(!prompt.trim()){toast('该图片无提示词记录');return;}
   var w=parseInt(el('comfyui-width').value)||null,h=parseInt(el('comfyui-height').value)||null;
   if(!w||!h){w=null;h=null;}
-  function _send(finalPrompt){
-    var over=getModelOverrides(),rs=el('comfyui-rand-seed').checked;
-    var wfs=S.wfSettings[wf]||{},clipmap=_getClipMapping(),negTpl=S.negTemplateAuto?S.negTemplate:'';
-    S.comfyuiQueue.push({idx:S.comfyuiQueue.length,body:{prompt:finalPrompt,workflow:wf,width:w,height:h,overrides:over,rand_seed:rs,wf_settings:wfs,clip_mapping:clipmap,neg_template:negTpl,load_image:S.loadImage||null},done:false});
-    if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();
-    _saveGenHistory(finalPrompt);
-  }
-  if(el('llm-auto-refine').checked){
-    var negPart=raw.indexOf('--neg ')>=0?'\n--neg '+raw.split('--neg ')[1]:'';
-    toast('⏳ AI润色中...');
-    api('/api/llm/translate',{method:'POST',body:{prompt:pr,sysprompt:el('llm-sysprompt').value.trim()||'你是一个AI绘画提示词转换器',url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value}}).then(function(r){var text=r.ok?r.text:null;var final=text||pr;if(negPart)final+=negPart;_send(final);el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';toast(text?'已发送(已润色)到队列':'润色失败，已发送原文');});
-  }else{
-    _send(raw);el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';toast('已发送到队列');
-  }
-}
+  var over=getModelOverrides(),rs=el('comfyui-rand-seed').checked;
+  var wfs=S.wfSettings[wf]||{},clipmap=_getClipMapping(),negTpl=S.negTemplateAuto?S.negTemplate:'';
+  S.comfyuiQueue.push({idx:S.comfyuiQueue.length,body:{prompt:prompt,workflow:wf,width:w,height:h,overrides:over,rand_seed:rs,wf_settings:wfs,clip_mapping:clipmap,neg_template:negTpl,load_image:S.loadImage||null},done:false});
+  if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();
+  _saveGenHistory(prompt);
+  el('img-preview-modal').classList.remove('active');
+  el('img-preview-prompt-popup').style.display='none';
+  toast('已发送到队列');
 }
 el('img-preview-img').addEventListener('wheel',function(e){e.preventDefault();if(e.deltaY<0){_previewState.scale=Math.min(10,_previewState.scale*1.1);}else{_previewState.scale=Math.max(0.05,_previewState.scale/1.1);}_updatePreviewTransform();});
 // 触摸支持：单指拖动，双指缩放
