@@ -336,7 +336,8 @@ el('btn-import-confirm').addEventListener('click',function(){var t=el('import-pr
 el('btn-import-cancel').addEventListener('click',function(){el('modal-import').style.display='none';});
 checkComfyUI();loadWorkflows();
 el('btn-comfyui-refresh').addEventListener('click',function(){checkComfyUI();loadWorkflows();});
-el('btn-comfyui-help').addEventListener('click',function(){var b=el('comfyui-help-box');b.style.display=b.style.display==='none'?'block':'none';});
+el('btn-comfyui-help').addEventListener('click',function(){el('modal-comfyui-help').style.display='';});
+el('btn-comfyui-help-close').addEventListener('click',function(){el('modal-comfyui-help').style.display='none';});
 el('btn-comfyui-lang').addEventListener('click',function(){S.comfyuiLang=S.comfyuiLang==='zh'?'en':'zh';this.textContent=S.comfyuiLang==='zh'?'中':'EN';this.classList.toggle('active',S.comfyuiLang==='en');saveUiSettings();});
 el('btn-comfyui-send').addEventListener('click',function(){try{S.comfyuiStopped=false;var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}var prompt=getCuiPrompt();if(!prompt.trim()){toast('提示词为空');return;}var count=parseInt(el('comfyui-count').value)||1;var w=parseInt(el('comfyui-width').value)||null;var h=parseInt(el('comfyui-height').value)||null;_queueWithRefine(prompt,wf,w,h,count);}catch(e){toast('发送失败: '+e.message);}});
 el('btn-comfyui-stop').addEventListener('click',function(){S.comfyuiStopped=true;S.comfyuiQueue=S.comfyuiQueue.filter(function(x){return x.done;});updateQueueUI();toast('当前任务完成后终止');});

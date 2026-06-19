@@ -259,32 +259,7 @@
           <button id="btn-comfyui-help" class="mini-btn" title="使用说明">❓</button>
         </div>
       </div>
-      <div id="comfyui-help-box" style="display:none;padding:8px 12px;font-size:10px;color:var(--text-muted);background:var(--bg-primary);border-bottom:1px solid var(--border);line-height:1.7;max-height:360px;overflow-y:auto">
-        <b>🚀 首次配置</b><br>
-        1️⃣ ComfyUI导出工作流：<b>Workflow → Export (API)</b> → JSON放入 <b>workflows/</b> 文件夹<br>
-        2️⃣ 刷新页面下拉选择 → 🔗 正负绑定节点 → 💾 保存<br>
-        3️⃣ 设宽高/张数 → ⚙ 调采样器步数CFG → 🎭 选模型<br>
-        <br>
-        <b>🎮 四种生图方式</b><br>
-        🚀 <b>普通生图</b> — 用当前面板的标签生图，勾选🤖AI自动润色可先润色再出图<br>
-        🎲 <b>随机生图</b> — 每次随机重抽标签再出图，张张不同，张数由上方「张」控制<br>
-        ✏ <b>手写生图</b> — 直接手写提示词，勾选润色也会先AI加工<br>
-        🖼 <b>加载图片</b> — 上传图片绑定LoadImage节点，支持拖拽；<b>🔄反推生图</b>：选图片→AI分析→自动出图<br>
-        <br>
-        <b>🤖 AI润色增强</b><br>
-        - 生图前自动润色：标签带分类名发给大模型，返回自然语言提示词<br>
-        - 手写/反推/随机也都可勾选润色生效<br>
-        - 📜 润色记录独立管理，带翻页<br>
-        <br>
-        <b>📦 队列 & 返图</b><br>
-        - 排队生成 → 进度条 → 逐一出图 → 可终止/清空<br>
-        - 返图缩略图横向滚动 → 点击放大 → 缩放拖拽 → 下载 → 📝查看提示词<br>
-        <br>
-        <b>💡 技巧</b><br>
-        - 🎲随机种子关闭 = 同标签同参数出固定图（可复现）<br>
-        - 📐模板区 {tags} 可放 LoRA 触发词，润色不影响模板<br>
-        - 🚫负面预设自动注入，和面板负面标签叠加生效
-      </div>
+
       <div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
         <button id="btn-comfyui-lang" class="tool-btn active" style="font-size:11px;padding:3px 8px">EN</button>
         <select id="comfyui-workflow" style="flex:1;min-width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-secondary);font-size:11px">
@@ -606,6 +581,51 @@
       <button id="btn-reverse-presets-close" class="action-btn">关闭</button>
     </div>
   </div>
+</div>
+
+<!-- 模态框: ComfyUI 使用说明 -->
+<div id="modal-comfyui-help" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:520px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0">🎨 ComfyUI 使用说明</h3>
+      <button id="btn-comfyui-help-close" style="border:none;background:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);line-height:1.9">
+      <b>🚀 首次配置</b><br>
+      1️⃣ ComfyUI中导出工作流：<b>Workflow → Export (API)</b> → 保存JSON到 <b>workflows/</b> 文件夹<br>
+      2️⃣ 刷新页面 → 下拉选择工作流 → 🔗 <b>正负绑定</b> 指定CLIP节点 → 💾 保存<br>
+      3️⃣ 设宽高/张数 → ⚙ 调采样器/步数/CFG → 🎭 选模型/权重<br>
+      <br>
+      <b>🎮 四种生图方式</b><br>
+      🚀 <b>普通生图</b> — 用当前面板选好的标签直接生图<br>
+      &nbsp;&nbsp;&nbsp;💡 勾选「🤖AI自动润色」可先发大模型润色再出图<br>
+      🎲 <b>随机生图</b> — 每次重新随机抽标签再出图，张张不同<br>
+      &nbsp;&nbsp;&nbsp;💡 张数由上方「张」控制，配合随机种子可复现<br>
+      ✏ <b>手写生图</b> — 直接手写正向提示词，勾选润色会先AI加工<br>
+      🖼 <b>加载图片</b> — 上传图片绑定LoadImage节点，支持拖拽<br>
+      &nbsp;&nbsp;&nbsp;🔥 <b>反推生图</b>：选图片 → AI视觉模型分析 → 自动反推提示词 → 发送生图<br>
+      &nbsp;&nbsp;&nbsp;📂 内置6套反推预设：通用/转动漫/转真人/转油画/转赛博/中文反推<br>
+      <br>
+      <b>🤖 AI润色说明</b><br>
+      - 标签发送时自动带分类名 [人物主体] [发型与发色] 等，大模型理解更准确<br>
+      - 支持 OpenAI / LM Studio / Ollama / 自定义API<br>
+      - 反推生图需要视觉多模态模型（gpt-4o / qwen-vl / glm-4v）<br>
+      - 📜 润色记录自动保存最近100条，翻页浏览，可重新发送<br>
+      <br>
+      <b>📦 队列 & 返图</b><br>
+      - 排队生成 → 进度条 → 逐一出图 → 可终止/清空<br>
+      - 返图缩略图横向滚动 → 点击放大 → 缩放/拖拽 → ⬇下载 → 📝查看提示词<br>
+      - 手机端通过Flask代理访问ComfyUI图片<br>
+      <br>
+      <b>💡 技巧</b><br>
+      - 🎲 关闭随机种子 = 同标签同参数出固定图（可复现）<br>
+      - 📐 模板区 {tags} 放LoRA触发词/画风前缀，润色不会影响模板内容<br>
+      - 🚫 负面预设自动注入，和面板负面标签叠加生效<br>
+      - 🔄 空隔转换：标记直接拼接 / 空格转下划线 / 下划线转空格<br>
+      - 📱 手机连同一WiFi访问 http://电脑IP:5801 即可使用
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- 模态框: 手写生图 -->
