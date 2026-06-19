@@ -259,11 +259,31 @@
           <button id="btn-comfyui-help" class="mini-btn" title="使用说明">❓</button>
         </div>
       </div>
-      <div id="comfyui-help-box" style="display:none;padding:6px 12px;font-size:10px;color:var(--text-muted);background:var(--bg-primary);border-bottom:1px solid var(--border);line-height:1.6">
-        1️⃣ ComfyUI: <b>Workflow → Export (API)</b> → 保存JSON到程序的 <b>workflows/</b> 文件夹<br>
-        2️⃣ 刷新页面 → 下拉选择工作流 → 设定 <b>✅正向/❌负面</b> 节点 → 💾 保存<br>
-        3️⃣ ⚙ 设置可改采样器/步数/CFG/尺寸 → 🚀 生图<br>
-        💡 节点映射保存后永不再错，换工作流互不干扰
+      <div id="comfyui-help-box" style="display:none;padding:8px 12px;font-size:10px;color:var(--text-muted);background:var(--bg-primary);border-bottom:1px solid var(--border);line-height:1.7;max-height:360px;overflow-y:auto">
+        <b>🚀 首次配置</b><br>
+        1️⃣ ComfyUI导出工作流：<b>Workflow → Export (API)</b> → JSON放入 <b>workflows/</b> 文件夹<br>
+        2️⃣ 刷新页面下拉选择 → 🔗 正负绑定节点 → 💾 保存<br>
+        3️⃣ 设宽高/张数 → ⚙ 调采样器步数CFG → 🎭 选模型<br>
+        <br>
+        <b>🎮 四种生图方式</b><br>
+        🚀 <b>普通生图</b> — 用当前面板的标签生图，勾选🤖AI自动润色可先润色再出图<br>
+        🎲 <b>随机生图</b> — 每次随机重抽标签再出图，张张不同，张数由上方「张」控制<br>
+        ✏ <b>手写生图</b> — 直接手写提示词，勾选润色也会先AI加工<br>
+        🖼 <b>加载图片</b> — 上传图片绑定LoadImage节点，支持拖拽；<b>🔄反推生图</b>：选图片→AI分析→自动出图<br>
+        <br>
+        <b>🤖 AI润色增强</b><br>
+        - 生图前自动润色：标签带分类名发给大模型，返回自然语言提示词<br>
+        - 手写/反推/随机也都可勾选润色生效<br>
+        - 📜 润色记录独立管理，带翻页<br>
+        <br>
+        <b>📦 队列 & 返图</b><br>
+        - 排队生成 → 进度条 → 逐一出图 → 可终止/清空<br>
+        - 返图缩略图横向滚动 → 点击放大 → 缩放拖拽 → 下载 → 📝查看提示词<br>
+        <br>
+        <b>💡 技巧</b><br>
+        - 🎲随机种子关闭 = 同标签同参数出固定图（可复现）<br>
+        - 📐模板区 {tags} 可放 LoRA 触发词，润色不影响模板<br>
+        - 🚫负面预设自动注入，和面板负面标签叠加生效
       </div>
       <div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
         <button id="btn-comfyui-lang" class="tool-btn active" style="font-size:11px;padding:3px 8px">EN</button>
