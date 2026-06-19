@@ -1,10 +1,4 @@
 {
-  "favs": {
-    "A beautiful Asian beauty": true,
-    "Anime style": true,
-    "Anime": true,
-    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
-  },
   "catLimits": {
     "人物": 0,
     "NSFW": 1,
@@ -38,6 +32,46 @@
     "2_构图视角": 0,
     "五官与表情": 2,
     "服装与配饰": 0
+  },
+  "catModes": {
+    "镜头": "cat",
+    "服饰": "cat",
+    "动作": "sc",
+    "场景道具": "cat",
+    "表情": "cat",
+    "人物": "sc",
+    "NSFW": "sc",
+    "画质与渲染": "sc",
+    "艺术风格": "sc",
+    "负面提示词": "cat",
+    "动作姿态": "sc",
+    "构图与视角": "sc",
+    "色彩与氛围": "sc",
+    "场景与背景": "cat",
+    "服装与配饰": "sc",
+    "发型与发色": "cat",
+    "动植物与自然": "sc",
+    "0_画质基础": "cat",
+    "12_负面提示": "cat",
+    "11_动植物": "cat",
+    "10_物品道具": "cat",
+    "9_动作姿态": "cat",
+    "8_色彩光线": "cat",
+    "7_场景背景": "cat",
+    "6_服装配饰": "cat",
+    "5_五官表情": "cat",
+    "4_发型发色": "cat",
+    "3_人物主体": "sc",
+    "2_构图视角": "cat",
+    "人物主体": "sc"
+  },
+  "randWeight": false,
+  "tagMode": "phrase",
+  "favs": {
+    "A beautiful Asian beauty": true,
+    "Anime style": true,
+    "Anime": true,
+    "Makoto Shinkai art style, cinematic anime lighting, photorealistic backgrounds": true
   },
   "scLimits": {
     "镜头|景别": 0,
@@ -112,42 +146,8 @@
     "画质与渲染|光影效果": 0,
     "画质与渲染|渲染特效": 1
   },
-  "catModes": {
-    "镜头": "cat",
-    "服饰": "cat",
-    "动作": "sc",
-    "场景道具": "cat",
-    "表情": "cat",
-    "人物": "sc",
-    "NSFW": "sc",
-    "画质与渲染": "sc",
-    "艺术风格": "sc",
-    "负面提示词": "cat",
-    "动作姿态": "sc",
-    "构图与视角": "sc",
-    "色彩与氛围": "sc",
-    "场景与背景": "cat",
-    "服装与配饰": "sc",
-    "发型与发色": "cat",
-    "动植物与自然": "sc",
-    "0_画质基础": "cat",
-    "12_负面提示": "cat",
-    "11_动植物": "cat",
-    "10_物品道具": "cat",
-    "9_动作姿态": "cat",
-    "8_色彩光线": "cat",
-    "7_场景背景": "cat",
-    "6_服装配饰": "cat",
-    "5_五官表情": "cat",
-    "4_发型发色": "cat",
-    "3_人物主体": "sc",
-    "2_构图视角": "cat",
-    "人物主体": "sc"
-  },
   "allowNsfw": false,
-  "randWeight": false,
   "spaceMode": 2,
-  "tagMode": "phrase",
   "templates": [
     {
       "name": "1girl",
@@ -234,6 +234,11 @@
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
   ],
   "gallery": [
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00697_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00697_.png",
+      "prompt": "An anime-style, 2D illustration with a man in profile, wearing a dark suit and tie, gazing upward. His hair is short and wavy, skin is fair with a subtle glow of light highlighting his face. Surrounding him are vivid red spider lilies (Liriope), their elongated petals sharp and vibrant against the dark background. The composition features a dramatic use of lighting, creating an intense, cinematic atmosphere—a contrast between the man's serene expression and the bold, vivid flowers."
+    },
     {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00696_.png&subfolder=&type=output",
       "filename": "ComfyUI_00696_.png",
