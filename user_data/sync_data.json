@@ -1,5 +1,5 @@
 {
-  "spaceMode": 2,
+  "allowNsfw": false,
   "tagMode": "phrase",
   "favs": {
     "A beautiful Asian beauty": true,
@@ -146,8 +146,8 @@
     "2_构图视角": "cat",
     "人物主体": "sc"
   },
-  "allowNsfw": false,
   "randWeight": false,
+  "spaceMode": 2,
   "templates": [
     {
       "name": "1girl",
@@ -234,6 +234,16 @@
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
   ],
   "gallery": [
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00700_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00700_.png",
+      "prompt": "这是一位独自置身于现代都市街景中的年轻女性。她有着及肩长度的黑色直发，发丝柔顺地垂落至肩部两侧；五官精致，眉眼舒展，鼻梁挺直，唇瓣微抿，整体神态平和中带着一丝专注与沉静，目光似在凝视着前方街道上的一点。\n\n她身着一件简约的白色长袖上衣与同色系长裤，衣料质感轻柔贴合身形；未佩戴任何明显首饰，仅以整洁的发型与干净的妆容凸显其纯净气质。她的动作是静止站立的姿势——双腿并拢，重心略微前倾，双臂自然垂落于身体两侧，双手掌心朝前，仿佛在观察着前方的动态。\n\n场景是一条现代都市的步行街道，背景为整洁的灰色系建筑群与宽阔的柏油路面，阳光从建筑物间的空隙斜射入画面，形成数道明暗交织的光影——地面投下建筑物的深浅阴影，空气里漂浮着一层薄淡的雾气感。\n\n艺术风格采用二次元/动漫风，以4K高清画质精细呈现；人物比例精确无误，发丝、衣料与建筑纹理皆需达到无可挑剔的专业级细节程度。光线设计为硬光与柔光结合：主光源来自画面右上方的斜射阳光，在地面投下清晰却略带柔和的投影，同时保留环境中的散漫反光以平衡高光与阴影的对比；整体色调偏明亮冷白，营造出都市清晨或午后宁静而充满生活气息的氛围。"
+    },
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00699_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00699_.png",
+      "prompt": "A male figure in a close-up side profile shot, gazing upward with a contemplative expression; his short black hair is sharply defined by dramatic backlighting. He wears a dark formal suit (black or deep gray) and a matching shirt, with the collar subtly visible beneath. Vibrant red spider lilies surround him—multiple blooms positioned to the left and right of his body, their intricate, thread-thin petals radiating intense color against a pure black backdrop. The composition balances focus on his face: sharp jawline, defined cheekbones, and a softly lit eye area, all accentuated by smooth skin textures; no facial hair, clean-shaven neck visible. Overall, the image blends realism with anime-inspired aesthetics through its use of lighting (chiaroscuro), bold line work for hair and garment details, and vibrant flower petals to create an emotive, stylized portrait."
+    },
     {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00698_.png&subfolder=&type=output",
       "filename": "ComfyUI_00698_.png",

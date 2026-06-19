@@ -1098,7 +1098,7 @@ function _popupSendMeta(){
   if(el('llm-auto-refine').checked){
     var negPart=raw.indexOf('--neg ')>=0?'\n--neg '+raw.split('--neg ')[1]:'';
     toast('⏳ AI润色中...');
-    api('/api/llm/translate',{method:'POST',body:{prompt:pr,sysprompt:el('llm-sysprompt').value.trim()||'',url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value}}).then(function(r){_popSend(r.ok&&r.text?r.text:pr+(negPart||''));el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';toast(r.ok?'已发送(已润色)到队列':'润色失败，已发送原文');});
+    api('/api/llm/translate',{method:'POST',body:{prompt:pr,sysprompt:el('llm-sysprompt').value.trim()||'',url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value}}).then(function(r){var fp=r.ok&&r.text?r.text:pr+(negPart||'');_popSend(fp);if(r.ok&&r.text){S.llmHistory.unshift(fp);if(S.llmHistory.length>100)S.llmHistory.pop();saveLlmHistory();}el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';toast(r.ok?'已发送(已润色)到队列':'润色失败，已发送原文');});
   }else{
     _popSend(raw);el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';toast('已发送到队列');
   }
