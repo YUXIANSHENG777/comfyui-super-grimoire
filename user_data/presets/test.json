@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "tags": [
+    "Anime style",
+    "a beautiful solo girl, the only focus of the image",
+    "4K HD, highly detailed, professional grade"
+  ],
+  "weights": {
+    "Anime style": 1,
+    "a beautiful solo girl, the only focus of the image": 1,
+    "4K HD, highly detailed, professional grade": 1
+  },
+  "negative_tags": [],
+  "negative_weights": {},
+  "created": "2026-06-20 02:22:21"
+}
