@@ -4,6 +4,12 @@
 
 面向 Stable Diffusion / ComfyUI 的标签浏览、随机组合、AI润色、批量生图全功能 Web 工具。桌面/手机双端适配，数据通过 Flask 服务端同步。
 
+## 📸 界面预览
+
+![超级无敌魔导书主界面](screenshots/main.png)
+
+> 截图请放入 `screenshots/` 文件夹，命名为 `main.png`
+
 ---
 
 ## 项目功能总览
@@ -125,6 +131,8 @@
 │   ├── llm_presets.json       # 润色预设列表
 │   └── sync_data.json         # 统一同步数据（收藏/上限/模式等）
 ├── workflows/                  # ComfyUI API 格式工作流 JSON
+├── screenshots/                # 界面截图
+│   └── main.png
 ├── static/
 │   ├── index.html             # 前端 HTML（所有弹窗、模态框）
 │   ├── app.js                 # 前端逻辑（约 900 行单文件）
