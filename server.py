@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-"""超级无敌魔导书V8 - AI提示词组合器"""
+"""超级无敌魔导书 - AI提示词组合器"""
 
 import json, os, random, shutil, time, urllib.request, urllib.error, urllib.parse
 from pathlib import Path
@@ -193,6 +193,12 @@ def api_history_delete(name):
     if fp.exists(): fp.unlink(); return jsonify({"ok": True})
     return jsonify({"error": "not found"}), 404
 
+@app.route("/api/history/clear", methods=["DELETE"])
+def api_history_clear():
+    if HISTORY_DIR.exists():
+        for f in HISTORY_DIR.glob("*.json"): f.unlink()
+    return jsonify({"ok": True})
+
 @app.route("/api/custom-tags", methods=["GET"])
 def api_custom_tags_get():
     return jsonify(read_json(CUSTOM_DIR / "custom_tags.json", {"categories": []}))
@@ -318,7 +324,7 @@ def _load_llm_config():
     try:
         if _llm_config_file.exists():
             return json.loads(open(_llm_config_file, "r", encoding="utf-8").read())
-    except: pass
+    except Exception as e: print(f"[警告] LLM配置读取失败: {e}")
     return {}
 def _save_llm_config(cfg):
     _llm_config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -341,7 +347,7 @@ def _load_llm_presets():
     try:
         if _llm_presets_file.exists():
             return json.loads(open(_llm_presets_file, "r", encoding="utf-8").read())
-    except: pass
+    except Exception as e: print(f"[警告] 润色预设读取失败: {e}")
     return []
 def _save_llm_presets(data):
     _llm_presets_file.parent.mkdir(parents=True, exist_ok=True)
@@ -363,8 +369,9 @@ _sync_file = BASE / "user_data" / "sync_data.json"
 def _load_sync():
     try:
         if _sync_file.exists():
-            return json.loads(open(_sync_file, "r", encoding="utf-8").read())
-    except: pass
+            raw = open(_sync_file, "r", encoding="utf-8").read().strip()
+            if raw: return json.loads(raw)
+    except Exception as e: print(f"[警告] 同步数据读取失败: {e}")
     return {}
 def _save_sync(data):
     _sync_file.parent.mkdir(parents=True, exist_ok=True)
@@ -893,6 +900,41 @@ def api_comfyui_proxy_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
+@app.route("/api/comfyui/image-meta")
+def api_comfyui_image_meta():
+    """读取 ComfyUI 生成图片的 PNG 元数据（生成参数）"""
+    fn = request.args.get("filename", "")
+    sf = request.args.get("subfolder", "")
+    tp = request.args.get("type", "output")
+    url = f"{COMFYUI_URL}/api/view?filename={urllib.parse.quote(fn)}&subfolder={urllib.parse.quote(sf)}&type={urllib.parse.quote(tp)}"
+    try:
+        req = urllib.request.Request(url)
+        resp = urllib.request.urlopen(req, timeout=15)
+        data = resp.read()
+        meta = ""
+        # 尝试读取 PNG tEXt chunk
+        import struct
+        if data[:8] == b'\x89PNG\r\n\x1a\n':
+            pos = 8
+            while pos < len(data):
+                length = struct.unpack('>I', data[pos:pos+4])[0]
+                pos += 4
+                chunk_type = data[pos:pos+4].decode('ascii', errors='ignore')
+                pos += 4
+                if chunk_type == 'tEXt':
+                    raw = data[pos:pos+length]
+                    null = raw.find(b'\x00')
+                    if null > 0:
+                        key = raw[:null].decode('ascii', errors='ignore')
+                        val = raw[null+1:].decode('utf-8', errors='ignore')
+                        if key in ('parameters', 'prompt', 'workflow'):
+                            meta = val
+                            break
+                pos += length + 4  # skip crc
+        return jsonify({"ok": True, "meta": meta})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
 @app.route("/api/comfyui/loadimage-nodes")
 def api_comfyui_loadimage_nodes():
     """获取工作流中所有 LoadImage 节点"""
@@ -1074,7 +1116,7 @@ def api_llm_translate():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书V8 - AI绘画提示词组合器")
+    print("  超级无敌魔导书 - AI绘画提示词组合器")
     print("  访问 http://127.0.0.1:5801")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5801, debug=False)

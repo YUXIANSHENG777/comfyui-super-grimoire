@@ -8,7 +8,7 @@ except ImportError:
     os.system(f'"{sys.executable}" -m pip install -q flask openpyxl')
 
 print("=" * 50)
-print("  超级无敌魔导书V8 - AI绘画提示词组合器")
+print("  超级无敌魔导书 - AI绘画提示词组合器")
 print("  正在启动...")
 print("=" * 50)
 

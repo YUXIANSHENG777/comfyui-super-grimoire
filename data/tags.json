@@ -1913,10 +1913,6 @@
               "zh": "中景镜头，大约半个身体在画中"
             },
             {
-              "en": "cowboy shot, from the thighs up",
-              "zh": "牛仔镜头，大腿以上"
-            },
-            {
               "en": "knee-up shot, three-quarter figure showing most of the body",
               "zh": "膝盖以上，四分之三身像"
             },
@@ -6930,6 +6926,136 @@
             }
           ],
           "type": "multi"
+        },
+        {
+          "name": "脸型",
+          "tags": [
+            {
+              "en": "delicate v-shaped face with sharp chin",
+              "zh": "精致小V脸配尖下巴"
+            },
+            {
+              "en": "oval face with soft contours",
+              "zh": "鹅蛋脸柔和轮廓"
+            },
+            {
+              "en": "heart-shaped face with high cheekbones",
+              "zh": "心形脸高颧骨"
+            },
+            {
+              "en": "round face with baby fat cheeks",
+              "zh": "圆润婴儿肥脸颊"
+            },
+            {
+              "en": "slender oval face with refined jawline",
+              "zh": "纤细鹅蛋脸配精致下颌线"
+            },
+            {
+              "en": "small face with golden ratio proportions",
+              "zh": "小脸黄金比例"
+            },
+            {
+              "en": "melon-seed face with porcelain skin",
+              "zh": "瓜子脸瓷白肌肤"
+            },
+            {
+              "en": "angular face with defined jaw",
+              "zh": "棱角分明方脸"
+            },
+            {
+              "en": "long face with elegant proportions",
+              "zh": "长脸优雅比例"
+            },
+            {
+              "en": "diamond face with prominent cheekbones",
+              "zh": "钻石脸高颧骨"
+            },
+            {
+              "en": "square face with chiseled features",
+              "zh": "方脸雕刻轮廓"
+            },
+            {
+              "en": "round face with soft features",
+              "zh": "圆脸柔和线条"
+            },
+            {
+              "en": "narrow face with delicate structure",
+              "zh": "窄脸精致结构"
+            },
+            {
+              "en": "broad face with balanced proportions",
+              "zh": "宽脸均衡比例"
+            },
+            {
+              "en": "east asian facial structure",
+              "zh": "东方面部轮廓"
+            }
+          ]
+        },
+        {
+          "name": "妆容",
+          "tags": [
+            {
+              "en": "douyin viral makeup",
+              "zh": "抖音网红妆容"
+            },
+            {
+              "en": "k-pop idol makeup",
+              "zh": "韩系爱豆妆容"
+            },
+            {
+              "en": "xiaohongshu aesthetic makeup",
+              "zh": "小红书氛围妆"
+            },
+            {
+              "en": "pure desire makeup look",
+              "zh": "纯欲风妆容"
+            },
+            {
+              "en": "innocent puppy eye makeup",
+              "zh": "无辜狗狗眼妆"
+            },
+            {
+              "en": "seductive fox eye makeup",
+              "zh": "魅惑狐狸眼妆"
+            },
+            {
+              "en": "gradient lip tint",
+              "zh": "韩系咬唇妆"
+            },
+            {
+              "en": "glass skin makeup",
+              "zh": "水光肌妆容"
+            },
+            {
+              "en": "matte velvet makeup",
+              "zh": "丝绒哑光妆"
+            },
+            {
+              "en": "dewy fresh makeup",
+              "zh": "清新水润妆"
+            },
+            {
+              "en": "no-makeup makeup look",
+              "zh": "心机伪素颜"
+            },
+            {
+              "en": "aegyo sal highlight",
+              "zh": "卧蚕高光术"
+            },
+            {
+              "en": "rosy blush makeup",
+              "zh": "氛围感腮红妆"
+            },
+            {
+              "en": "bold red lip makeup",
+              "zh": "气场大红唇"
+            },
+            {
+              "en": "glossy mirror lips",
+              "zh": "镜面玻璃唇"
+            }
+          ]
         }
       ]
     },
