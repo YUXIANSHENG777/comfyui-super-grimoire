@@ -8,8 +8,6 @@
 
 ![超级无敌魔导书主界面](screenshots/main.png)
 
-> 截图请放入 `screenshots/` 文件夹，命名为 `main.png`
-
 ---
 
 ## 项目功能总览
