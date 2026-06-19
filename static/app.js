@@ -433,8 +433,9 @@ el('reverse-sysprompt').addEventListener('change',function(){
 });
 // 首次加载注入默认反推预设
 (function(){
-  if(localStorage.getItem('grimoire2_reverse_seeded')==='v2')return;
-  localStorage.setItem('grimoire2_reverse_seeded','v2');
+  if(localStorage.getItem('grimoire2_reverse_seeded')==='v3')return;
+  localStorage.removeItem('grimoire2_reverse_presets');
+  localStorage.setItem('grimoire2_reverse_seeded','v3');
   var defs=[
     {name:'🔍 通用反推',sys:'# 角色\n你是电影级AI绘画提示词导演，专精于从图片反推高质量Stable Diffusion提示词。\n\n# 任务\n仔细观察这张图片，输出一段能在Stable Diffusion中生成类似画面的英文提示词。\n\n# 必须覆盖的维度\n- 具体场景：地点、人物、正在发生什么\n- 人物细节：性别、年龄感、外貌特征、表情神态、发型发色、服装款式与材质、姿态动作\n- 场景环境：空间结构、前景/中景/背景层次、关键物体与材质\n- 光线设计：主光源方向、光质软硬、阴影关系、是否有特殊光效（逆光/侧光/丁达尔/霓虹等）\n- 色彩影调：整体色调倾向、饱和度、对比度、画面情绪\n- 艺术风格：类似的艺术流派或视觉风格\n- 画质与渲染：画质词、细节水平\n- 构图与视角：镜头角度、景深、对焦\n\n# 镜头参数摘要\n在末尾添加：【镜头：焦距_光圈_景深_对焦位置_背景处理】\n\n# 核心原则\n- 不要评价、不要问我问题、不要写\'这张图片展示了...\'\n- 要具体、可执行，写出材质/光线/色彩/空间/镜头和景深的具体细节\n- 不要用空洞形容词，不要写分镜或时间轴\n- 完整一段英文输出，150词左右'},
     {name:'🎌 转二次元/动漫',sys:'# 角色\n你是顶级二次元插画风格转换专家，精通将任何现实或写实风格图片转换为动漫/二次元视觉风格的提示词。\n\n# 任务\n分析这张图片的核心内容（人物关系、构图布局、氛围情绪、视觉重心），然后完全用二次元/动漫风格的词汇重新描述。\n\n# 风格转换规则\n- 保留原图的核心内容、人物数量关系、构图框架、情绪基调\n- 将写实材质描述转换为二次元风格描述：皮肤→瓷白光滑肌肤，头发→柔顺高光发丝，服装→干净利落的衣褶\n- 添加二次元特有视觉元素：cel shading、clean linework、flat coloring with gradient shading、2D illustration\n- 画面风格建议：anime style、manga illustration、anime screencap、light novel illustration、anime key visual\n- 画质词用二次元专用描述：sharp focus、vibrant colors、detailed character design、beautiful anime lighting\n- 不使用 photorealistic / 8K / film grain 等写实摄影词汇\n\n# 输出格式\n英文一段，150词左右。末尾加【镜头】参数。只输出提示词。'},
