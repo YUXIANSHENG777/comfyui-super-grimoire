@@ -1,6 +1,4 @@
 {
-  "randWeight": false,
-  "tagMode": "phrase",
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -145,7 +143,9 @@
     "人物主体": "sc"
   },
   "allowNsfw": false,
+  "randWeight": false,
   "spaceMode": 2,
+  "tagMode": "phrase",
   "templates": [
     {
       "name": "1girl",
@@ -232,6 +232,11 @@
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
   ],
   "gallery": [
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00683_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00683_.png",
+      "prompt": "这是一位独自站立的美丽女性角色，位于一个简约现代的空旷场景中，她拥有乌黑亮丽的长发，自然垂落于肩头；五官精致，眉眼舒展，嘴角上扬形成愉悦柔和的微笑，眼神清澈明亮。她的身姿优雅挺拔，双手背于背后，双脚并拢站立，展现出轻盈的动态感与静态美之间的和谐统一。\n\n画面采用二次元/动漫风格，4K超高清画质，完美呈现每一处细节：乌黑发丝的柔顺光泽、细腻肌肤的通透质感、精致五官的立体轮廓及发丝的自然纹理。整体以高饱和明亮的暖调为主导，营造出温馨愉悦的氛围感。\n\n【镜头：1.5/2-30mm景深对焦在人物面部】"
+    },
     {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00682_.png&subfolder=&type=output",
       "filename": "ComfyUI_00682_.png",
