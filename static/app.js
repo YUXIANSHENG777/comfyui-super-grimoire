@@ -366,9 +366,15 @@ el('btn-update-install').addEventListener('click',function(){
     .then(function(r){
       if(r.ok){
         el('update-bar').style.width='100%';
-        el('update-status').textContent='✅ 更新完成！请重启服务器以生效';
-        toast('✅ 更新完成！请关闭并重新打开 start.bat');
-        setTimeout(function(){location.reload();},3000);
+        var msg='✅ 更新完成！请重启服务器以生效';
+        if(r.warnings&&r.warnings.length){
+          msg+='\n⚠ '+r.warnings.join('\n');
+          el('update-status').innerHTML='✅ 更新完成！<br><span style="color:var(--warning)">⚠ 部分文件被占用，.new文件重启后生效</span><br><span style="font-size:9px">旧版已备份到 user_data/_backup</span>';
+        }else{
+          el('update-status').textContent=msg;
+        }
+        toast(msg);
+        setTimeout(function(){location.reload();},4000);
       }else{
         el('update-status').textContent='❌ 更新失败: '+(r.error||'未知');
       }

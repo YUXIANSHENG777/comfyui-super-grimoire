@@ -1076,20 +1076,52 @@ def api_update_install():
         # GitHub zip 包含一层目录，找到实际内容目录
         dirs = [d for d in Path(tmp).iterdir() if d.is_dir()]
         src = dirs[0] if dirs else Path(tmp)
-        # 复制文件到项目根（跳过 user_data）
         project_root = Path(__file__).parent
+        # 备份当前文件（跳过 user_data）
+        backup_dir = project_root / "user_data" / "_backup"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        errors = []
         for item in src.iterdir():
             if item.name == "user_data":
                 continue
             dst = project_root / item.name
-            if item.is_dir():
-                if dst.exists():
-                    shutil.rmtree(dst, ignore_errors=True)
-                shutil.copytree(item, dst)
-            else:
-                shutil.copy2(item, dst)
+            try:
+                if item.is_dir():
+                    # 备份旧目录
+                    if dst.exists():
+                        bak = backup_dir / item.name
+                        if bak.exists():
+                            shutil.rmtree(bak, ignore_errors=True)
+                        try:
+                            shutil.copytree(dst, bak, symlinks=False, ignore_dangling_symlinks=True)
+                        except:
+                            pass
+                    # 替换新目录
+                    if dst.exists():
+                        shutil.rmtree(dst, ignore_errors=True)
+                    shutil.copytree(item, dst)
+                else:
+                    # 备份旧文件
+                    if dst.exists():
+                        try:
+                            shutil.copy2(dst, backup_dir / item.name)
+                        except:
+                            pass
+                    # 替换新文件（处理文件锁）
+                    try:
+                        shutil.copy2(item, dst)
+                    except PermissionError:
+                        # Windows 文件被占用，写入临时文件提示
+                        tmp_name = str(dst) + ".new"
+                        shutil.copy2(item, tmp_name)
+                        errors.append(f"{item.name}（被占用，已存为 .new，重启后生效）")
+            except Exception as ex:
+                errors.append(f"{item.name}: {ex}")
         # 清理临时目录
         shutil.rmtree(tmp, ignore_errors=True)
+        if errors:
+            return jsonify({"ok": True, "message": "部分文件被占用，已备份旧版到 user_data/_backup，重启后新文件生效", "warnings": errors})
+        shutil.rmtree(backup_dir, ignore_errors=True)
         return jsonify({"ok": True, "message": "更新完成，请重启服务器"})
     except Exception as e:
         return jsonify({"error": f"{type(e).__name__}: {str(e)[:200]}"}), 500
