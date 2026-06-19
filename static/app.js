@@ -310,6 +310,29 @@ el('btn-space-mode').addEventListener('click',function(){S.spaceMode=(S.spaceMod
 el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').value;if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制英文提示词!');});
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
+// 检查更新
+var CURRENT_VERSION='1.0.4';
+el('btn-check-update').addEventListener('click',function(){
+  var btn=this;btn.textContent='⏳ 检查中...';btn.disabled=true;
+  fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var latest=data.tag_name||'';
+      if(latest.replace('v','')>CURRENT_VERSION.replace('v','')){
+        toast('🆕 发现新版本 '+latest+'！当前 '+CURRENT_VERSION);
+        if(confirm('发现新版本 '+latest+'，要打开下载页面吗？')){
+          window.open(data.html_url,'_blank');
+        }
+      }else{
+        toast('✅ 已是最新版本 '+CURRENT_VERSION);
+      }
+      btn.textContent='🔄 检查更新';btn.disabled=false;
+    })
+    .catch(function(){
+      toast('❌ 检查失败，请确保能访问 GitHub');
+      btn.textContent='🔄 检查更新';btn.disabled=false;
+    });
+});
 el('rand-count').addEventListener('input',function(){el('rand-count-display').textContent=this.value;});
 el('rand-count').addEventListener('change',saveUiSettings);
 el('btn-random').addEventListener('click',function(){if(!S.allData)return;var lockedPos=S.posTags.filter(function(t){return t.locked;});var lockedNeg=S.negTags.filter(function(t){return t.locked;});_pushUndo();S.posTags=[];S.negTags=[];for(var i=0;i<lockedNeg.length;i++)S.negTags.push(lockedNeg[i]);var pk=_genRandomTags(lockedPos);S.posTags=pk;refreshPanel('positive');updatePreview();if(!S.isSearching)renderGrid();toast('随机生成 '+pk.length+' 个标签');});
