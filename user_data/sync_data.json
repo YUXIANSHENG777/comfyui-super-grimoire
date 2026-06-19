@@ -233,6 +233,11 @@
   ],
   "gallery": [
     {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00682_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00682_.png",
+      "prompt": "Anime style, 4K HD, highly detailed, professional grade, perfect anatomy, flawless proportions, a beautiful solo girl, the only focus of the image"
+    },
+    {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00681_.png&subfolder=&type=output",
       "filename": "ComfyUI_00681_.png",
       "prompt": "一位冬季初雪中的美丽流行偶像，在灯火辉煌的舞台背景前，正以瓜子脸瓷白水光肌妆容，搭配深邃眼眸与柔和微笑，展现二次元动漫风下的4K高清、高度细致画质。她身着华丽冬日装束，肌肤光滑细腻，光影在湿润曲面上形成镜面高光效果。画面聚焦于独处女孩的惬意姿态——随意靠墙，一只脚撑起，身旁精巧碟子上的半块蛋糕碎屑散落，整体色调偏冷中带暖光比柔和，营造出既梦幻又真实的二次元美学空间结构：主体位于近景中央，雪地与建筑轮廓在远景层叠。"
