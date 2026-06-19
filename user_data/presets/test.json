@@ -3,14 +3,16 @@
   "tags": [
     "Anime style",
     "a beautiful solo girl, the only focus of the image",
-    "4K HD, highly detailed, professional grade"
+    "4K HD, highly detailed, professional grade",
+    "perfect anatomy, flawless proportions"
   ],
   "weights": {
     "Anime style": 1,
     "a beautiful solo girl, the only focus of the image": 1,
-    "4K HD, highly detailed, professional grade": 1
+    "4K HD, highly detailed, professional grade": 1,
+    "perfect anatomy, flawless proportions": 1
   },
   "negative_tags": [],
   "negative_weights": {},
-  "created": "2026-06-20 02:22:21"
+  "created": "2026-06-20 06:24:28"
 }

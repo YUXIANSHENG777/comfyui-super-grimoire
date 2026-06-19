@@ -1,5 +1,6 @@
 {
-  "spaceMode": 2,
+  "randWeight": false,
+  "tagMode": "phrase",
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -146,8 +147,7 @@
     "人物主体": "sc"
   },
   "allowNsfw": false,
-  "randWeight": false,
-  "tagMode": "phrase",
+  "spaceMode": 2,
   "templates": [
     {
       "name": "1girl",
@@ -232,33 +232,6 @@
     "过肩双人镜头中，两个角色的肩膀被框住，背景为赛博朋克风格的城市夜景。画面主体是一位面带微笑的角色，手持一只耳机，正探身于火车窗边触摸风。身后是背着单肩斜挎包的学生生活场景，周围充满自由与矿石收音机等元素，简单电路与蒸汽在空中升腾，霓虹汉字招牌则发出炫目光晕，整体画面展现出动态而富有故事性的赛博朋克氛围，细节上角色的面部表情柔和自然，动作生动。",
     "八九寺真宵身着兔女郎装，连体衣配渔网袜与兔耳装饰，以四分之三身像呈现。她慵懒地斜靠在温室宝座上，一条腿轻搭在扶手，周身笼罩着“无聊的王者”气场。背景是科幻风的植物农场塔，层层结构在紫光与绿植间若隐若现。金属质感的怀表敞开发散齿轮细节，光影层次丰富，整体画面精致且充满科技感。",
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
-  ],
-  "gallery": [
-    {
-      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00708_.png&subfolder=&type=output",
-      "filename": "ComfyUI_00708_.png",
-      "prompt": "一位美丽的女性驯兽师独自在室内休憩，钻石般的脸庞拥有高颧骨与水光肌的精致妆容，神情疲惫却略带松弛感，她背靠着门站立，头部轻倚于门上并闭目养神。场景为一处安静的室内空间，周围环境简洁，无其他人物或干扰元素。艺术风格偏向写实主义与人体结构摄影结合，追求4K高清画质，展现专业级视觉精度和获奖摄影作品质感，画面整体呈现冷色调氛围感与静谧情绪基调，光线设计采用柔和均匀的软光材质，确保光线分布均匀且反差较低，无明显硬阴影。"
-    },
-    {
-      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00707_.png&subfolder=&type=output",
-      "filename": "ComfyUI_00707_.png",
-      "prompt": "一位美丽的女性独处休憩，作为驯兽师身旁的神话生物静立。钻石脸高颧骨水光肌妆容，神态疲惫后微松，背靠门站立，头靠门上闭眼。画面以4K高清、专业级人体结构、获奖摄影水准展现，雨滴悬挂于镜头，伞在雨中撑开，轨道空间站蓝地球发蓝光，整体色调偏冷静谧，光线柔和均匀软质反差低，焦段为全息构图前中后景层次分明。"
-    },
-    {
-      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00706_.png&subfolder=&type=output",
-      "filename": "ComfyUI_00706_.png",
-      "prompt": "一位美丽的独处少女，立于室内柔和光线下，二次元动漫风格，4K高清细腻笔触，完美比例与无可挑剔的人体线条。她拥有齐肩黑发，发丝柔顺如墨；脸庞鹅蛋型，下颌线清晰，眉毛自然舒展，眉形纤长；鼻梁挺直，鼻头圆润，唇色粉嫩，嘴唇微抿带些许思索感。上身着一袭白衬衫，袖口随动作轻垂，肩颈线条流畅；裙摆为藏青色，与发丝同色系的深邃色调相映衬。背景为柔和光影交织的室内环境，整体色调偏暖黄冷灰间，营造静谧沉思的氛围感。光线从斜上方柔和投射，明暗对比适中，确保人物轮廓清晰且无硬边阴影。画面聚焦于少女上半身，景深虚化背景，突出主体与发丝、衣袖细节的质感呈现。"
-    },
-    {
-      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00705_.png&subfolder=&type=output",
-      "filename": "ComfyUI_00705_.png",
-      "prompt": "一位美丽独处的年轻女性在室外场景中静立，其形象被二次元/动漫风以4K高清高细腻度完美呈现，人物比例精准无瑕。她的长发如丝绸般柔顺垂落至腰际，发色为纯净黑或纯白；面部轮廓柔和，眉眼清晰，唇角微扬显露出宁静的微笑与沉静神态。身着简约贴身服饰，衣物质感细腻，配饰精巧不喧宾夺主。人物在画面中以正面微侧的角度从容站立，双脚并拢脚尖朝前，整体构图采用近景单点成像，空间层次为前后一体的极简设计。光线以均匀柔化之质为主光源方向，确保面部及发丝纹理在柔和光线下清晰展现，无反差阴影干扰视觉。整体色调以纯白与黑或黑白灰的极致简洁为主导，画面情绪传递出宁静、优雅且专注的氛围。\n\n【镜头：16mm F/2.8 无限远 景深均匀-0%】\n\n# 细节修正\n- **发型与发色**：长发如丝绸般柔顺垂落至腰际，发色为纯净黑或纯白。\n- **服装与配饰**：简约贴身服饰，衣物质感细腻，精巧不喧宾夺主的配饰。"
-    },
-    {
-      "filename": "ComfyUI_00704_.png",
-      "prompt": "A cartoon-style illustration featuring a bearded man with large round eyes wearing a silver chef's hat, giving a thumbs-up gesture. His vibrant red beard and wide grin are prominent features. Behind him stands a green zombie-like creature in a gray suit with a tie. The scene is set against a backdrop of lush trees under a bright blue sky, suggesting an outdoor environment.",
-      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00704_.png&subfolder=&type=output"
-    }
   ],
   "negtpl_list": [
     {
