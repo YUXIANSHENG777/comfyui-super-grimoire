@@ -846,7 +846,7 @@ function _renderLlmPresets(){
     html+='<div class=llm-preset-item style=display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:11px>';
     html+='<button class=llm-preset-load data-idx='+i+' style=flex-shrink:0;padding:2px 10px;border:1px solid var(--accent);border-radius:3px;background:none;color:var(--accent);cursor:pointer;font-size:10px;white-space:nowrap>加载</button>';
     html+='<div style=flex:1;min-width:0><div style=font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap>'+esc(p.name)+'</div><div style=font-size:10px;color:var(--text-muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>'+esc(si)+'</div></div>';
-    html+='<button class=llm-preset-del data-idx='+i+' data-name="'+esc(p.name)+'" style=flex-shrink:0;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px title=连点3次删除>🗑</button>';
+    html+='<button class="llm-preset-del" data-idx="'+i+'" data-name="'+esc(p.name)+'" style="flex-shrink:0;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px" title="连点3次删除">🗑</button>';
     html+='</div>';
   }
   div.innerHTML=html;
