@@ -534,7 +534,7 @@
 
 <!-- 模态框: 加载图片 -->
 <div id="modal-loadimg" class="modal" style="display:none">
-  <div class="modal-content" style="max-width:480px">
+  <div class="modal-content" style="max-width:520px">
     <h3>🖼 加载图片到 ComfyUI</h3>
     <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">选择要绑定的 LoadImage 节点，上传图片后每次生图自动注入。</p>
     <div style="margin-bottom:8px">
@@ -554,6 +554,36 @@
       <button id="btn-loadimg-upload" class="action-btn primary">⬆ 上传并绑定</button>
       <button id="btn-loadimg-clear" class="action-btn" style="color:var(--danger);font-weight:600">🗑 清除绑定</button>
       <button id="btn-loadimg-close" class="action-btn">关闭</button>
+    </div>
+
+    <!-- 反推生图区域 -->
+    <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <h4 style="font-size:12px;margin:0">🔄 反推生图（需视觉模型）</h4>
+        <div style="display:flex;gap:4px">
+          <button id="btn-reverse-save-preset" class="mini-btn" style="font-size:9px;padding:2px 6px" title="保存当前指令为预设">💾</button>
+          <button id="btn-reverse-load-preset" class="mini-btn" style="font-size:9px;padding:2px 6px" title="加载已保存的反推预设">📂</button>
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--text-muted);margin-bottom:6px">将图片发给视觉大模型，反推出提示词，再自动发送到 ComfyUI 生图。</p>
+      <textarea id="reverse-sysprompt" rows="4" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;outline:none;resize:vertical"
+        placeholder="系统指令：描述你想让大模型如何反推图片提示词...">你是一个AI绘画提示词反推专家。仔细分析这张图片，输出一段可直接用于Stable Diffusion生图的英文提示词。描述内容包括：人物外貌/服装/表情/动作、场景环境、光线氛围、艺术风格、画质。只输出提示词本身，不要解释。</textarea>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <span style="font-size:9px;color:var(--text-muted);flex:1">需要支持视觉的多模态模型（如 gpt-4o / qwen-vl / glm-4v）</span>
+        <button id="btn-reverse-generate" class="action-btn primary" style="font-size:11px;padding:4px 12px;flex-shrink:0">🔄 反推并生图</button>
+      </div>
+      <div id="reverse-result" style="font-size:11px;color:var(--text-secondary);margin-top:6px;padding:4px 6px;background:var(--bg-primary);border-radius:3px;display:none;max-height:80px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 反推预设选择 -->
+<div id="modal-reverse-presets" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:400px">
+    <h3>📂 反推预设</h3>
+    <div id="reverse-presets-list" style="max-height:300px;overflow-y:auto"></div>
+    <div class="modal-actions" style="margin-top:8px">
+      <button id="btn-reverse-presets-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -655,6 +685,6 @@
   </div>
 </div>
 
-<script src="/app.js?v=201"></script>
+<script src="/app.js?v=210"></script>
 </body>
 </html>

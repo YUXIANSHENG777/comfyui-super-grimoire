@@ -1068,11 +1068,20 @@ def api_llm_translate():
     if not model: return jsonify({"error": "请填写模型名"}), 400
     url = api_url.rstrip("/") + "/chat/completions"
     sysprompt = data.get("sysprompt", "").strip() or "你是一个AI绘画提示词转换器，将标签式提示词转换成自然语言描述。"
+    image_b64 = data.get("image", "").strip()
+    if image_b64:
+        # 多模态消息：文本 + 图片
+        user_content = [
+            {"type": "text", "text": prompt if prompt != "[图片]" else "请根据系统指令分析这张图片并输出结果。"},
+            {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + image_b64}}
+        ]
+    else:
+        user_content = prompt
     payload = json.dumps({
         "model": model,
         "messages": [
             {"role": "system", "content": sysprompt},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": user_content}
         ],
         "temperature": 0.7,
         "max_tokens": 4096,

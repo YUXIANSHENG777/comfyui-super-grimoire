@@ -422,6 +422,93 @@ el('btn-loadimg-upload').addEventListener('click',function(){
   });
 });
 el('btn-manual-prompt-close').addEventListener('click',function(){el('modal-manual-prompt').style.display='none';});
+
+// ===== 反推生图 =====
+// 初始化反推系统指令
+(function(){
+  try{var rs=JSON.parse(localStorage.getItem('grimoire2_reverse_sys')||'null');if(rs)el('reverse-sysprompt').value=rs;}catch(e){}
+})();
+el('reverse-sysprompt').addEventListener('change',function(){
+  localStorage.setItem('grimoire2_reverse_sys',JSON.stringify(this.value));
+});
+// 反推并生图
+el('btn-reverse-generate').addEventListener('click',function(){
+  var file=el('loadimg-file').files[0];
+  if(!file){toast('请先选择一张图片');return;}
+  var wf=el('comfyui-workflow').value;
+  if(!wf){toast('请先选择工作流');return;}
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var base64=e.target.result.split(',')[1];
+    var sys=el('reverse-sysprompt').value.trim()||'请描述这张图片的内容，输出英文提示词';
+    toast('⏳ AI反推中...');
+    el('reverse-result').style.display='block';
+    el('reverse-result').textContent='⏳ 正在分析图片...';
+    api('/api/llm/translate',{method:'POST',body:{prompt:'[图片]',sysprompt:sys,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value,image:base64}}).then(function(r){
+      if(r.ok&&r.text){
+        var reversePrompt=r.text.trim();
+        el('reverse-result').textContent='✅ 反推结果: '+reversePrompt;
+        var w=parseInt(el('comfyui-width').value)||null,h=parseInt(el('comfyui-height').value)||null;
+        var over=getModelOverrides(),rs=el('comfyui-rand-seed').checked;
+        var wfs=S.wfSettings[wf]||{},clipmap=_getClipMapping(),negTpl=S.negTemplateAuto?S.negTemplate:'';
+        S.comfyuiQueue.push({idx:S.comfyuiQueue.length,body:{prompt:reversePrompt,workflow:wf,width:w,height:h,overrides:over,rand_seed:rs,wf_settings:wfs,clip_mapping:clipmap,neg_template:negTpl,load_image:S.loadImage||null},done:false});
+        if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();
+        _saveGenHistory(reversePrompt);
+        el('modal-loadimg').style.display='none';
+        toast('✅ 反推完成，已发送到队列');
+      }else{
+        el('reverse-result').textContent='❌ 反推失败: '+(r.error||'未知错误');
+        toast('反推失败');
+      }
+    });
+  };
+  rd.readAsDataURL(file);
+});
+// 保存反推预设
+el('btn-reverse-save-preset').addEventListener('click',function(){
+  var nm=prompt('预设名称:');
+  if(!nm)return;
+  var list=(function(){try{return JSON.parse(localStorage.getItem('grimoire2_reverse_presets')||'[]');}catch(e){return[];}})();
+  list=list.filter(function(x){return x.name!==nm;});
+  list.push({name:nm,sys:el('reverse-sysprompt').value});
+  localStorage.setItem('grimoire2_reverse_presets',JSON.stringify(list));
+  toast('已保存: '+nm);
+});
+// 加载反推预设
+el('btn-reverse-load-preset').addEventListener('click',function(){
+  var list=(function(){try{return JSON.parse(localStorage.getItem('grimoire2_reverse_presets')||'[]');}catch(e){return[];}})();
+  var div=el('reverse-presets-list');
+  var html='';
+  if(list.length===0){html='<div style="padding:20px;text-align:center;font-size:11px;color:var(--text-muted)">暂无保存的预设</div>';}
+  else{
+    for(var i=0;i<list.length;i++){
+      var p=list[i],si=p.sys?p.sys.substring(0,60)+(p.sys.length>60?'...':''):'(空)';
+      html+='<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:11px">';
+      html+='<button class="rev-preset-load" data-idx="'+i+'" style="padding:2px 10px;border:1px solid var(--accent);border-radius:3px;background:none;color:var(--accent);cursor:pointer;font-size:10px;white-space:nowrap">加载</button>';
+      html+='<div style="flex:1;min-width:0"><div style="font-weight:600">'+esc(p.name)+'</div><div style="font-size:10px;color:var(--text-muted)">'+esc(si)+'</div></div>';
+      html+='<button class="rev-preset-del" data-idx="'+i+'" title="连点3次删除" style="border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px">🗑</button>';
+      html+='</div>';
+    }
+  }
+  div.innerHTML=html;
+  qsa('.rev-preset-load',div).forEach(function(b){b.addEventListener('click',function(){
+    var p=list[parseInt(this.dataset.idx)];
+    el('reverse-sysprompt').value=p.sys||'';
+    localStorage.setItem('grimoire2_reverse_sys',JSON.stringify(p.sys||''));
+    el('modal-reverse-presets').style.display='none';
+    toast('已加载: '+p.name);
+  });});
+  qsa('.rev-preset-del',div).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();
+    var s=parseInt(this.dataset.strike||'0');s++;this.dataset.strike=s;
+    if(s>=3){
+      var nl=list.filter(function(_,j){return j!==parseInt(b.dataset.idx);});
+      localStorage.setItem('grimoire2_reverse_presets',JSON.stringify(nl));
+      div.removeChild(this.parentElement);toast('已删除');
+    }else{this.textContent='🗑'+(3-s);this.style.color='var(--danger)';}
+  });});
+  el('modal-reverse-presets').style.display='';
+});
+el('btn-reverse-presets-close').addEventListener('click',function(){el('modal-reverse-presets').style.display='none';});
 el('btn-manual-prompt-send').addEventListener('click',function(){
   var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}
   var text=el('manual-prompt-input').value.trim();if(!text){toast('请写提示词');return;}
