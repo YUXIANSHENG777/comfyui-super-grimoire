@@ -595,7 +595,9 @@ loadLlmConfig();
 el('llm-provider').addEventListener('change',function(){var d=_llmDefaults[this.value];if(d){if(d.url)el('llm-url').value=d.url;if(d.model)el('llm-model').value=d.model;if(this.value==='ollama'||this.value==='lmstudio')el('llm-key').value='';}saveLlmConfig();});
 el('llm-url').addEventListener('change',saveLlmConfig);el('llm-model').addEventListener('change',saveLlmConfig);el('llm-key').addEventListener('change',saveLlmConfig);el('llm-sysprompt').addEventListener('change',saveLlmConfig);el('llm-auto-refine').addEventListener('change',saveLlmConfig);el('llm-lang').addEventListener('change',saveLlmConfig);el('llm-concurrent').addEventListener('change',saveLlmConfig);
 function _getLlmPrompt(){return _buildRawPrompt();}
-function _getLlmTagsPrompt(pk){if(el('llm-lang').value==='zh')return genPromptCN(pk);return genPrompt(pk);}
+function _getLlmTagsPrompt(pk){if(el('llm-lang').value==='zh')return _getLlmTagsPromptCN(pk);return _getLlmTagsPromptEN(pk);}
+function _getLlmTagsPromptEN(pk){var cats={},order=[];for(var i=0;i<pk.length;i++){var t=pk[i];var c=t.category||'未分类';if(!cats[c]){cats[c]=[];order.push(c);}cats[c].push(t.en);}var parts=[];for(var i=0;i<order.length;i++){var c=order[i];parts.push('['+c+'] '+cats[c].join(', '));}return parts.join('\n');}
+function _getLlmTagsPromptCN(pk){var cats={},order=[];for(var i=0;i<pk.length;i++){var t=pk[i];var c=t.category||'未分类';if(!cats[c]){cats[c]=[];order.push(c);}cats[c].push(t.zh||t.en);}var parts=[];for(var i=0;i<order.length;i++){var c=order[i];parts.push('['+c+'] '+cats[c].join(', '));}return parts.join('\n');}
 
 
 function _callLlm(prompt,callback){if(!el('llm-concurrent').checked&&S.comfyuiRunning){toast('ComfyUI正在运行，请等待');callback(null);return;}S.llmRunning=true;var sys=el('llm-sysprompt').value.trim()||'你是一个AI绘画提示词转换器，将标签式提示词转换成自然语言描述。';api('/api/llm/translate',{method:'POST',body:{prompt:prompt,sysprompt:sys,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value}}).then(function(r){S.llmRunning=false;callback(r.ok?r.text:null);});}
