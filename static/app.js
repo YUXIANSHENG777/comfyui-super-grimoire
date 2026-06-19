@@ -315,7 +315,6 @@ var CURRENT_VERSION='1.0.4';
 var _updateInfo=null;
 
 function _checkUpdate(silent){
-  if(silent)return; // 非静默时才弹窗
   fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
     .then(function(r){return r.json();})
     .then(function(data){
@@ -325,10 +324,10 @@ function _checkUpdate(silent){
         el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
         el('modal-update').style.display='';
       }else if(!silent){
-        toast('✅ 已是最新版本 v'+CURRENT_VERSION);
+        toast('✅ 已是最新版本 '+CURRENT_VERSION);
       }
     })
-    .catch(function(){});
+    .catch(function(){if(!silent)toast('❌ 检查失败，请确保能访问 GitHub');});
 }
 
 // 手动检查
