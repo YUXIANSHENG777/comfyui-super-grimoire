@@ -854,7 +854,9 @@ function _renderLlmPresets(){
     e.stopPropagation();
     var p=list[parseInt(this.dataset.idx)];
     el('llm-sysprompt').value=p.sys||'';
-    saveLlmConfig();el('modal-llm-presets').style.display='none';
+    localStorage.setItem('grimoire2_llm',JSON.stringify({prov:el('llm-provider').value,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value,sys:el('llm-sysprompt').value,auto:el('llm-auto-refine').checked,lang:el('llm-lang').value,allowCon:el('llm-concurrent').checked}));
+    api('/api/llm/config/save',{method:'POST',body:{prov:el('llm-provider').value,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value,sys:el('llm-sysprompt').value,auto:el('llm-auto-refine').checked,lang:el('llm-lang').value,allowCon:el('llm-concurrent').checked}});
+    el('modal-llm-presets').style.display='none';
     toast('已加载: '+p.name);
   });});
   qsa('.llm-preset-del',div).forEach(function(b){b.addEventListener('click',function(e){
