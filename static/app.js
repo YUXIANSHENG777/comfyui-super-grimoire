@@ -431,6 +431,20 @@ el('btn-manual-prompt-close').addEventListener('click',function(){el('modal-manu
 el('reverse-sysprompt').addEventListener('change',function(){
   localStorage.setItem('grimoire2_reverse_sys',JSON.stringify(this.value));
 });
+// 首次加载注入默认反推预设
+(function(){
+  if(localStorage.getItem('grimoire2_reverse_seeded'))return;
+  localStorage.setItem('grimoire2_reverse_seeded','1');
+  var defs=[
+    {name:'🔍 通用反推',sys:'你是一个AI绘画提示词反推专家。仔细分析这张图片，输出一段可直接用于Stable Diffusion生图的英文提示词。描述内容包括：人物外貌/服装/表情/动作、场景环境、光线氛围、艺术风格、画质。只输出提示词本身，不要解释。'},
+    {name:'🎌 转二次元/动漫',sys:'你是一个AI绘画风格转换专家。分析这张图片的内容（人物、场景、构图、氛围），然后用动漫/二次元风格的词汇重新描述。输出英文提示词，使用anime style, 2D, illustration, cel shading等风格词。保留原图的构图和内容，但转换为动漫视觉风格。只输出提示词。'},
+    {name:'📸 转真人写实',sys:'你是一个AI绘画风格转换专家。分析这张图片的内容（人物、场景、构图、氛围），然后用真人写实/摄影风格的词汇重新描述。输出英文提示词，使用photorealistic, 8K, detailed skin texture, professional photography等风格词。保留原图的构图和内容，但转换为真人摄影视觉风格。只输出提示词。'},
+    {name:'🎨 转油画/手绘',sys:'你是一个AI绘画风格转换专家。分析这张图片的内容，然后用传统油画/手绘风格的词汇重新描述。输出英文提示词，使用oil painting, impasto, canvas texture, traditional media, brush strokes等风格词。保留构图和内容，转换为手绘艺术风格。只输出提示词。'},
+    {name:'🌃 转赛博朋克',sys:'你是一个AI绘画风格转换专家。分析这张图片的内容，然后将其转换为赛博朋克风格的描述。输出英文提示词，添加cyberpunk, neon lights, rain-soaked streets, holographic displays, high-tech, dystopian, futuristic city等元素。保留原图的基本内容和构图，但将场景风格化为赛博朋克世界。只输出提示词。'},
+    {name:'📝 中文反推（简短）',sys:'仔细观察这张图片，用中文写一段100字左右的画面描述。按顺序描述：整体印象→人物细节→场景环境→光线色彩→艺术风格。不要解释，只要描述。'}
+  ];
+  localStorage.setItem('grimoire2_reverse_presets',JSON.stringify(defs));
+})();
 // 反推并生图
 el('btn-reverse-generate').addEventListener('click',function(){
   var file=el('loadimg-file').files[0];
