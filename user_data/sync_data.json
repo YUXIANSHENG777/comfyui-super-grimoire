@@ -1,4 +1,6 @@
 {
+  "spaceMode": 2,
+  "tagMode": "phrase",
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -146,8 +148,6 @@
   },
   "allowNsfw": false,
   "randWeight": false,
-  "spaceMode": 2,
-  "tagMode": "phrase",
   "templates": [
     {
       "name": "1girl",
@@ -234,6 +234,11 @@
     "极近特写中，后藤一里/波奇的面部占据画面核心。黑发如瀑，身着黑色大腿袜包裹修长双腿；背景是巨型溶洞，水中贡多拉与生物发光水面交相辉映。她优雅地坐在悬崖秋千上，俯瞰深渊时眼神无畏；潜水头盔的黄铜/紫铜材质在光线下泛出金属光泽，圆形舷窗透着沉重威严的轮廓感。"
   ],
   "gallery": [
+    {
+      "url": "/api/comfyui/proxy-image?filename=ComfyUI_00698_.png&subfolder=&type=output",
+      "filename": "ComfyUI_00698_.png",
+      "prompt": "A close-up profile of a male character in anime style, with chiseled jawline and sharp facial features. He wears a black suit jacket over a dark shirt, exuding an elegant, mysterious vibe. His expression is calm and contemplative, eyes gazing slightly upward. Surrounding him are vibrant red flowers (resembling spider plants) with intricate petal details, adding a dramatic atmosphere. The composition balances the subject’s profile against a dark background, emphasizing his chiseled features and the contrast of the bright skin against shadowed areas. Vivid color highlights enhance the character's face, ensuring sharp focus on his profile. The overall style is anime screencap-like with clean lines and vibrant colors."
+    },
     {
       "url": "/api/comfyui/proxy-image?filename=ComfyUI_00697_.png&subfolder=&type=output",
       "filename": "ComfyUI_00697_.png",
