@@ -1,6 +1,4 @@
 {
-  "allowNsfw": false,
-  "randWeight": false,
   "favs": {
     "A beautiful Asian beauty": true,
     "Anime style": true,
@@ -144,6 +142,8 @@
     "2_构图视角": "cat",
     "人物主体": "sc"
   },
+  "allowNsfw": false,
+  "randWeight": false,
   "spaceMode": 2,
   "tagMode": "phrase",
   "templates": [
@@ -412,7 +412,7 @@
     }
   ],
   "uiSettings": {
-    "cuiCnt": "8",
+    "cuiCnt": "1",
     "cuiH": "1024",
     "cuiLang": "zh",
     "cuiW": "720",
