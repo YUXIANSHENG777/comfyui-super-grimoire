@@ -1,4 +1,4 @@
 __pycache__/
 *.pyc
-user_data/history/
+user_data/
 *.tmp
