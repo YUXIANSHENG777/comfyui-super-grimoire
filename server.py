@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """超级无敌魔导书 - AI提示词组合器"""
 
 import json, os, random, shutil, time, urllib.request, urllib.error, urllib.parse
