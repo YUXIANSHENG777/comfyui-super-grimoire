@@ -1077,12 +1077,12 @@ def api_update_install():
         dirs = [d for d in Path(tmp).iterdir() if d.is_dir()]
         src = dirs[0] if dirs else Path(tmp)
         project_root = Path(__file__).parent
-        # 备份当前文件（跳过 user_data）
+        # 备份当前文件（跳过 user_data, data 标签库）
         backup_dir = project_root / "user_data" / "_backup"
         backup_dir.mkdir(parents=True, exist_ok=True)
         errors = []
         for item in src.iterdir():
-            if item.name == "user_data":
+            if item.name in ("user_data", "data"):
                 continue
             dst = project_root / item.name
             try:
