@@ -1,11 +1,14 @@
 /* ========== 超级无敌魔导书 - 应用逻辑 ========== */
-var S={allData:null,activeCat:null,activeSc:null,isSearching:false,posTags:[],autoSortPos:true,negTags:[],autoSortNeg:true,activeTab:'positive',useQuality:false,useWeights:false,allowNsfw:false,randWeight:false,spaceMode:0,template:'',favs:{},catLimits:{},scLimits:{},catModes:{},hidden:{categories:{},subcategories:{}},comfyuiPath:'',comfyuiLang:'en',comfyuiQueue:[],comfyuiRunning:false,comfyuiStopped:false,llmRunning:false,llmHistory:(function(){try{return JSON.parse(localStorage.getItem('grimoire2_llmhist')||'[]');}catch(e){return[];}})(),undoStack:[],undoIdx:-1,tagMode:'phrase'};
+var S={allData:null,activeCat:null,activeSc:null,isSearching:false,posTags:[],autoSortPos:true,negTags:[],autoSortNeg:true,activeTab:'positive',useQuality:false,useWeights:false,allowNsfw:false,randWeight:false,spaceMode:0,template:'',favs:{},catLimits:{},scLimits:{},catModes:{},hidden:{categories:{},subcategories:{}},comfyuiPath:'',comfyuiLang:'en',comfyuiQueue:[],comfyuiRunning:false,comfyuiStopped:false,llmRunning:false,llmHistory:(function(){try{return JSON.parse(localStorage.getItem('grimoire2_llmhist')||'[]');}catch(e){return[];}})(),undoStack:[],undoIdx:-1,tagMode:'phrase',lang:(function(){var l=localStorage.getItem('grimoire2_lang');return l||'zh';})()};
 var QW=['masterpiece level, highest quality, breathtaking','8K resolution, insanely detailed, tack sharp'];
 function el(id){return document.getElementById(id);}
 function qs(s,p){return (p||document).querySelector(s);}
 function qsa(s,p){return (p||document).querySelectorAll(s);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m){var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},2000);}
+// 国际化初始化
+i18nSetLang(S.lang);
+el('btn-lang-switch').addEventListener('click',function(){var l=I18N.lang==='zh'?'en':'zh';i18nSetLang(l);S.lang=l;});
 function api(u,o){o=o||{};return fetch(u,{method:o.method||'GET',headers:{'Content-Type':'application/json'},body:o.body?JSON.stringify(o.body):undefined}).then(function(r){return r.json();});}
 function loadFavs(){try{var d=localStorage.getItem('grimoire2_favs');if(d)S.favs=JSON.parse(d);}catch(e){S.favs={};}}
 function loadScLimits(){try{var d=localStorage.getItem('grimoire2_scLimits');if(d)S.scLimits=JSON.parse(d);else S.scLimits={};}catch(e){S.scLimits={};}}
@@ -311,7 +314,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.5';
+var CURRENT_VERSION='1.0.6';
 var _updateInfo=null;
 
 function _checkUpdate(silent){
