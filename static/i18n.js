@@ -72,6 +72,9 @@ var I18N = {
     'comfy.height': { en: 'H', zh: '高' },
     'comfy.count': { en: 'Count', zh: '张' },
     'comfy.randSeed': { en: '🎲 Random Seed', zh: '🎲 随机种子' },
+    'comfy.sendManual': { en: '🚀 Send', zh: '🚀 发送生图' },
+    'comfy.stop': { en: '⏹ Stop', zh: '⏹ 终止' },
+    'comfy.clearQueue': { en: 'Clear', zh: '清空' },
     'comfy.queue': { en: 'Queue: {0}/{1}', zh: '队列: {0}/{1}' },
     'comfy.running': { en: ' Generating', zh: ' ⏳生成中' },
     'comfy.done': { en: ' Done', zh: ' ✅完成' },
@@ -95,6 +98,23 @@ var I18N = {
     'common.save': { en: 'Save', zh: '保存' },
     'common.load': { en: 'Load', zh: '加载' },
     'common.delete': { en: 'Delete', zh: '删除' },
+    'common.ignore': { en: 'Ignore', zh: '忽略' },
+    'common.import': { en: 'Import', zh: '导入' },
+    'common.create': { en: 'Create', zh: '创建' },
+    'common.disclaimer': { en: '⚠ Disclaimer: This tool is for educational use only. Users bear full responsibility for generated content.', zh: '⚠️ 免责声明：本工具仅供学习交流使用，使用者对生成内容承担全部责任' },
+    'common.clearHistory': { en: 'Clear History', zh: '清空记录' },
+    // Update
+    'update.install': { en: '⬇ Auto Update', zh: '⬇ 自动更新' },
+    // Gallery
+    'gallery.title': { en: '🖼 Results', zh: '🖼 生成结果' },
+    'gallery.clear': { en: '🗑 Clear', zh: '🗑 清空' },
+    // Batch
+    'batch.addPos': { en: 'Add to Positive', zh: '添加到正面' },
+    'batch.addNeg': { en: 'Add to Negative', zh: '添加到负面' },
+    // Export
+    'export.confirm': { en: 'Export TXT', zh: '导出 TXT' },
+    // Mobile
+    'mobile.drawerHint': { en: 'Tap subcategory · +/- on right to set limit', zh: '点子类浏览 · 右侧 +/- 控制每次随机上限' },
     // Toasts
     'toast.copied': { en: 'Copied', zh: '已复制' },
     'toast.tagAdded': { en: 'Tag added', zh: '已添加标签' },
