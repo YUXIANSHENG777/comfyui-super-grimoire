@@ -3,30 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.6 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.5 — AI绘画提示词组合器</title>
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js?v=2"></script>
 </head>
 <body>
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.6</span></span>
+    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.5</span></span>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px">❓ 使用说明</button>
-    <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px">Language</button>
+    <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
   </div>
   <div class="toolbar-right">
-    <button id="btn-quality" class="tool-btn" data-i18n="toolbar.quality">✨ 基础质量词</button>
+    <button id="btn-quality" class="tool-btn">✨ 基础质量词</button>
     <label class="rand-count-label" title="随机标签数量上限">
       <span id="rand-count-display">10</span>
       <input type="range" id="rand-count" min="3" max="100" value="10">
     </label>
-    <button id="btn-random" class="tool-btn" data-i18n="toolbar.random">🎲 手气不错</button>
-    <button id="btn-nsfw" class="tool-btn" title="是否在随机中包含NSFW标签" data-i18n="toolbar.nsfw">🔞 NSFW</button>
-    <button id="btn-rand-weight" class="tool-btn" title="随机时是否生成随机权重(关闭则默认1.0)" data-i18n="toolbar.randWeight">⚖ 随机权重</button>
-    <button id="btn-export-batch" class="tool-btn" title="批量导出随机提示词到txt文件" data-i18n="toolbar.export">📄 批量导出</button>
-    <button id="btn-check-update" class="tool-btn" title="从GitHub检查最新版本" data-i18n="toolbar.checkUpdate">🔄 检查更新</button>
+    <button id="btn-random" class="tool-btn">🎲 手气不错</button>
+    <button id="btn-nsfw" class="tool-btn" title="是否在随机中包含NSFW标签">🔞 NSFW</button>
+    <button id="btn-rand-weight" class="tool-btn" title="随机时是否生成随机权重(关闭则默认1.0)">⚖ 随机权重</button>
+    <button id="btn-export-batch" class="tool-btn" title="批量导出随机提示词到txt文件">📄 批量导出</button>
+    <button id="btn-check-update" class="tool-btn" title="从GitHub检查最新版本">🔄 检查更新</button>
     <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none">⚠ 免责声明</button>
-    <button id="btn-clear" class="tool-btn danger" data-i18n="toolbar.clear">🗑 清空全部</button>
+    <button id="btn-clear" class="tool-btn danger">🗑 清空全部</button>
   </div>
 </header>
 
@@ -37,7 +38,7 @@
     <p>本工具仅供学习、研究和交流使用。用户在使用本工具生成 AI 绘画提示词及图像时，应遵守相关法律法规及 AI 平台的使用条款。</p>
     <p style="margin-top:6px">使用者须对生成内容承担全部责任，包括但不限于确保内容不侵犯他人合法权益、不违反公序良俗。本工具开发者不对用户使用本工具产生的任何内容及后果承担任何法律责任。</p>
     <p style="margin-top:6px">AI 生成内容可能存在偏差或不当之处，请理性辨别和使用。</p>
-    <button id="btn-disclaimer-close" data-i18n="common.close" class="action-btn" style="margin-top:12px;width:100%">关闭</button>
+    <button id="btn-disclaimer-close" class="action-btn" style="margin-top:12px;width:100%">关闭</button>
   </div>
 </div>
 
@@ -53,21 +54,21 @@
       <div id="update-status" style="font-size:11px;color:var(--text-muted);margin-top:4px">准备下载...</div>
     </div>
     <div class="modal-actions" style="justify-content:center">
-      <button id="btn-update-install" data-i18n="update.install" class="action-btn primary">⬇ 自动更新</button>
-      <button id="btn-update-ignore" data-i18n="common.ignore" class="action-btn">忽略</button>
+      <button id="btn-update-install" class="action-btn primary">⬇ 自动更新</button>
+      <button id="btn-update-ignore" class="action-btn">忽略</button>
     </div>
   </div>
 </div>
 
 <!-- 手机端底部导航 -->
 <div id="m-tabbar" style="display:none">
-  <div class="m-tab active" data-view="browser" data-i18n-replace="true" data-i18n="mobile.tabTags">
+  <div class="m-tab active" data-view="browser">
     <span class="m-icon">📁</span>标签
   </div>
-  <div class="m-tab" data-view="prompt" data-i18n-replace="true" data-i18n="mobile.tabPrompt">
+  <div class="m-tab" data-view="prompt">
     <span class="m-icon">📝</span>提示词
   </div>
-  <div class="m-tab" data-view="comfy" data-i18n-replace="true" data-i18n="mobile.tabGen">
+  <div class="m-tab" data-view="comfy">
     <span class="m-icon">🎨</span>生图
   </div>
 </div>
@@ -76,19 +77,19 @@
 <div id="m-overlay"></div>
 <div id="m-drawer">
   <div class="drawer-header">
-    <span data-i18n-replace="true" data-i18n="sidebar.categories">📁 标签分类</span>
+    <span>📁 标签分类</span>
     <button class="drawer-close" id="m-drawer-close">✕</button>
   </div>
-  <div class="drawer-hint" data-i18n="mobile.drawerHint">点子类浏览 · 右侧 +/- 控制每次随机上限</div>
+  <div class="drawer-hint">点子类浏览 · 右侧 +/- 控制每次随机上限</div>
   <div id="m-drawer-randprof" class="m-action" style="padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:4px;cursor:pointer;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:4px">💾 随机配置方案</div>
   <div id="m-cat-list"></div>
   <div class="m-bottom-actions">
-    <div class="m-action" id="m-action-favs" data-i18n-replace="true" data-i18n="sidebar.favorites">⭐ 我的收藏 <span id="m-fav-count" style="color:var(--text-muted);font-size:11px"></span></div>
+    <div class="m-action" id="m-action-favs">⭐ 我的收藏 <span id="m-fav-count" style="color:var(--text-muted);font-size:11px"></span></div>
     <div id="m-favs-content" style="display:none"></div>
-    <div class="m-action" id="m-action-presets" data-i18n-replace="true" data-i18n="sidebar.presets">📦 预设组合</div>
+    <div class="m-action" id="m-action-presets">📦 预设组合</div>
     <div id="m-presets-content" style="display:none"></div>
-    <div class="m-action" id="m-action-randprof" data-i18n-replace="true" data-i18n="sidebar.randProfile">💾 随机配置</div>
-    <div class="m-action" id="m-action-history" data-i18n-replace="true" data-i18n="sidebar.history">🕐 历史记录</div>
+    <div class="m-action" id="m-action-randprof">💾 随机配置</div>
+    <div class="m-action" id="m-action-history">🕐 历史记录</div>
     <div id="m-history-content" style="display:none"></div>
   </div>
 </div>
@@ -97,36 +98,36 @@
   <!-- ====== 左侧栏 ====== -->
   <aside id="sidebar">
     <div class="search-box">
-      <input type="text" id="search-input" placeholder="搜索标签 (中/英文)..." data-i18n-placeholder="true" data-i18n="sidebar.search">
+      <input type="text" id="search-input" placeholder="搜索标签 (中/英文)...">
       <button id="btn-search-clear" class="search-clear" style="display:none">✕</button>
     </div>
 
     <div class="sidebar-head">
-      <span class="nav-section-title" data-i18n-replace="true" data-i18n="sidebar.categories">📁 标签分类</span>
+      <span class="nav-section-title">📁 标签分类</span>
       <button id="btn-tag-mode" class="tool-btn" title="切换标签库：短语标签 ↔ 单一标签" style="font-size:10px;padding:2px 8px">🏷 单一标签</button>
       <button id="btn-add-category" class="mini-btn" title="新建大类">✚</button>
     </div>
     <nav id="category-tree"></nav>
 
     <div class="sidebar-head" style="border-top:1px solid var(--border);padding-top:8px">
-      <button id="btn-rand-profile" class="tool-btn" data-i18n="sidebar.randProfile" style="font-size:11px;padding:3px 10px;width:100%" title="保存/加载整套随机配置（上限数值+随机模式）">💾 随机配置</button>
+      <button id="btn-rand-profile" class="tool-btn" style="font-size:11px;padding:3px 10px;width:100%" title="保存/加载整套随机配置（上限数值+随机模式）">💾 随机配置</button>
     </div>
 
     <div class="sidebar-divider"></div>
 
     <div class="sidebar-head">
-      <span class="nav-section-title" id="fav-toggle" style="cursor:pointer" data-i18n-replace="true" data-i18n="sidebar.favorites">⭐ 我的收藏 <span id="fav-count"></span></span>
+      <span class="nav-section-title" id="fav-toggle" style="cursor:pointer">⭐ 我的收藏 <span id="fav-count"></span></span>
     </div>
     <div id="favorites-list" class="mini-list" style="display:none"></div>
 
     <div class="sidebar-divider"></div>
 
-    <div class="nav-section-title" data-i18n-replace="true" data-i18n="sidebar.presets">📦 预设组合</div>
+    <div class="nav-section-title">📦 预设组合</div>
     <div id="presets-list" class="mini-list"></div>
 
     <div class="sidebar-divider"></div>
 
-    <div class="nav-section-title" data-i18n-replace="true" data-i18n="sidebar.history">🕐 历史记录</div>
+    <div class="nav-section-title">🕐 历史记录</div>
     <div id="history-list" class="mini-list"></div>
   </aside>
 
@@ -137,14 +138,14 @@
       <button id="btn-search-clear-m" style="display:none;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-muted);font-size:11px;cursor:pointer">✕</button>
     </div>
     <div id="browser-header">
-      <h2 id="browser-title" data-i18n="grid.title">请从左侧选择一个子类别开始浏览</h2>
+      <h2 id="browser-title">请从左侧选择一个子类别开始浏览</h2>
       <div id="browser-actions"></div>
     </div>
     <div id="tag-grid"></div>
     <div id="comfyui-gallery" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <h3 style="font-size:13px;color:var(--accent);margin:0"><span data-i18n="gallery.title">🖼 生成结果</span> <span id="gallery-count" style="font-size:10px;color:var(--text-muted);font-weight:normal"></span></h3>
-        <button id="btn-gallery-clear" data-i18n="gallery.clear" class="mini-btn" style="font-size:10px" title="清空所有图片">🗑 清空</button>
+        <h3 style="font-size:13px;color:var(--accent);margin:0">🖼 生成结果 <span id="gallery-count" style="font-size:10px;color:var(--text-muted);font-weight:normal"></span></h3>
+        <button id="btn-gallery-clear" class="mini-btn" style="font-size:10px" title="清空所有图片">🗑 清空</button>
       </div>
       <div id="comfyui-gallery-imgs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
     </div>
@@ -164,12 +165,12 @@
       <div class="panel-toolbar">
         <label class="sort-toggle">
           <input type="checkbox" id="auto-sort-positive" checked>
-          <span data-i18n="panel.sort">自然语言排序</span>
+          <span>自然语言排序</span>
         </label>
-        <span id="positive-count" class="tag-count" data-i18n="panel.selected">已选 0 个</span>
+        <span id="positive-count" class="tag-count">已选 0 个</span>
       </div>
       <div id="selected-tags-positive" class="selected-tags">
-        <div class="empty-hint" data-i18n="panel.empty">点击左侧标签添加到此处</div>
+        <div class="empty-hint">点击左侧标签添加到此处</div>
       </div>
     </div>
 
@@ -178,7 +179,7 @@
 
     <div class="preview-section">
       <div class="preview-header">
-        <h3 data-i18n-replace="true" data-i18n="preview.title">📝 生成的提示词</h3>
+        <h3>📝 生成的提示词</h3>
         <select id="export-format">
           <option value="generic">通用格式</option>
           <option value="novelai">NovelAI</option>
@@ -189,10 +190,10 @@
       </div>
       <textarea id="prompt-output" readonly placeholder="选择标签后这里会显示完整提示词..."></textarea>
       <div class="preview-btns">
-        <button id="btn-copy" class="action-btn primary" data-i18n="preview.copyEn">📋 复制英文</button>
-        <button id="btn-copy-cn" class="action-btn" data-i18n="preview.copyCn">📋 复制中文</button>
-        <button id="btn-batch-add" class="action-btn" data-i18n="preview.batchAdd">📝 批量添加</button>
-        <button id="btn-save-preset" class="action-btn" data-i18n="preview.savePreset">💾 保存预设</button>
+        <button id="btn-copy" class="action-btn primary">📋 复制英文</button>
+        <button id="btn-copy-cn" class="action-btn">📋 复制中文</button>
+        <button id="btn-batch-add" class="action-btn">📝 批量添加</button>
+        <button id="btn-save-preset" class="action-btn">💾 保存预设</button>
       </div>
       <div class="template-section">
         <div class="template-toggle" id="btn-template-toggle" title="提示词模板 - 在标签前后添加固定内容">📐 提示词模板 ▾</div>
@@ -252,8 +253,8 @@
         <input type="password" id="llm-key" placeholder="API Key（本地可留空）" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:4px;outline:none">
         <textarea id="llm-sysprompt" placeholder="系统指令（给大模型的条件）" rows="3" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;margin-bottom:6px;outline:none;resize:vertical;font-family:sans-serif">你是一个AI绘画提示词导演。将用户输入的标签式提示词融合成一段流畅的提示词，按场景、风格、材质、光线、色彩、镜头维度结构化呈现，描述要具体可执行。末尾附【镜头参数】。完整一段。</textarea>
         <div style="display:flex;gap:6px">
-          <button id="btn-llm-send" class="action-btn primary" style="font-size:11px;flex:1" data-i18n="llm.send">🤖 发送润色</button>
-          <button id="btn-llm-copy" class="action-btn" style="font-size:11px" data-i18n="llm.copy">📋 复制结果</button>
+          <button id="btn-llm-send" class="action-btn primary" style="font-size:11px;flex:1">🤖 发送润色</button>
+          <button id="btn-llm-copy" class="action-btn" style="font-size:11px">📋 复制结果</button>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer">
           <input type="checkbox" id="llm-auto-refine"> 🎨 生图前自动润色
@@ -262,17 +263,17 @@
           <input type="checkbox" id="llm-concurrent"> 🚀 允许并发（性能强可开启）
         </label>
         <div style="display:flex;gap:4px;margin-bottom:6px">
-          <button id="btn-llm-save-preset" class="action-btn" style="font-size:11px;flex:1" data-i18n="llm.savePreset">💾 保存预设</button>
-          <button id="btn-llm-load-preset" class="action-btn" style="font-size:11px;flex:1" data-i18n="llm.presets">📂 加载预设</button>
+          <button id="btn-llm-save-preset" class="action-btn" style="font-size:11px;flex:1">💾 保存预设</button>
+          <button id="btn-llm-load-preset" class="action-btn" style="font-size:11px;flex:1">📂 加载预设</button>
         </div>
         <div id="llm-result" style="font-size:11px;color:var(--text-secondary);margin-top:6px;padding:6px 8px;background:var(--bg-primary);border-radius:3px;min-height:40px;max-height:200px;overflow-y:auto;line-height:1.5;white-space:pre-wrap;word-break:break-word"></div>
-        <button id="btn-llm-history" class="action-btn" style="font-size:11px;margin-top:6px;width:100%" data-i18n="llm.history">📜 润色记录</button>
+        <button id="btn-llm-history" class="action-btn" style="font-size:11px;margin-top:6px;width:100%">📜 润色记录</button>
       </div>
     </div>
 
     <div class="comfyui-panel">
       <div class="preview-header">
-        <h3 data-i18n-replace="true" data-i18n="comfy.title">🎨 ComfyUI</h3>
+        <h3>🎨 ComfyUI</h3>
         <div style="display:flex;align-items:center;gap:6px">
           <span id="comfyui-status" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted)"></span>
           <span id="comfyui-status-text" style="font-size:11px;color:var(--text-muted)">未检测</span>
@@ -284,34 +285,34 @@
       <div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
         <button id="btn-comfyui-lang" class="tool-btn active" style="font-size:11px;padding:3px 8px">EN</button>
         <select id="comfyui-workflow" style="flex:1;min-width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-secondary);font-size:11px">
-          <option value="" data-i18n="comfy.workflow">-- 选择工作流 --</option>
+          <option value="">-- 选择工作流 --</option>
         </select>
-        <button id="btn-comfyui-send" class="tool-btn" style="background:var(--accent-dim);color:#fff;font-size:11px" data-i18n="comfy.generate">🚀 生图</button>
+        <button id="btn-comfyui-send" class="tool-btn" style="background:var(--accent-dim);color:#fff;font-size:11px">🚀 生图</button>
       </div>
       <div style="padding:0 12px 4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <button id="btn-comfyui-clipbind" class="tool-btn" data-i18n="comfy.posNegBind" title="绑定正负向提示词到CLIP节点" style="font-size:11px;padding:3px 8px">🔗 正负绑定</button>
-        <button id="btn-comfyui-settings" class="tool-btn" data-i18n="comfy.workflowParams" title="修改工作流参数（采样器/步数/CFG/种子等）" style="font-size:11px;padding:3px 8px">⚙ 工作流参数</button>
-        <button id="btn-comfyui-conn" class="tool-btn" data-i18n="comfy.port" title="设置ComfyUI地址和端口" style="font-size:11px;padding:3px 8px">🌐 端口</button>
-        <button id="btn-comfyui-models" class="mini-btn" data-i18n="comfy.models" title="选择模型和LoRA" style="font-size:11px">🎭 模型</button>
+        <button id="btn-comfyui-clipbind" class="tool-btn" title="绑定正负向提示词到CLIP节点" style="font-size:11px;padding:3px 8px">🔗 正负绑定</button>
+        <button id="btn-comfyui-settings" class="tool-btn" title="修改工作流参数（采样器/步数/CFG/种子等）" style="font-size:11px;padding:3px 8px">⚙ 工作流参数</button>
+        <button id="btn-comfyui-conn" class="tool-btn" title="设置ComfyUI地址和端口" style="font-size:11px;padding:3px 8px">🌐 端口</button>
+        <button id="btn-comfyui-models" class="mini-btn" title="选择模型和LoRA" style="font-size:11px">🎭 模型</button>
       </div>
       <div style="padding:0 12px 6px;display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted)">
-        <span data-i18n="comfy.width">宽</span><input type="number" id="comfyui-width" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
-        <span data-i18n="comfy.height">高</span><input type="number" id="comfyui-height" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
-        <span data-i18n="comfy.count">张</span><input type="number" id="comfyui-count" value="1" min="1" max="9999" title="生图张数(普通/随机共用)" style="width:44px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <span>宽</span><input type="number" id="comfyui-width" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <span>高</span><input type="number" id="comfyui-height" value="512" min="64" max="8192" style="width:60px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
+        <span>张</span><input type="number" id="comfyui-count" value="1" min="1" max="9999" title="生图张数(普通/随机共用)" style="width:44px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:11px;text-align:center;outline:none">
         <button id="btn-comfyui-size" class="mini-btn" title="从工作流读取尺寸">📐</button>
         <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text-muted);cursor:pointer;margin-left:4px">
-          <input type="checkbox" id="comfyui-rand-seed" checked> <span data-i18n="comfy.randSeed">🎲 随机种子</span>
+          <input type="checkbox" id="comfyui-rand-seed" checked> 🎲 随机种子
         </label>
       </div>
       <div style="padding:0 12px 6px;display:flex;gap:6px;align-items:center;font-size:10px;color:var(--text-muted)">
-        <button id="btn-comfyui-random" class="tool-btn" style="font-size:11px;padding:3px 10px" data-i18n="comfy.randomGen" title="每次随机标签再生成，张张不同，张数由上方的「张」控制">🎲 随机生图</button>
-        <button id="btn-comfyui-manual" class="tool-btn" style="font-size:11px;padding:3px 10px;margin-left:auto" data-i18n="comfy.manualGen" title="手写正向提示词直接发送生图">✏ 手写生图</button>
-        <button id="btn-comfyui-loadimg" class="tool-btn" style="font-size:13px;padding:5px 14px" data-i18n="comfy.loadImg" title="加载图片作为输入，生图时自动发送。支持拖拽图片到按钮">🖼 加载图片</button>
+        <button id="btn-comfyui-random" class="tool-btn" style="font-size:11px;padding:3px 10px" title="每次随机标签再生成，张张不同，张数由上方的「张」控制">🎲 随机生图</button>
+        <button id="btn-comfyui-manual" class="tool-btn" style="font-size:11px;padding:3px 10px;margin-left:auto" title="手写正向提示词直接发送生图">✏ 手写生图</button>
+        <button id="btn-comfyui-loadimg" class="tool-btn" style="font-size:13px;padding:5px 14px" title="加载图片作为输入，生图时自动发送。支持拖拽图片到按钮">🖼 加载图片</button>
       </div>
       <div id="comfyui-queue" style="display:none;padding:0 12px 4px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:2px;padding-top:4px">
         <span id="comfyui-queue-text">队列: 0/0</span>
-        <button id="btn-comfyui-stop" data-i18n="comfy.stop" style="margin-left:4px;border:none;background:none;color:var(--danger);cursor:pointer;font-size:10px;display:none" title="终止队列(当前任务完成后停止)">⏹ 终止</button>
-        <button id="btn-comfyui-clear-queue" data-i18n="comfy.clearQueue" style="margin-left:4px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:10px;display:none">清空</button>
+        <button id="btn-comfyui-stop" style="margin-left:4px;border:none;background:none;color:var(--danger);cursor:pointer;font-size:10px;display:none" title="终止队列(当前任务完成后停止)">⏹ 终止</button>
+        <button id="btn-comfyui-clear-queue" style="margin-left:4px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:10px;display:none">清空</button>
       </div>
       <div id="comfyui-progress" style="display:none;padding:0 12px 4px">
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:2px">
@@ -336,9 +337,9 @@
     <textarea id="batch-input" placeholder="例如: 1girl, smile, sunset, masterpiece&#10;或每行一个" rows="8"></textarea>
     <p id="batch-result" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></p>
     <div class="modal-actions">
-      <button id="btn-batch-confirm" data-i18n="batch.addPos" class="action-btn primary">添加到正面</button>
-      <button id="btn-batch-neg" data-i18n="batch.addNeg" class="action-btn">添加到负面</button>
-      <button id="btn-batch-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-batch-confirm" class="action-btn primary">添加到正面</button>
+      <button id="btn-batch-neg" class="action-btn">添加到负面</button>
+      <button id="btn-batch-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -349,8 +350,8 @@
     <h3>保存预设</h3>
     <input type="text" id="save-preset-name" placeholder="输入预设名称...">
     <div class="modal-actions">
-      <button id="btn-save-confirm" data-i18n="common.save" class="action-btn primary">保存</button>
-      <button id="btn-save-cancel" data-i18n="common.cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-save-confirm" class="action-btn primary">保存</button>
+      <button id="btn-save-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -361,8 +362,8 @@
     <h3>导入预设</h3>
     <textarea id="import-preset-json" placeholder="粘贴预设JSON数据..." rows="8"></textarea>
     <div class="modal-actions">
-      <button id="btn-import-confirm" data-i18n="common.import" class="action-btn primary">导入</button>
-      <button id="btn-import-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-import-confirm" class="action-btn primary">导入</button>
+      <button id="btn-import-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -373,8 +374,8 @@
     <h3>新建大类</h3>
     <input type="text" id="new-cat-name" placeholder="大类名称">
     <div class="modal-actions">
-      <button id="btn-new-cat-confirm" data-i18n="common.create" class="action-btn primary">创建</button>
-      <button id="btn-new-cat-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-new-cat-confirm" class="action-btn primary">创建</button>
+      <button id="btn-new-cat-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -386,8 +387,8 @@
     <p id="new-sc-cat-name" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></p>
     <input type="text" id="new-sc-name" placeholder="子类别名称">
     <div class="modal-actions">
-      <button id="btn-new-sc-confirm" data-i18n="common.create" class="action-btn primary">创建</button>
-      <button id="btn-new-sc-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-new-sc-confirm" class="action-btn primary">创建</button>
+      <button id="btn-new-sc-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -402,7 +403,7 @@
     <p id="sc-batch-result" style="font-size:12px;margin-bottom:8px"></p>
     <div class="modal-actions">
       <button id="btn-sc-batch-confirm" class="action-btn primary">批量添加</button>
-      <button id="btn-sc-batch-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-sc-batch-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -417,7 +418,7 @@
     <p id="batch-del-result" style="font-size:12px;margin-bottom:8px"></p>
     <div class="modal-actions">
       <button id="btn-batch-del-confirm" class="action-btn primary">批量删除</button>
-      <button id="btn-batch-del-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-batch-del-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -433,8 +434,8 @@
     </div>
     <input type="hidden" id="tag-form-old-en">
     <div class="modal-actions">
-      <button id="btn-tag-form-confirm" data-i18n="common.confirm" class="action-btn primary">确定</button>
-      <button id="btn-tag-form-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-tag-form-confirm" class="action-btn primary">确定</button>
+      <button id="btn-tag-form-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -450,8 +451,8 @@
       <span style="font-size:12px;color:var(--text-secondary)">组提示词</span>
     </div>
     <div class="modal-actions">
-      <button id="btn-export-batch-confirm" data-i18n="export.confirm" class="action-btn primary">导出 TXT</button>
-      <button id="btn-export-batch-cancel" data-i18n="common.cancel" class="action-btn">取消</button>
+      <button id="btn-export-batch-confirm" class="action-btn primary">导出 TXT</button>
+      <button id="btn-export-batch-cancel" class="action-btn">取消</button>
     </div>
   </div>
 </div>
@@ -525,13 +526,13 @@
   <div class="modal-content" style="max-width:800px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <h3 style="margin:0">📜 润色记录 <span id="llm-history-count" style="font-size:11px;color:var(--text-muted);font-weight:normal"></span></h3>
-      <button id="btn-llm-history-clear" data-i18n="common.clearHistory" class="action-btn" style="color:var(--danger);font-size:11px;padding:4px 10px">清空记录</button>
+      <button id="btn-llm-history-clear" class="action-btn" style="color:var(--danger);font-size:11px;padding:4px 10px">清空记录</button>
     </div>
     <div id="llm-history-pager-top" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:8px;font-size:12px"></div>
     <div id="llm-history-list" style="max-height:500px;overflow-y:auto;border:1px solid var(--border);border-radius:4px"></div>
     <div id="llm-history-pager-bottom" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;font-size:12px"></div>
     <div class="modal-actions" style="margin-top:8px">
-      <button id="btn-llm-history-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-llm-history-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -543,7 +544,7 @@
     <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">点击预设加载配置，点击 <span style="color:var(--danger)">🗑</span> 连点3次删除</p>
     <div id="llm-presets-list" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:4px"></div>
     <div class="modal-actions" style="margin-top:8px">
-      <button id="btn-llm-presets-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-llm-presets-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -569,7 +570,7 @@
     <div class="modal-actions">
       <button id="btn-loadimg-upload" class="action-btn primary">⬆ 上传并绑定</button>
       <button id="btn-loadimg-clear" class="action-btn" style="color:var(--danger);font-weight:600">🗑 清除绑定</button>
-      <button id="btn-loadimg-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-loadimg-close" class="action-btn">关闭</button>
     </div>
 
     <!-- 反推生图区域 -->
@@ -599,7 +600,7 @@
     <h3>📂 反推预设</h3>
     <div id="reverse-presets-list" style="max-height:300px;overflow-y:auto"></div>
     <div class="modal-actions" style="margin-top:8px">
-      <button id="btn-reverse-presets-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-reverse-presets-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -656,8 +657,8 @@
     <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">自己写正向提示词直接发送到 ComfyUI 生图。<br>负面提示词会使用 <b>负面面板标签 + 负面预设</b>。</p>
     <textarea id="manual-prompt-input" placeholder="在这里写正面提示词...&#10;例如：a beautiful girl sitting in a cyberpunk city, neon lights, rain, masterpiece" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-primary);color:var(--text-primary);font-size:12px;font-family:&quot;JetBrains Mono&quot;,monospace;resize:vertical;outline:none"></textarea>
     <div class="modal-actions" style="margin-top:8px">
-      <button id="btn-manual-prompt-send" data-i18n="comfy.sendManual" class="action-btn primary">🚀 发送生图</button>
-      <button id="btn-manual-prompt-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-manual-prompt-send" class="action-btn primary">🚀 发送生图</button>
+      <button id="btn-manual-prompt-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -675,7 +676,7 @@
     </div>
     <div id="rand-profile-list" style="max-height:300px;overflow-y:auto"></div>
     <div class="modal-actions" style="margin-top:10px">
-      <button id="btn-rand-profile-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-rand-profile-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -686,7 +687,7 @@
     <h3>📂 加载模板</h3>
     <div id="template-load-list" style="max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
     <div class="modal-actions">
-      <button id="btn-template-load-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-template-load-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
@@ -732,7 +733,7 @@
 
 <!-- 免责声明 -->
 <footer id="disclaimer">
-  <button id="btn-disclaimer-desktop" data-i18n="common.disclaimer" class="disclaimer-btn" title="点击查看完整免责声明">⚠️ 免责声明：本工具仅供学习交流使用，使用者对生成内容承担全部责任，AI 生成可能存在偏差请理性辨别</button>
+  <button id="btn-disclaimer-desktop" class="disclaimer-btn" title="点击查看完整免责声明">⚠️ 免责声明：本工具仅供学习交流使用，使用者对生成内容承担全部责任，AI 生成可能存在偏差请理性辨别</button>
 </footer>
 <div id="disclaimer-modal-desktop" class="modal" style="display:none">
   <div class="modal-content" style="max-width:500px">
@@ -741,12 +742,11 @@
     <p style="line-height:1.8;font-size:12px;color:var(--text-secondary)">使用者须对生成内容承担全部责任，包括但不限于确保内容不侵犯他人合法权益、不违反公序良俗。本工具开发者不对用户使用本工具产生的任何内容及后果承担任何法律责任。</p>
     <p style="line-height:1.8;font-size:12px;color:var(--text-secondary)">AI 生成内容可能存在偏差或不当之处，请理性辨别和使用。</p>
     <div class="modal-actions" style="margin-top:10px">
-      <button id="btn-disclaimer-desktop-close" data-i18n="common.close" class="action-btn">关闭</button>
+      <button id="btn-disclaimer-desktop-close" class="action-btn">关闭</button>
     </div>
   </div>
 </div>
 
-<script src="/i18n.js?v=1"></script>
 <script src="/app.js?v=211"></script>
 </body>
 </html>
