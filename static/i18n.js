@@ -18,8 +18,13 @@ var I18N = {
     'toolbar.tagMode': { en: '🏷 Single Tag', zh: '🏷 单一标签' },
     'toolbar.phraseMode': { en: '📋 Phrase Tags', zh: '📋 短语标签' },
     // 左侧
-    'sidebar.search': { en: 'Search tags (Ctrl+K)', zh: '搜索标签 (Ctrl+K)' },
+    'sidebar.search': { en: 'Search tags (EN/CN)...', zh: '搜索标签 (中/英文)...' },
     'sidebar.emptyTree': { en: 'No categories', zh: '未找到分类' },
+    'sidebar.categories': { en: '📁 Categories', zh: '📁 标签分类' },
+    'sidebar.favorites': { en: '⭐ Favorites', zh: '⭐ 我的收藏' },
+    'sidebar.presets': { en: '📦 Presets', zh: '📦 预设组合' },
+    'sidebar.history': { en: '🕐 History', zh: '🕐 历史记录' },
+    'sidebar.randProfile': { en: '💾 Rand Profiles', zh: '💾 随机配置' },
     // 标签网格
     'grid.empty': { en: 'Select a subcategory from the left', zh: '请从左侧选择一个子类别' },
     'grid.noResult': { en: 'No matching tags', zh: '未找到匹配标签' },
