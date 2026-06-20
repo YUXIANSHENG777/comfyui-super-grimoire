@@ -96,6 +96,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei"
 .tag-chip.selected { background:var(--tag-selected-bg); border-color:var(--tag-selected-border); color:#c8c0ff; box-shadow:0 0 16px var(--accent-glow); }
 .tag-chip .tag-en { font-size:10px; color:var(--text-muted); }
 .tag-chip.selected .tag-en { color:#9888dd; }
+/* 英文模式下交换标签显示：大字英文 + 小字中文 */
+html[lang="en"] .tag-chip .tag-zh { font-size:10px; color:var(--text-muted); opacity:0.7; }
+html[lang="en"] .tag-chip .tag-en { font-size:inherit; color:var(--text-primary); }
+html[lang="en"] .tag-chip.selected .tag-en { color:#c8c0ff; }
+/* 选中面板的标签行也交换 */
+html[lang="en"] .tag-row .tag-info .zh { font-size:10px; color:var(--text-muted); opacity:0.7; }
+html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primary); }
 .tag-chip .tag-star { font-size:11px; color:var(--warning); cursor:pointer; opacity:0; transition:opacity .1s; }
 .tag-chip:hover .tag-star, .tag-chip .tag-star.faved { opacity:1; }
 .tag-chip .tag-edit-icon, .tag-chip .tag-del-icon { font-size:10px; color:var(--text-muted); cursor:pointer; opacity:0; transition:opacity .1s; }
