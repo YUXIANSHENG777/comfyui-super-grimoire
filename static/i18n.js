@@ -149,26 +149,31 @@ function i18nSetLang(lang) {
   for (var i = 0; i < els.length; i++) {
     var el = els[i];
     var key = el.getAttribute('data-i18n');
-    var text = I18N.texts[key];
-    if (!text) continue;
+    var dict = I18N.texts[key];
+    if (!dict) continue;
+    var str = dict[lang] || dict.zh || key;
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      if (el.hasAttribute('data-i18n-placeholder'))
-        el.placeholder = text[lang] || text.zh || key;
-      else
-        el.value = text[lang] || text.zh || key;
+      if (el.hasAttribute('data-i18n-placeholder')) el.placeholder = str;
+      else el.value = str;
     } else if (el.tagName === 'OPTION') {
-      el.textContent = text[lang] || text.zh || key;
+      el.textContent = str;
     } else {
-      // 处理子元素（保留 icon 和 span 结构）
-      if (el.children.length > 0 && !el.hasAttribute('data-i18n-replace')) {
-        // 只更新文本节点
-        for (var j = 0; j < el.childNodes.length; j++) {
-          if (el.childNodes[j].nodeType === 3) {
-            el.childNodes[j].textContent = text[lang] || text.zh || key;
+      // data-i18n-replace: 整体替换（忽略子元素如 icon）
+      if (el.hasAttribute('data-i18n-replace')) {
+        el.textContent = str;
+      } else {
+        // 保留子元素，只更新最后的文本节点
+        var nodes = el.childNodes;
+        for (var j = nodes.length - 1; j >= 0; j--) {
+          if (nodes[j].nodeType === 3 && nodes[j].textContent.trim()) {
+            nodes[j].textContent = str;
+            break;
           }
         }
-      } else {
-        el.textContent = text[lang] || text.zh || key;
+        // 如果没有文本节点，追加
+        if (el.textContent.trim() === '' && nodes.length === 0) {
+          el.textContent = str;
+        }
       }
     }
   }
@@ -177,17 +182,17 @@ function i18nSetLang(lang) {
   for (var i = 0; i < titleEls.length; i++) {
     var tel = titleEls[i];
     var tkey = tel.getAttribute('data-i18n-title');
-    var ttext = I18N.texts[tkey];
-    if (ttext) tel.title = ttext[lang] || ttext.zh || tkey;
+    var tdict = I18N.texts[tkey];
+    if (tdict) tel.title = tdict[lang] || tdict.zh || tkey;
   }
   // 更新语言按钮
   var lb = document.getElementById('btn-lang-switch');
-  if (lb) lb.textContent = lang === 'zh' ? 'EN' : '中';
+  if (lb) lb.textContent = lang === 'zh' ? 'English' : '中文';
   // 更新 HTML lang 属性
   document.documentElement.lang = lang;
   // 保存
   localStorage.setItem('grimoire2_lang', lang);
-  S.lang = lang;
+  if (typeof S !== 'undefined') S.lang = lang;
 }
 
 // JS 中取翻译
