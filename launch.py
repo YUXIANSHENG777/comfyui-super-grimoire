@@ -15,7 +15,7 @@ print("=" * 50)
 import subprocess, threading
 def open_browser():
     time.sleep(1.5)
-    webbrowser.open("http://127.0.0.1:5801")
+    webbrowser.open("http://127.0.0.1:5802")
 threading.Thread(target=open_browser, daemon=True).start()
 
 subprocess.run([sys.executable, "server.py"])

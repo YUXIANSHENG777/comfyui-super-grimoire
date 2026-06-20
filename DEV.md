@@ -256,9 +256,9 @@ var S = {
 ```
 桌面电脑:
   ComfyUI 在 127.0.0.1:8188
-  Flask 在 0.0.0.0:5801
+  Flask 在 0.0.0.0:5802
 
-手机访问: 192.168.2.100:5801
+手机访问: 192.168.2.100:5802
   返图 URL: /api/comfyui/proxy-image?filename=...
   → Flask 转发到 ComfyUI → 返回图片流
 ```

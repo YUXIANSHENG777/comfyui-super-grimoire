@@ -676,7 +676,7 @@
           h = h.replace(/模板区 \{tags\} 放LoRA触发词\/画风前缀，润色不会影响模板内容/g, 'template {tags} for LoRA triggers/style prefix, refine won\'t affect');
           h = h.replace(/负面预设自动注入，和面板负面标签叠加生效/g, 'negative preset auto-injects, stacks with panel negative tags');
           h = h.replace(/空隔转换：标记直接拼接 \/ 空格转下划线 \/ 下划线转空格/g, 'space mode: direct join / space→underscore / underscore→space');
-          h = h.replace(/手机连同一WiFi访问 http:\/\/电脑IP:5801 即可使用/g, 'mobile: same WiFi http://your-IP:5801');
+          h = h.replace(/手机连同一WiFi访问 http:\/\/电脑IP:5802 即可使用/g, 'mobile: same WiFi http://your-IP:5802');
           d.innerHTML = h;
           break;
         }
