@@ -1,19 +1,17 @@
 @echo off
+chcp 65001 >nul
 cd /d "%~dp0"
 setlocal enabledelayedexpansion
-title 🪄 超级无敌魔导书
+title 超级无敌魔导书
 
 echo ============================================
-echo   🪄 超级无敌魔导书 - 智能启动器
+echo    超级无敌魔导书 - 智能启动器
 echo ============================================
 echo.
 
 set "PY_CMD="
-set "PY_VER=3.8"
 
-:: ═══════════════════════════════════════
-::  第1步：检测系统 Python（需 >= 3.8）
-:: ═══════════════════════════════════════
+:: ---- 第1步：检测系统 Python（需 > 3.8） ----
 where python >nul 2>&1
 if %errorlevel% equ 0 (
     for /f "tokens=2" %%v in ('python --version 2^>^&1') do set "SYS_VER=%%v"
@@ -31,9 +29,7 @@ if %errorlevel% equ 0 (
     echo [检测] 未找到系统 Python
 )
 
-:: ═══════════════════════════════════════
-::  第2步：检测项目便携版 Python
-:: ═══════════════════════════════════════
+:: ---- 第2步：检测项目便携版 Python ----
 if exist "python_portable\python.exe" (
     for /f "tokens=2" %%v in ('python_portable\python.exe --version 2^>^&1') do (
         echo [检测] 便携版 Python: %%v
@@ -43,14 +39,12 @@ if exist "python_portable\python.exe" (
     goto :check_flask
 )
 
-:: ═══════════════════════════════════════
-::  第3步：自动下载便携版 Python
-:: ═══════════════════════════════════════
+:: ---- 第3步：自动下载便携版 Python ----
 echo.
-echo ╔══════════════════════════════════════╗
-echo ║  首次运行，自动配置 Python 环境     ║
-echo ║  正在下载便携版（约 8MB，仅一次）   ║
-echo ╚══════════════════════════════════════╝
+echo -------------------------------------------------
+echo   首次运行，自动配置 Python 环境
+echo   正在下载便携版（约 8MB，仅一次）
+echo -------------------------------------------------
 echo.
 
 set "ZIP=python-3.12.9-embed-amd64.zip"
@@ -59,7 +53,6 @@ set "PDIR=python_portable"
 
 if not exist "%PDIR%" mkdir "%PDIR%"
 
-:: 用 PowerShell 下载（处理 TLS + 进度条）
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
      Write-Host '[下载] %URL%' -ForegroundColor Cyan; ^
@@ -85,20 +78,15 @@ if not exist "%PDIR%\python.exe" (
     exit /b 1
 )
 
-:: ═══════════════════════════════════════
-::  配置便携版（启用 pip + 站点包）
-:: ═══════════════════════════════════════
+:: ---- 配置便携版（启用 pip + 站点包） ----
 cd /d "%PDIR%"
 
-:: 修改 ._pth 文件以启用 site-packages
 for %%f in (python3*._pth) do set "PTH=%%f"
 echo import site>>"%PTH%"
 echo Lib\site-packages>>"%PTH%"
 
-:: 创建 site-packages 目录
 if not exist "Lib\site-packages" mkdir "Lib\site-packages"
 
-:: 安装 pip
 echo [配置] 正在安装 pip（仅首次）...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
@@ -113,9 +101,7 @@ if exist get-pip.py (
 cd /d "%~dp0"
 set "PY_CMD=python_portable\python.exe"
 
-:: ═══════════════════════════════════════
-::  第4步：安装项目依赖
-:: ═══════════════════════════════════════
+:: ---- 第4步：安装项目依赖 ----
 :check_flask
 echo [检查] 项目依赖...
 %PY_CMD% -c "import flask" >nul 2>&1
@@ -133,15 +119,13 @@ if errorlevel 1 (
     echo [OK] 依赖已就绪
 )
 
-:: ═══════════════════════════════════════
-::  第5步：启动服务器
-:: ═══════════════════════════════════════
+:: ---- 第5步：启动服务器 ----
 echo.
-echo ╔══════════════════════════════════════╗
-echo ║  🚀 启动服务器...                    ║
-echo ║  浏览器将自动打开                     ║
-echo ║  手机访问 http://你的IP:5802           ║
-echo ╚══════════════════════════════════════╝
+echo -------------------------------------------------
+echo   启动服务器...
+echo   浏览器将自动打开
+echo   手机访问 http://你的IP:5802
+echo -------------------------------------------------
 echo.
 %PY_CMD% launch.py
 pause
