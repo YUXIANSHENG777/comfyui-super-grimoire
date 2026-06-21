@@ -18,4 +18,7 @@ def open_browser():
     webbrowser.open("http://127.0.0.1:5802")
 threading.Thread(target=open_browser, daemon=True).start()
 
-subprocess.run([sys.executable, "server.py"])
+try:
+    subprocess.run([sys.executable, "server.py"])
+except KeyboardInterrupt:
+    print("\n服务器已关闭")

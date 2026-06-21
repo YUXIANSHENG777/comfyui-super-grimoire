@@ -128,4 +128,4 @@ echo   手机访问 http://你的IP:5802
 echo -------------------------------------------------
 echo.
 %PY_CMD% launch.py
-pause
+exit /b
