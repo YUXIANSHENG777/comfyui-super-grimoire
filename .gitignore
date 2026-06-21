@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 user_data/
 *.tmp
+python_portable/
+python-*.zip
