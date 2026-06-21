@@ -128,4 +128,7 @@ echo   手机访问 http://你的IP:5802
 echo -------------------------------------------------
 echo.
 %PY_CMD% launch.py
+echo.
+echo 服务器已停止，按任意键关闭窗口...
+pause >nul
 exit /b
