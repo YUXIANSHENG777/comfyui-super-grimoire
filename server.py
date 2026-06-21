@@ -1193,6 +1193,112 @@ def api_llm_translate():
     except Exception as e:
         return jsonify({"error": f"{type(e).__name__}: {str(e)[:200]}"}), 500
 
+# === 绑定路径 & 回收站 ===
+import ctypes
+from ctypes import wintypes
+
+@app.route("/api/bind/scan", methods=["POST"])
+def api_bind_scan():
+    d = request.get_json(force=True) or {}
+    paths = d.get("paths", [])
+    images, seen = [], set()
+    for folder in paths:
+        if not folder: continue
+        p = Path(folder)
+        if not p.exists(): continue
+        files = []
+        for ext in ('*.png','*.jpg','*.jpeg','*.webp','*.bmp'):
+            files.extend(p.rglob(ext))
+        for f in files:
+            rel = str(f.relative_to(p))
+            if rel not in seen:
+                seen.add(rel)
+                images.append({
+                    "filename": f.name,
+                    "path": str(f),
+                    "url": f"/api/bind/img?p={urllib.parse.quote(str(p))}&n={urllib.parse.quote(f.name)}"
+                })
+    images.sort(key=lambda x: os.path.getmtime(x["path"]), reverse=True)
+    return jsonify({"ok": True, "images": images})
+
+@app.route("/api/bind/img")
+def api_bind_img():
+    fp = request.args.get("p", "")
+    fn = request.args.get("n", "")
+    if os.path.isfile(os.path.join(fp, fn)):
+        return send_from_directory(fp, fn, conditional=True)
+    return "not found", 404
+
+@app.route("/api/bind/move", methods=["POST"])
+def api_bind_move():
+    """剪切文件到 user_data/albums/，原文件移入回收站"""
+    d = request.get_json(force=True) or {}
+    fp = d.get("path", "")
+    aid = d.get("album_id", "default")
+    if fp and os.path.exists(fp):
+        dest = USER_DIR / "albums" / aid
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.move(fp, str(dest / Path(fp).name))
+        # 返图区读取user_data：需要重建 URL
+        new_url = f"/api/album/image/{aid}/{urllib.parse.quote(Path(fp).name)}"
+        return jsonify({"ok": True, "local_url": new_url, "filename": Path(fp).name})
+    return jsonify({"ok": False, "error": "文件不存在"})
+
+@app.route("/api/file/copy-to-album", methods=["POST"])
+def api_file_copy_to_album():
+    """拷贝文件到 user_data/albums/（不删原文件）"""
+    d = request.get_json(force=True) or {}
+    fp = d.get("path", "")
+    aid = d.get("album_id", "default")
+    if fp and os.path.exists(fp):
+        dest = USER_DIR / "albums" / aid
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(fp, str(dest / Path(fp).name))
+        new_url = f"/api/album/image/{aid}/{urllib.parse.quote(Path(fp).name)}"
+        return jsonify({"ok": True, "local_url": new_url, "filename": Path(fp).name})
+    return jsonify({"ok": False})
+
+@app.route("/api/album/image/<album_id>/<path:filename>")
+def api_album_image(album_id, filename):
+    """提供相册存储的图片"""
+    d = USER_DIR / "albums" / album_id
+    if d.exists():
+        p = d / filename
+        if p.exists():
+            return send_from_directory(str(d), filename, conditional=True)
+    return "not found", 404
+
+@app.route("/api/album/delete-image", methods=["POST"])
+def api_album_delete_image():
+    """删除相册图片 → 移入回收站"""
+    d = request.get_json(force=True) or {}
+    aid = d.get("album_id", "")
+    fn = d.get("filename", "")
+    fp = USER_DIR / "albums" / aid / fn
+    if fp.exists():
+        buf = ctypes.create_unicode_buffer(str(fp.absolute()) + "\0\0")
+        class SF(ctypes.Structure):
+            _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
+        op = SF(); op.hwnd = None; op.wFunc = 3; op.pFrom = ctypes.cast(buf, wintypes.LPCWSTR); op.pTo = None
+        op.fFlags = 0x40 | 0x4 | 0x400
+        ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+        return jsonify({"ok": True})
+    return jsonify({"ok": False})
+
+@app.route("/api/bind/delete", methods=["POST"])
+def api_bind_delete():
+    d = request.get_json(force=True) or {}
+    fp = d.get("path", "")
+    if fp and os.path.exists(fp):
+        buf = ctypes.create_unicode_buffer(os.path.abspath(fp) + "\0\0")
+        class SF(ctypes.Structure):
+            _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
+        op = SF(); op.hwnd = None; op.wFunc = 3; op.pFrom = ctypes.cast(buf, wintypes.LPCWSTR); op.pTo = None
+        op.fFlags = 0x40 | 0x4 | 0x400
+        ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "文件不存在"})
+
 if __name__ == "__main__":
     print("=" * 50)
     print("  超级无敌魔导书 - AI绘画提示词组合器")

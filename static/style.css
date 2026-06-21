@@ -218,6 +218,10 @@ html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primar
 .gallery-img-info { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent, rgba(0,0,0,0.75)); padding:24px 10px 8px; display:flex; justify-content:space-between; align-items:center; opacity:0; transition:opacity .2s; }
 .gallery-img-wrap:hover .gallery-img-info { opacity:1; }
 .gallery-img-label { font-size:10px; color:#fff; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.5); }
+/* 返图删除按钮 */
+.gallery-del-btn { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); font-size:11px; cursor:pointer; padding:2px 5px; border-radius:8px; opacity:0; transition:all .2s; z-index:2; }
+.gallery-img-wrap:hover .gallery-del-btn { opacity:1; }
+.gallery-del-btn:hover { background:rgba(232,93,110,0.5); border-color:#e85d6e; color:#fff; }
 /* 相册爱心按钮 - 常亮状态 */
 .gallery-heart { position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:11px; cursor:pointer; padding:2px 6px; border-radius:10px; opacity:0; transition:all .2s; white-space:nowrap; z-index:2; }
 .gallery-img-wrap:hover .gallery-heart { opacity:1; }
