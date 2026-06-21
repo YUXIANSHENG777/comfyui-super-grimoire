@@ -1229,62 +1229,6 @@ def api_bind_img():
         return send_from_directory(fp, fn, conditional=True)
     return "not found", 404
 
-@app.route("/api/bind/move", methods=["POST"])
-def api_bind_move():
-    """剪切文件到 user_data/albums/，原文件移入回收站"""
-    d = request.get_json(force=True) or {}
-    fp = d.get("path", "")
-    aid = d.get("album_id", "default")
-    if fp and os.path.exists(fp):
-        dest = USER_DIR / "albums" / aid
-        dest.mkdir(parents=True, exist_ok=True)
-        shutil.move(fp, str(dest / Path(fp).name))
-        # 返图区读取user_data：需要重建 URL
-        new_url = f"/api/album/image/{aid}/{urllib.parse.quote(Path(fp).name)}"
-        return jsonify({"ok": True, "local_url": new_url, "filename": Path(fp).name})
-    return jsonify({"ok": False, "error": "文件不存在"})
-
-@app.route("/api/file/copy-to-album", methods=["POST"])
-def api_file_copy_to_album():
-    """拷贝文件到 user_data/albums/（不删原文件）"""
-    d = request.get_json(force=True) or {}
-    fp = d.get("path", "")
-    aid = d.get("album_id", "default")
-    if fp and os.path.exists(fp):
-        dest = USER_DIR / "albums" / aid
-        dest.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(fp, str(dest / Path(fp).name))
-        new_url = f"/api/album/image/{aid}/{urllib.parse.quote(Path(fp).name)}"
-        return jsonify({"ok": True, "local_url": new_url, "filename": Path(fp).name})
-    return jsonify({"ok": False})
-
-@app.route("/api/album/image/<album_id>/<path:filename>")
-def api_album_image(album_id, filename):
-    """提供相册存储的图片"""
-    d = USER_DIR / "albums" / album_id
-    if d.exists():
-        p = d / filename
-        if p.exists():
-            return send_from_directory(str(d), filename, conditional=True)
-    return "not found", 404
-
-@app.route("/api/album/delete-image", methods=["POST"])
-def api_album_delete_image():
-    """删除相册图片 → 移入回收站"""
-    d = request.get_json(force=True) or {}
-    aid = d.get("album_id", "")
-    fn = d.get("filename", "")
-    fp = USER_DIR / "albums" / aid / fn
-    if fp.exists():
-        buf = ctypes.create_unicode_buffer(str(fp.absolute()) + "\0\0")
-        class SF(ctypes.Structure):
-            _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
-        op = SF(); op.hwnd = None; op.wFunc = 3; op.pFrom = ctypes.cast(buf, wintypes.LPCWSTR); op.pTo = None
-        op.fFlags = 0x40 | 0x4 | 0x400
-        ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
-        return jsonify({"ok": True})
-    return jsonify({"ok": False})
-
 @app.route("/api/bind/delete", methods=["POST"])
 def api_bind_delete():
     d = request.get_json(force=True) or {}

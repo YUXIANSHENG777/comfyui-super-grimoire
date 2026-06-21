@@ -196,9 +196,6 @@ var S = {
 | `/api/bind/scan` | POST | 扫描 output 目录图片 |
 | `/api/bind/img` | GET | 提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 文件移入回收站 |
-| `/api/file/copy-to-album` | POST | 复制文件到 user_data/albums/ |
-| `/api/album/image/<id>/<fn>` | GET | 相册图片 |
-| `/api/album/delete-image` | POST | 相册图片入回收站 |
 
 ---
 

@@ -201,11 +201,9 @@ var S = {
 | `/api/bind/scan` | POST | 扫描 output 文件夹，返回所有图片（最新在前） |
 | `/api/bind/img` | GET | 直接提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 删除文件到 Windows 回收站 |
-| `/api/file/copy-to-album` | POST | 复制文件到 `user_data/albums/` |
-| `/api/album/image/<id>/<filename>` | GET | 提供相册存储的图片 |
-| `/api/album/delete-image` | POST | 删除相册图片到回收站 |
-
 ---
+
+
 
 ## 五、核心数据流
 

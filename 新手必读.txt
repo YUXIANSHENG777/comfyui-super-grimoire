@@ -110,7 +110,6 @@ workflows/       你的 ComfyUI 工作流 .json 放这里
 data/            标签库
 static/          网页前端
 user_data/       你的个人数据（配置/收藏/预设/历史）
-   ├─ albums/    相册图片存储
    ├─ history/   生图记录
    ├─ presets/   预设组合
    ├─ llm_config.json     LLM 配置
