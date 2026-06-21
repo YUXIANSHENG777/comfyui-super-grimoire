@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.62 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.63 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
-<link rel="stylesheet" href="/style.css?v=3">
+<link rel="stylesheet" href="/style.css?v=4">
 <script src="/i18n.js?v=3"></script>
 </head>
 <body>
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.62</span></span>
+    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.63</span></span>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px">❓ 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
   </div>
@@ -143,14 +143,45 @@
       <div id="browser-actions"></div>
     </div>
     <div id="tag-grid"></div>
-    <div id="comfyui-gallery" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <h3 style="font-size:13px;color:var(--accent);margin:0">🖼 生成结果 <span id="gallery-count" style="font-size:10px;color:var(--text-muted);font-weight:normal"></span></h3>
-        <button id="btn-gallery-clear" class="mini-btn" style="font-size:10px" title="清空所有图片">🗑 清空</button>
-      </div>
-      <div id="comfyui-gallery-imgs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
-    </div>
     <div id="search-results-info" style="display:none"></div>
+    <!-- 可拖动分割线 -->
+    <div id="resize-handle" style="height:4px;cursor:ns-resize;background:var(--border);flex-shrink:0;transition:background .2s" title="拖动调整区域高度"></div>
+    <!-- 相册卡片 + 返图区（中间区域底部，左右分栏） -->
+    <div id="bottom-area" style="border-top:1px solid var(--border);padding-top:6px;flex-shrink:0;min-height:120px;overflow:hidden" data-height="220">
+      <!-- 相册标签行（隐藏） -->
+      <div id="album-tabs" style="display:none">
+        <div id="album-list"></div>
+        <button id="btn-album-create-small" class="mini-btn" style="font-size:10px;padding:2px 8px">➕</button>
+      </div>
+      <!-- 卡片 + 返图 横排 -->
+      <div style="display:flex;gap:10px;height:100%">
+      <!-- 左：相册卡片轮播 -->
+      <div id="album-card-carousel" style="display:none;position:relative;width:200px;flex-shrink:0">
+        <div id="album-card" class="album-preview-card" style="border-radius:10px;height:100%" title="点击管理相册">
+          <div class="album-card-inner">
+            <img id="album-card-img" src="">
+            <div class="album-card-overlay">
+              <span id="album-card-name" class="album-card-title"></span>
+              <span id="album-card-count" class="album-card-counter"></span>
+            </div>
+          </div>
+        </div>
+        <button id="album-card-prev" class="album-card-nav prev">‹</button>
+        <button id="album-card-next" class="album-card-nav next">›</button>
+      </div>
+      <!-- 右：返图缩略图（填充剩余空间） -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--accent)">🖼 返图 <span id="gallery-count" style="font-size:9px;color:var(--text-muted);font-weight:normal"></span></span>
+          <div style="display:flex;gap:4px">
+            <button id="btn-gallery-view-all" class="mini-btn" style="font-size:9px" title="全部预览">🔍 全部预览</button>
+            <button id="btn-gallery-clear" class="mini-btn" style="font-size:9px" title="清空所有图片">🗑 清空</button>
+          </div>
+        </div>
+        <div id="comfyui-gallery-imgs" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;flex:1;align-items:flex-start"></div>
+      </div>
+      </div>
+    </div>
     <div id="m-selected-bar">
       <div class="bar-title">✅ 已选标签 <span id="m-sel-pos-count"></span> | ❌ <span id="m-sel-neg-count"></span></div>
       <div class="bar-tags" id="m-sel-tags"></div>
@@ -606,6 +637,47 @@
   </div>
 </div>
 
+<!-- 模态框: 返图全部预览 -->
+<div id="modal-gallery-all" class="modal" style="display:none">
+  <div class="modal-content" style="width:90vw;max-width:1200px;max-height:92vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0">🖼 全部返图 <span id="gallery-all-count" style="font-size:12px;color:var(--text-muted);font-weight:normal"></span></h3>
+      <button id="btn-gallery-all-close" style="border:none;background:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0">✕</button>
+    </div>
+    <div id="gallery-all-grid" style="display:flex;flex-wrap:wrap;gap:6px;overflow-y:auto;flex:1;align-content:flex-start;justify-content:center"></div>
+  </div>
+</div>
+
+<!-- 模态框: 相册管理 -->
+<div id="modal-album" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3 style="margin:0 0 12px">📂 相册管理</h3>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <input type="text" id="album-new-name" placeholder="新建相册名称..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:12px;outline:none">
+      <button id="btn-album-create" class="action-btn primary" style="font-size:11px;padding:6px 14px">➕ 新建</button>
+    </div>
+    <div id="album-modal-list" style="max-height:60vh;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+    <div class="modal-actions" style="margin-top:10px">
+      <button id="btn-album-close" class="action-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 相册图片浏览 -->
+<div id="modal-album-browse" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0" id="album-browse-title">📂 相册</h3>
+      <button id="btn-album-browse-close" style="border:none;background:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0">✕</button>
+    </div>
+    <div id="album-browse-toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <button id="btn-batch-del-toggle" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer" onclick="_toggleBatchMode()">批量删除</button>
+      <button id="btn-batch-del-confirm" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer" onclick="var s=parseInt(this.dataset.strike||0)+1;this.dataset.strike=s;var l=5-s;if(l<=0){_executeBatchDel();this.dataset.strike=0;this.textContent='确认删除 (5次)';this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='transparent';}else{this.textContent='确认删除 ('+l+'次)';this.style.borderColor='var(--danger)';this.style.color='var(--danger)';this.style.background='rgba(232,93,110,'+(0.1+s*0.1)+')';}">确认删除 (5次)</button>
+    </div>
+    <div id="album-browse-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
 <!-- 模态框: ComfyUI 使用说明 -->
 <div id="modal-comfyui-help" class="modal" style="display:none">
   <div class="modal-content" style="max-width:520px;max-height:80vh;overflow-y:auto">
@@ -748,6 +820,6 @@
   </div>
 </div>
 
-<script src="/app.js?v=211"></script>
+<script src="/app.js?v=213"></script>
 </body>
 </html>

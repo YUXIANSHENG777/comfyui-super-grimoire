@@ -80,9 +80,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei"
 
 /* === 中间主区域 === */
 #tag-browser { flex:1; overflow-y:auto; padding:24px; background:var(--bg-primary); display:flex; flex-direction:column; }
-#tag-grid { flex:1; min-height:0; overflow-y:auto; max-height:55vh; }
-#comfyui-gallery-imgs { display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; overflow-y:hidden; max-height:260px; padding-bottom:4px; }
-#comfyui-gallery-imgs img { flex-shrink:0; max-height:240px; width:auto; border-radius:var(--radius); cursor:pointer; object-fit:contain; background:var(--bg-tertiary); }
+#tag-grid { flex:1; min-height:0; overflow-y:auto; }
+#resize-handle:hover { background:var(--accent) !important; }
+#comfyui-gallery-imgs { display:flex; flex-wrap:nowrap; gap:6px; overflow-x:auto; overflow-y:hidden; padding-bottom:4px; flex:1; align-items:stretch; }
+#comfyui-gallery-imgs img { flex-shrink:0; height:100%; width:auto; border-radius:var(--radius); cursor:pointer; object-fit:cover; background:var(--bg-tertiary); transition:transform .2s; }
+#comfyui-gallery-imgs img:hover { transform:scale(1.02); }
 #browser-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
 #browser-title { font-size:17px; font-weight:700; color:var(--text-primary); }
 #browser-actions { display:flex; gap:8px; }
@@ -204,18 +206,61 @@ html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primar
 .disclaimer-content p { font-size:10px; color:var(--text-muted); line-height:1.6; margin-bottom:3px; }
 
 /* === 返图区 === */
-#comfyui-gallery { animation:gallery-in .35s ease; }
 @keyframes gallery-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-#comfyui-gallery-imgs::-webkit-scrollbar { height:5px; }
-#comfyui-gallery-imgs::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:3px; }
-#comfyui-gallery-imgs::-webkit-scrollbar-track { background:transparent; }
-.gallery-img-wrap { position:relative; height:250px; border-radius:var(--radius); overflow:hidden; background:var(--bg-primary); border:1px solid var(--border); transition:all .25s ease; animation:img-pop .4s ease; flex-shrink:0; }
-.gallery-img-wrap:hover { border-color:var(--accent); box-shadow:0 4px 24px var(--accent-glow); transform:translateY(-3px); }
+#comfyui-gallery-imgs::-webkit-scrollbar { height:8px; }
+#comfyui-gallery-imgs::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:4px; }
+#comfyui-gallery-imgs::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+#comfyui-gallery-imgs::-webkit-scrollbar-track { background:var(--bg-tertiary); border-radius:4px; }
+.gallery-img-wrap { position:relative; height:100%; border-radius:var(--radius); overflow:hidden; background:var(--bg-primary); border:1px solid var(--border); transition:all .25s ease; animation:img-pop .4s ease; flex-shrink:0; }
+.gallery-img-wrap:hover { border-color:var(--accent); box-shadow:0 4px 24px var(--accent-glow); }
 @keyframes img-pop { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
-.gallery-img-wrap img { height:100%; width:auto; display:block; object-fit:contain; cursor:zoom-in; }
+.gallery-img-wrap img { height:100%; width:auto; display:block; object-fit:cover; cursor:zoom-in; }
 .gallery-img-info { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent, rgba(0,0,0,0.75)); padding:24px 10px 8px; display:flex; justify-content:space-between; align-items:center; opacity:0; transition:opacity .2s; }
 .gallery-img-wrap:hover .gallery-img-info { opacity:1; }
 .gallery-img-label { font-size:10px; color:#fff; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.5); }
+/* 相册爱心按钮 - 常亮状态 */
+.gallery-heart { position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:11px; cursor:pointer; padding:2px 6px; border-radius:10px; opacity:0; transition:all .2s; white-space:nowrap; z-index:2; }
+.gallery-img-wrap:hover .gallery-heart { opacity:1; }
+.gallery-heart:hover { background:rgba(255,50,80,0.6); border-color:#f44; }
+.gallery-heart.liked { opacity:1; background:rgba(255,50,80,0.7); border-color:#f44; }
+.gallery-heart .heart-label { font-size:8px; margin-left:1px; opacity:0.8; }
+
+/* 相册标签（标题栏旁） */
+.album-tab { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:var(--bg-primary); font-size:11px; cursor:pointer; transition:all .2s; user-select:none; white-space:nowrap; }
+.album-tab:hover { border-color:var(--accent); }
+.album-tab.active { border-color:var(--accent); background:rgba(139,124,247,0.15); box-shadow:0 0 8px var(--accent-glow); }
+.album-tab .tab-name { color:var(--text-secondary); }
+.album-tab .tab-count { color:var(--text-muted); font-size:10px; }
+.album-tab .tab-heart { font-size:13px; }
+.album-tab .tab-del { font-size:13px; color:var(--text-muted); cursor:pointer; padding:0 2px; border:none; background:none; margin-left:2px; }
+.album-tab .tab-del:hover { color:var(--danger); }
+
+/* 相册预览卡片 */
+#album-card-carousel { position:relative; width:100%; max-width:400px; margin:0 auto; }
+.album-preview-card { border-radius:10px; overflow:hidden; border:1px solid var(--border); background:var(--bg-primary); cursor:pointer; transition:border-radius .5s, box-shadow .3s, transform .3s; height:100%; }
+.album-preview-card:hover { box-shadow:0 4px 24px var(--accent-glow); transform:translateY(-2px); }
+.album-card-inner { position:relative; height:100%; }
+.album-card-inner img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .6s ease, border-radius .5s; }
+.album-card-overlay { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent, rgba(0,0,0,0.7)); padding:24px 10px 8px; display:flex; justify-content:space-between; align-items:flex-end; }
+.album-card-title { font-size:12px; color:#fff; font-weight:600; text-shadow:0 1px 3px rgba(0,0,0,0.5); }
+.album-card-counter { font-size:10px; color:rgba(255,255,255,0.7); }
+.album-card-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.45); border:none; color:#fff; font-size:18px; cursor:pointer; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all .2s; z-index:2; }
+.album-card-nav:hover { background:rgba(255,255,255,0.25); }
+.album-card-nav.prev { left:4px; }
+.album-card-nav.next { right:4px; }
+
+/* 相册浏览网格 */
+.album-grid-card { border-radius:8px; overflow:hidden; border:1px solid var(--border); background:var(--bg-tertiary); cursor:pointer; transition:all .2s; }
+.album-grid-card:hover { border-color:var(--accent); box-shadow:0 2px 12px var(--accent-glow); transform:translateY(-2px); }
+.album-grid-card img { width:100%; aspect-ratio:9/16; object-fit:cover; display:block; }
+.album-grid-card .grid-label { padding:4px 8px; font-size:10px; color:var(--text-muted); text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* 相册管理卡片 */
+#album-modal-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.album-modal-card { max-width:280px; }
+.album-modal-card { transition:all .2s; }
+.album-modal-card:hover { box-shadow:0 4px 16px var(--accent-glow); }
+.album-modal-cover { transition:opacity .5s; }
 
 /* === 大图预览 === */
 #img-preview-modal { position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:300; display:none; flex-direction:column; backdrop-filter:blur(8px); }
@@ -366,8 +411,7 @@ html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primar
   #comfyui-gallery-imgs img { max-height: none !important; }
   .gallery-img-wrap { height: 360px !important; flex-shrink: 0; overflow: hidden; border-radius: var(--radius); background: var(--bg-primary); border: 1px solid var(--border); position: relative; width: auto; min-width: 200px; }
   .gallery-img-wrap img { height: 100% !important; width: auto !important; display: block; object-fit: contain; }
-  /* 生图Tab: ComfyUI在上，画廊在下 */
-  #prompt-panel.m-show #comfyui-gallery { display: block !important; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+  /* 生图Tab: 画廊在手机端也可见 */
   #prompt-panel.m-show #comfyui-gallery-imgs { display: flex !important; }
   #btn-gallery-clear { margin-left: 0; margin-right: auto; }
 }

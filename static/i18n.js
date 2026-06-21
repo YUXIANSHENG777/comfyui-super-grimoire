@@ -221,6 +221,18 @@
     // ---- 更新弹窗 ----
     '🆕 发现新版本！': '🆕 New Version Available!',
 
+    // ---- 相册 ----
+    '相册': 'Album',
+    '相册为空': 'Album is empty',
+    '已收藏到 ': 'Saved to ',
+    '已取消收藏': 'Removed from album',
+    '相册已删除': 'Album deleted',
+    '相册已创建': 'Album created',
+    '请输入相册名称': 'Enter album name',
+    '新建相册名称...': 'New album name...',
+    '📂 相册:': '📂 Albums:',
+    '🖼 返图 ': '🖼 Results ',
+
 
 
     // ---- 弹窗内部标签 ----
@@ -329,6 +341,9 @@
     '将标签提示词发送给大模型，转为自然语言描述。': 'Send tags to LLM for natural language conversion.',
     '将图片发给视觉大模型，反推出提示词，再自动发送到 ComfyUI 生图。': 'Send image to vision LLM for reverse prompt, then auto-generate.',
     '导入预设': 'Import preset',
+    '查看相册': 'View album',
+    '删除(需5次)': 'Delete (5 clicks)',
+    '展开/收起相册': 'Expand/Collapse albums',
   };
 
   // ==================== 分类名翻译 ====================
