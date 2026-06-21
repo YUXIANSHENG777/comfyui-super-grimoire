@@ -12,7 +12,7 @@
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.64</span></span>
+    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.65</span></span>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px">❓ 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
   </div>
@@ -172,11 +172,12 @@
       <!-- 右：返图缩略图（填充剩余空间） -->
       <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="font-size:11px;color:var(--accent)">🖼 返图 <span id="gallery-count" style="font-size:9px;color:var(--text-muted);font-weight:normal"></span></span>
+          <span style="font-size:13px;color:var(--accent)">🖼 返图 <span id="gallery-count" style="font-size:11px;color:var(--text-muted);font-weight:normal"></span></span>
           <div style="display:flex;gap:4px">
-            <button id="btn-gallery-view-all" class="mini-btn" style="font-size:9px" title="全部预览">🔍 全部预览</button>
-            <button id="btn-bind-path" class="mini-btn" style="font-size:9px" title="绑定output文件夹">📂 output</button>
-            <button id="btn-gallery-clear" class="mini-btn" style="font-size:9px" title="清空所有图片">🗑 清空</button>
+            <button id="btn-gallery-refresh" class="mini-btn" title="刷新返图显示">🔄 刷新</button>
+            <button id="btn-gallery-view-all" class="mini-btn" title="全部预览">🔍 全部预览</button>
+            <button id="btn-bind-path" class="mini-btn" title="绑定output文件夹">📂 output</button>
+            <button id="btn-gallery-clear" class="mini-btn" title="点击5次确认：清空返图区所有图片（相册内图片不受影响，文件移入回收站）">🗑 清空到回收站</button>
           </div>
         </div>
         <div id="comfyui-gallery-imgs" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;flex:1;align-items:flex-start"></div>
@@ -450,7 +451,7 @@
     <textarea id="batch-del-input" placeholder="例如:&#10;1girl&#10;smile&#10;脸红" rows="10"></textarea>
     <p id="batch-del-result" style="font-size:12px;margin-bottom:8px"></p>
     <div class="modal-actions">
-      <button id="btn-batch-del-confirm" class="action-btn primary">批量删除</button>
+      <button id="btn-batch-del-tags-confirm" class="action-btn primary">批量删除</button>
       <button id="btn-batch-del-cancel" class="action-btn">取消</button>
     </div>
   </div>
@@ -657,7 +658,22 @@
       <input type="text" id="album-new-name" placeholder="新建相册名称..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:12px;outline:none">
       <button id="btn-album-create" class="action-btn primary" style="font-size:11px;padding:6px 14px">➕ 新建</button>
     </div>
-    <div id="album-modal-list" style="max-height:60vh;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+    <div id="album-modal-list" style="max-height:55vh;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+    <div style="margin-top:6px;font-size:10px;color:var(--text-muted);cursor:pointer" id="btn-album-help-toggle" onclick="var h=el('album-help-content');h.style.display=h.style.display==='none'?'':'none';this.textContent=h.style.display==='none'?'📖 使用说明 ▼':'📖 使用说明 ▲'">📖 使用说明 ▼</div>
+    <div id="album-help-content" style="display:none;font-size:11px;color:var(--text-secondary);line-height:1.8;margin-top:4px;padding:8px;background:var(--bg-tertiary);border-radius:6px">
+      <b>📸 相册系统</b><br>
+      - 返图区点击 ♥ 收藏图片到当前相册（自动隐藏）<br>
+      - 从 Output 文件夹扫描时可跳过已在相册的图片<br>
+      - 💡 双击相册名称可重命名<br>
+      - 🗑 相册删除需点击5次确认<br>
+      - 📥 「导入图片」从 Output 文件夹批量导入到相册<br>
+      <br>
+      <b>📦 批量功能</b><br>
+      - 「☑ 全选」一键勾选/取消所有图片<br>
+      - 「🗑 确认删除」勾选后批量移出相册（非文件删除）<br>
+      - 「🚀 批量发送」勾选多张图 → 用它们的提示词生成<br>
+      - 「🔍 反推生图」取已存提示词送入队列生图<br>
+    </div>
     <div class="modal-actions" style="margin-top:10px">
       <button id="btn-album-close" class="action-btn">关闭</button>
     </div>
@@ -671,9 +687,14 @@
       <h3 style="margin:0" id="album-browse-title">📂 相册</h3>
       <button id="btn-album-browse-close" style="border:none;background:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0">✕</button>
     </div>
-    <div id="album-browse-toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <button id="btn-batch-del-toggle" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer" onclick="_toggleBatchMode()">批量删除</button>
-      <button id="btn-batch-del-confirm" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer" onclick="var s=parseInt(this.dataset.strike||0)+1;this.dataset.strike=s;var l=5-s;if(l<=0){_executeBatchDel();this.dataset.strike=0;this.textContent='确认删除 (5次)';this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='transparent';}else{this.textContent='确认删除 ('+l+'次)';this.style.borderColor='var(--danger)';this.style.color='var(--danger)';this.style.background='rgba(232,93,110,'+(0.1+s*0.1)+')';}">确认删除 (5次)</button>
+    <div id="album-browse-toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <input id="album-browse-search" type="text" placeholder="🔍 搜索图片..." style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;outline:none">
+      <button id="btn-batch-del-toggle" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer" onclick="_toggleBatchMode()">批量功能</button>
+      <button id="btn-batch-del-confirm" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;display:none" onclick="var s=parseInt(this.dataset.strike||0)+1;this.dataset.strike=s;var l=5-s;if(l<=0){_executeBatchDel();this.dataset.strike=0;this.textContent='确认删除 (5次)';this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='transparent';}else{this.textContent='确认删除 ('+l+'次)';this.style.borderColor='var(--danger)';this.style.color='var(--danger)';this.style.background='rgba(232,93,110,'+(0.1+s*0.1)+')';}">确认删除 (5次)</button>
+      <button id="btn-batch-select-all" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;display:none">☑ 全选</button>
+      <button id="btn-batch-send" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;display:none">🚀 批量发送</button>
+      <button id="btn-batch-reverse" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;display:none">🔍 反推生图</button>
+      <button id="btn-album-import" style="font-size:11px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer">📥 导入图片</button>
     </div>
     <div id="album-browse-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;overflow-y:auto;flex:1"></div>
   </div>
@@ -718,7 +739,14 @@
       - 📐 模板区 {tags} 放LoRA触发词/画风前缀，润色不会影响模板内容<br>
       - 🚫 负面预设自动注入，和面板负面标签叠加生效<br>
       - 🔄 空隔转换：标记直接拼接 / 空格转下划线 / 下划线转空格<br>
-      - 📱 手机连同一WiFi访问 http://电脑IP:5802 即可使用
+      - 📱 手机连同一WiFi访问 http://电脑IP:5802 即可使用<br>
+      <br>
+      <b>📸 相册系统</b><br>
+      - ♥ 收藏到相册 → 返图区隐藏，刷新不丢失<br>
+      - 🖼 相册管理：新建/重命名/删除，双击改名称<br>
+      - 📥 导入图片：从 Output 文件夹批量导入到相册<br>
+      - 🛠 批量功能：全选 / 批量删除 / 批量发送 / 反推生图<br>
+      - 🗑 清空到回收站：只删返图区显示的非相册图片
     </div>
   </div>
 </div>
@@ -829,6 +857,6 @@
     <div class="modal-actions"><button id="btn-bind-scan" class="action-btn primary" style="font-size:11px">🔍 扫描加载</button><button id="btn-bind-close" class="action-btn" style="font-size:11px">关闭</button></div>
   </div>
 </div>
-<script src="/app.js?v=213"></script>
+<script src="/app.js?v=214"></script>
 </body>
 </html>

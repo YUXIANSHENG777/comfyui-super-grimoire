@@ -196,6 +196,8 @@ var S = {
 | `/api/bind/scan` | POST | 扫描 output 目录图片 |
 | `/api/bind/img` | GET | 提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 文件移入回收站 |
+| `/api/bind/delete-by-filename` | POST | 按文件名搜索删除到回收站 |
+| `/api/comfyui/image-meta` | GET | 读取 PNG 生成参数元数据 |
 
 ---
 

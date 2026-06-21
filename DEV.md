@@ -135,6 +135,11 @@ var S = {
 | `grimoire2_negtpl` | 负面提示词预设 |
 | `grimoire2_negtpl_list` | 负面预设列表 |
 | `grimoire2_loadimg` | 加载的图片信息 |
+| `grimoire2_albums` | 相册数据 `[{id,name,images[{url,filename,prompt}]}]` |
+| `grimoire2_active_album` | 当前活跃相册 ID |
+| `grimoire2_bp` | 绑定路径列表 |
+| `grimoire2_bottom_h` | 底部区域高度 |
+| `grimoire2_hidden` | 隐藏的分类/子分类 |
 
 ---
 
@@ -201,6 +206,12 @@ var S = {
 | `/api/bind/scan` | POST | 扫描 output 文件夹，返回所有图片（最新在前） |
 | `/api/bind/img` | GET | 直接提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 删除文件到 Windows 回收站 |
+| `/api/bind/delete-by-filename` | POST | 按文件名在绑定路径中搜索删除到回收站 |
+
+### 图片元数据
+| 路由 | 方法 | 用途 |
+|------|------|------|
+| `/api/comfyui/image-meta` | GET | 读取 PNG 元数据（生成参数） |
 ---
 
 

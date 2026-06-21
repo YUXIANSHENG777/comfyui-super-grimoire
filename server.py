@@ -50,8 +50,11 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 def read_json(path, default=None):
     if Path(path).exists():
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return default if default is not None else {}
     return default if default is not None else {}
 
 def write_json(path, data):
@@ -1243,10 +1246,31 @@ def api_bind_delete():
         return jsonify({"ok": True})
     return jsonify({"ok": False, "error": "文件不存在"})
 
+@app.route("/api/bind/delete-by-filename", methods=["POST"])
+def api_bind_delete_by_filename():
+    d = request.get_json(force=True) or {}
+    fn = d.get("filename", "")
+    search_paths = d.get("paths", [])
+    if not fn or not search_paths:
+        return jsonify({"ok": False, "error": "参数不足"})
+    for folder in search_paths:
+        p = Path(folder)
+        if not p.exists(): continue
+        for ext in ('*.png','*.jpg','*.jpeg','*.webp','*.bmp'):
+            for f in p.rglob(ext):
+                if f.name.lower() == fn.lower():
+                    buf = ctypes.create_unicode_buffer(os.path.abspath(str(f)) + "\0\0")
+                    class SF(ctypes.Structure):
+                        _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
+                    op = SF(); op.hwnd = None; op.wFunc = 3; op.pFrom = ctypes.cast(buf, wintypes.LPCWSTR); op.pTo = None
+                    op.fFlags = 0x40 | 0x4 | 0x400
+                    ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+                    return jsonify({"ok": True, "path": str(f)})
+    return jsonify({"ok": False, "error": "未找到文件"})
+
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.65")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
-    app.run(host="0.0.0.0", port=5802, debug=False)
     app.run(host="0.0.0.0", port=5802, debug=False)

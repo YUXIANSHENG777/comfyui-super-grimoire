@@ -6,7 +6,7 @@ function qs(s,p){return (p||document).querySelector(s);}
 function qsa(s,p){return (p||document).querySelectorAll(s);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m){var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},2000);}
-function api(u,o){o=o||{};return fetch(u,{method:o.method||'GET',headers:{'Content-Type':'application/json'},body:o.body?JSON.stringify(o.body):undefined}).then(function(r){return r.json();});}
+function api(u,o){o=o||{};return fetch(u,{method:o.method||'GET',headers:{'Content-Type':'application/json'},body:o.body?JSON.stringify(o.body):undefined}).then(function(r){try{return r.json();}catch(e){return null;}}).catch(function(){return null;});}
 function loadFavs(){try{var d=localStorage.getItem('grimoire2_favs');if(d)S.favs=JSON.parse(d);}catch(e){S.favs={};}}
 function loadScLimits(){try{var d=localStorage.getItem('grimoire2_scLimits');if(d)S.scLimits=JSON.parse(d);else S.scLimits={};}catch(e){S.scLimits={};}}
 function saveScLimits(){localStorage.setItem('grimoire2_scLimits',JSON.stringify(S.scLimits));_syncSave({scLimits:1});}
@@ -161,9 +161,9 @@ function applyPreset(p){S.posTags=[];S.negTags=[];var w=p.weights||{};for(var i=
 function _saveGenHistory(prompt){if(!prompt||!prompt.trim())return;
   api('/api/history',{method:'POST',body:{prompt:prompt,tags:S.posTags.map(function(x){return x.en;}),negative_tags:S.negTags.map(function(x){return x.en;})}}).then(function(){loadHistory();});
 }
-function loadHistory(){api('/api/history').then(function(items){var html='';if(items.length>0){
+function loadHistory(){api('/api/history').then(function(items){var html='';if(items&&items.length>0){
   html+='<div style=\"display:flex;align-items:center;gap:6px;padding:4px 14px\"><span style=\"font-size:10px;color:var(--text-muted);flex:1\">共 '+items.length+' 条</span><button class=btn-history-clear-m style=\"border:none;background:none;color:var(--text-muted);font-size:10px;cursor:pointer;padding:2px 6px\" title=\"连点5次清空全部记录\">🗑 清空</button></div>';
-  for(var i=0;i<Math.min(items.length,50);i++){var h=items[i];var p=h.prompt.length>60?h.prompt.substring(0,60)+'...':h.prompt;html+='<div class=history-item data-id='+esc(h._filename)+' title='+esc(h.created)+'><span style=flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px>'+esc(p)+'</span><button class=hist-del-btn data-id='+esc(h._filename)+' style=\"border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px\">✕</button></div>';}
+  for(var i=0;i<Math.min(items.length,50);i++){var h=items[i];var raw=h.prompt||'';var p=raw.length>60?raw.substring(0,60)+'...':raw;html+='<div class=history-item data-id='+esc(h._filename)+' title='+esc(h.created)+'><span style=flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px>'+esc(p)+'</span><button class=hist-del-btn data-id='+esc(h._filename)+' style=\"border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px\">✕</button></div>';}
 }else{html='<div style=padding:6px 14px;font-size:11px;color:var(--text-muted)>暂无生图记录</div>';}
 // 桌面端侧栏
 var list=el('history-list');if(list){list.innerHTML=html;}
@@ -274,10 +274,11 @@ function _syncLoad(cb){
           var lbl=document.createElement('span');lbl.className='gallery-img-label';lbl.textContent=gi.filename||'';
           info.appendChild(lbl);wrap.appendChild(elm);wrap.appendChild(info);
           _addGalleryHeart(wrap,gi);
-          if(gi.path)_addDelBtn(wrap,gi);
+          _addDelBtn(wrap,gi);
+          if(_isImageInActiveAlbum(gi.url,gi.filename))wrap.style.display='none';
           imgArea.appendChild(wrap);
         }
-        el('gallery-count').textContent=_galleryImages.length+' 张';
+        _updateGalleryCount();
       }
     }
     cb&&cb();
@@ -285,7 +286,7 @@ function _syncLoad(cb){
 }
 
 function init(){
-loadFavs();loadCatLimits();loadScLimits();loadCatModes();loadHidden();loadAllowNsfw();loadRandWeight();loadSpaceMode();loadTagMode();loadState();loadLocked();loadUiSettings();loadAllData();loadPresets();loadHistory();renderFavs();_loadGallery();
+loadFavs();loadCatLimits();loadScLimits();loadCatModes();loadHidden();loadAllowNsfw();loadRandWeight();loadSpaceMode();loadTagMode();loadState();loadLocked();loadUiSettings();loadAllData();loadPresets();loadHistory();renderFavs();_loadAlbums();_loadGallery();
 // 从服务端拉取同步数据
 _syncLoad(function(){
   var nsfwBtn=el('btn-nsfw');if(S.allowNsfw)nsfwBtn.classList.add('active');else nsfwBtn.classList.remove('active');
@@ -312,7 +313,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.64';
+var CURRENT_VERSION='1.0.65';
 var _updateInfo=null;
 
 function _checkUpdate(silent){
@@ -415,7 +416,7 @@ el('btn-tag-form-confirm').addEventListener('click',submitTagForm);
 el('btn-tag-form-cancel').addEventListener('click',function(){el('modal-tag-form').style.display='none';});
 el('btn-sc-batch-confirm').addEventListener('click',function(){var cat=el('sc-batch-cat').textContent;var sc=el('sc-batch-sc').textContent;var raw=el('sc-batch-input').value.trim();if(!raw){toast('请输入标签');return;}var lines=raw.split('\n').map(function(s){return s.trim();}).filter(function(s){return s.length>0;});var done=0,fail=0;var next=function(i){if(i>=lines.length){el('sc-batch-result').innerHTML='✅ 成功添加 <b>'+done+'</b> 个'+(fail>0?', ⚠ '+fail+' 个失败':'')+(fail>0?'':' 🎉');el('sc-batch-result').style.color=fail>0?'var(--warning)':'var(--success)';if(fail===0){setTimeout(function(){el('modal-batch-sc').style.display='none';loadAllData();},800);}return;}var parts=lines[i].split(/[,，]/).map(function(s){return s.trim();});var en=parts[0];var zh=parts[1]||en;if(!en){next(i+1);return;}api('/api/custom-tags/add',{method:'POST',body:{category:cat,subcategory:sc,en:en,zh:zh}}).then(function(r){if(r.ok)done++;else fail++;next(i+1);});};next(0);});
 el('btn-sc-batch-cancel').addEventListener('click',function(){el('modal-batch-sc').style.display='none';});
-el('btn-batch-del-confirm').addEventListener('click',function(){var cat=el('batch-del-cat').textContent;var sc=el('batch-del-sc').textContent;var raw=el('batch-del-input').value.trim();if(!raw){toast('请输入标签');return;}var lines=raw.split(/[\n\r]+/).map(function(s){return s.trim();}).filter(function(s){return s.length>0;});var done=0,fail=0;var next=function(i){if(i>=lines.length){el('batch-del-result').innerHTML='✅ 已删除 <b>'+done+'</b> 个'+(fail>0?', ⚠ '+fail+' 个失败':'')+(fail>0?'':' 🎉');el('batch-del-result').style.color=fail>0?'var(--warning)':'var(--success)';if(done>0){setTimeout(function(){el('modal-batch-del').style.display='none';loadAllData();},800);}return;}var key=lines[i].split(/[,，]/)[0].trim();if(!key){next(i+1);return;}api('/api/custom-tags/delete',{method:'POST',body:{category:cat,subcategory:sc,en:key}}).then(function(r){if(r.ok)done++;else fail++;next(i+1);});};next(0);});
+el('btn-batch-del-tags-confirm').addEventListener('click',function(){var cat=el('batch-del-cat').textContent;var sc=el('batch-del-sc').textContent;var raw=el('batch-del-input').value.trim();if(!raw){toast('请输入标签');return;}var lines=raw.split(/[\n\r]+/).map(function(s){return s.trim();}).filter(function(s){return s.length>0;});var done=0,fail=0;var next=function(i){if(i>=lines.length){el('batch-del-result').innerHTML='✅ 已删除 <b>'+done+'</b> 个'+(fail>0?', ⚠ '+fail+' 个失败':'')+(fail>0?'':' 🎉');el('batch-del-result').style.color=fail>0?'var(--warning)':'var(--success)';if(done>0){setTimeout(function(){el('modal-batch-del').style.display='none';loadAllData();},800);}return;}var key=lines[i].split(/[,，]/)[0].trim();if(!key){next(i+1);return;}api('/api/custom-tags/delete',{method:'POST',body:{category:cat,subcategory:sc,en:key}}).then(function(r){if(r.ok)done++;else fail++;next(i+1);});};next(0);});
 el('btn-batch-del-cancel').addEventListener('click',function(){el('modal-batch-del').style.display='none';});
 el('btn-import-confirm').addEventListener('click',function(){var t=el('import-preset-json').value.trim();if(!t)return;try{var d=JSON.parse(t);if(!d.name){toast('缺少名称');return;}api('/api/presets/import',{method:'POST',body:d}).then(function(r){if(r.ok){toast('已导入: '+d.name);el('modal-import').style.display='none';loadPresets();}else{toast('失败: '+r.error);}});}catch(e){toast('JSON格式错误');}});
 el('btn-import-cancel').addEventListener('click',function(){el('modal-import').style.display='none';});
@@ -822,14 +823,16 @@ function _renderModelNodes(info,m){_cachedModels=m;_cachedInfo=info;var div=el('
 function fetchModels(){var f=el('comfyui-workflow').value;if(!f)return;api('/api/comfyui/workflow-info?file='+encodeURIComponent(f)).then(function(info){api('/api/comfyui/models').then(function(m){_renderModelNodes(info,m);}).catch(function(){_renderModelNodes(info,{});});}).catch(function(e){el('modal-models-body').innerHTML='<span style=font-size:11px;color:var(--danger)>工作流解析失败: '+(e.error||'未知')+'</span>';});}
 el('btn-comfyui-models').addEventListener('click',function(){fetchModels();el('modal-models').style.display='';});
 el('btn-models-close').addEventListener('click',function(){el('modal-models').style.display='none';});
-el('btn-gallery-clear').addEventListener('click',function(){el('comfyui-gallery-imgs').innerHTML='';el('gallery-count').textContent='';_galleryImages=[];localStorage.setItem('grimoire2_gallery','[]');api('/api/user/sync',{method:'POST',body:{gallery:[]}});});
+el('btn-gallery-clear').addEventListener('click',function(){var s=parseInt(this.dataset.n||'0')+1;this.dataset.n=s;if(s<5){var c=5-s;this.textContent='🗑 清空到回收站 ('+c+')';this.style.borderColor='var(--danger)';var sl=this;if(sl._t)clearTimeout(sl._t);sl._t=setTimeout(function(){sl.dataset.n='0';sl.textContent='🗑 清空到回收站';sl.style.borderColor='';},5000);}else{this.textContent='🗑 清空到回收站';this.style.borderColor='';this.dataset.n='0';var dels=[];var skip=0;var noPath=[];var searchPaths=[];try{searchPaths=JSON.parse(localStorage.getItem('grimoire2_bp')||'[]');}catch(e){}for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var inAlbum=false;for(var j=0;j<_albumData.length;j++){for(var k=0;k<_albumData[j].images.length;k++){if(_albumData[j].images[k].url===gi.url){inAlbum=true;break;}}if(inAlbum)break;}if(inAlbum){skip++;continue;}if(gi.path){dels.push(gi.path);}else if(gi.filename&&searchPaths.length){noPath.push(gi.filename);}else noPath.push('');}dels.forEach(function(p){api('/api/bind/delete',{method:'POST',body:{path:p}});});var foundByFn=0;if(noPath.length){var uniqueFn={};for(var i=0;i<noPath.length;i++)if(noPath[i])uniqueFn[noPath[i]]=true;var fnList=Object.keys(uniqueFn);fnList.forEach(function(fn){api('/api/bind/delete-by-filename',{method:'POST',body:{filename:fn,paths:searchPaths}}).then(function(r){if(r&&r.ok)foundByFn++;});});}el('comfyui-gallery-imgs').innerHTML='';el('gallery-count').textContent='';_galleryImages=[];localStorage.setItem('grimoire2_gallery','[]');api('/api/user/sync',{method:'POST',body:{gallery:[]}});var msg='已清空返图区';if(dels.length)msg+='，'+dels.length+' 个文件移入回收站';if(foundByFn)msg+='，按文件名找到 '+foundByFn+' 个文件';if(skip)msg+='，跳过 '+skip+' 张相册内图片';toast(msg);}});
+el('btn-gallery-refresh').addEventListener('click',function(){if(!_galleryImages.length)return;var ia=el('comfyui-gallery-imgs');ia.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var w=document.createElement('div');w.className='gallery-img-wrap';var im=document.createElement('img');im.src=gi.url;im.loading='lazy';im.onerror=function(){this.parentElement.style.display='none';};im.addEventListener('click',function(){_openImgPreview(this.src,gi.filename||'');});var inf=document.createElement('div');inf.className='gallery-img-info';var lb=document.createElement('span');lb.className='gallery-img-label';lb.textContent=gi.filename||'';inf.appendChild(lb);w.appendChild(im);w.appendChild(inf);_addGalleryHeart(w,gi);_addDelBtn(w,gi);if(_isImageInActiveAlbum(gi.url,gi.filename))w.style.display='none';ia.appendChild(w);}_updateGalleryCount();toast('返图已刷新');});
 // 绑定路径
 el('btn-bind-path').addEventListener('click',function(){var bp=[];try{bp=JSON.parse(localStorage.getItem('grimoire2_bp')||'[]');}catch(e){}el('bind-path-1').value=bp[0]||'';el('bind-path-2').value=bp[1]||'';el('modal-bind-path').style.display='';});
-el('btn-bind-close').addEventListener('click',function(){el('modal-bind-path').style.display='none';});
-el('modal-bind-path').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
-el('btn-bind-scan').addEventListener('click',function(){var bp=[];var p1=el('bind-path-1').value.trim();var p2=el('bind-path-2').value.trim();if(p1)bp.push(p1);if(p2)bp.push(p2);localStorage.setItem('grimoire2_bp',JSON.stringify(bp));if(!bp.length){toast('请填写路径');return;}api('/api/bind/scan',{method:'POST',body:{paths:bp}}).then(function(r){if(!r.images.length){toast('未找到图片');return;}_galleryImages=r.images;localStorage.setItem('grimoire2_gallery',JSON.stringify(_galleryImages));var ia=el('comfyui-gallery-imgs');ia.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var w=document.createElement('div');w.className='gallery-img-wrap';var im=document.createElement('img');im.src=gi.url;im.loading='lazy';im.onerror=function(){this.parentElement.style.display='none';};im.addEventListener('click',function(){_openImgPreview(this.src,gi.filename||'');});var inf=document.createElement('div');inf.className='gallery-img-info';var lb=document.createElement('span');lb.className='gallery-img-label';lb.textContent=gi.filename||'';inf.appendChild(lb);w.appendChild(im);w.appendChild(inf);_addGalleryHeart(w,gi);if(gi.path)_addDelBtn(w,gi);ia.appendChild(w);}el('gallery-count').textContent=_galleryImages.length+' 张';el('modal-bind-path').style.display='none';toast('已加载 '+r.images.length+' 张');});});
+function _restoreScanBtn(){el('btn-bind-scan').textContent='🔍 扫描加载';}
+el('btn-bind-close').addEventListener('click',function(){_restoreScanBtn();el('modal-bind-path').style.display='none';});
+el('modal-bind-path').addEventListener('click',function(e){if(e.target===this){_restoreScanBtn();this.style.display='none';}});
+el('btn-bind-scan').addEventListener('click',function(){var _im=_importMode;_importMode=0;var bp=[];var p1=el('bind-path-1').value.trim();var p2=el('bind-path-2').value.trim();if(p1)bp.push(p1);if(p2)bp.push(p2);localStorage.setItem('grimoire2_bp',JSON.stringify(bp));if(!bp.length){toast('请填写路径');return;}api('/api/bind/scan',{method:'POST',body:{paths:bp}}).then(function(r){if(!r||!r.images.length){toast('未找到图片');return;}if(_im){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album){toast('请先选择相册');el('modal-bind-path').style.display='none';return;}var added=0;for(var i=0;i<r.images.length;i++){var img=r.images[i];var dup=false;for(var j=0;j<album.images.length;j++){if(album.images[j].filename===img.filename){dup=true;break;}}if(!dup){album.images.push({url:img.url,filename:img.filename||'',prompt:''});added++;}}el('modal-bind-path').style.display='none';if(added){_saveAlbums();_renderAlbumTabs();_renderAlbumCard();if(el('modal-album-browse').style.display!=='none'){el('album-browse-title').textContent='📂 '+album.name+' ('+album.images.length+')';_renderBrowseGrid(album,false);}toast('已导入 '+added+' 张图片到相册');}else{toast('相册中已包含这些图片');}_restoreScanBtn();return;}var albumFiles={};for(var j=0;j<_albumData.length;j++){for(var k=0;k<_albumData[j].images.length;k++){var af=_albumData[j].images[k].filename||'';if(af)albumFiles[af]=true;}}var filtered=r.images.filter(function(x){return !albumFiles[x.filename||''];});var skipped=r.images.length-filtered.length;if(!filtered.length){el('modal-bind-path').style.display='none';toast('所有图片已在相册中，无需加载');return;}_galleryImages=filtered;localStorage.setItem('grimoire2_gallery',JSON.stringify(_galleryImages));var ia=el('comfyui-gallery-imgs');ia.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var w=document.createElement('div');w.className='gallery-img-wrap';var im=document.createElement('img');im.src=gi.url;im.loading='lazy';im.onerror=function(){this.parentElement.style.display='none';};im.addEventListener('click',function(){_openImgPreview(this.src,gi.filename||'');});var inf=document.createElement('div');inf.className='gallery-img-info';var lb=document.createElement('span');lb.className='gallery-img-label';lb.textContent=gi.filename||'';inf.appendChild(lb);w.appendChild(im);w.appendChild(inf);_addGalleryHeart(w,gi);_addDelBtn(w,gi);ia.appendChild(w);}el('gallery-count').textContent=_galleryImages.length+' 张';el('modal-bind-path').style.display='none';var msg='已加载 '+filtered.length+' 张';if(skipped)msg+='，跳过 '+skipped+' 张已在相册中的图片';toast(msg);});});
 // 全部预览
-el('btn-gallery-view-all').addEventListener('click',function(){if(!_galleryImages.length){toast('暂无返图');return;}el('gallery-all-count').textContent='('+_galleryImages.length+' 张)';var grid=el('gallery-all-grid');grid.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var wrap=document.createElement('div');wrap.className='gallery-img-wrap';wrap.style.position='relative';wrap.style.display='inline-block';wrap.style.height='auto';var img=document.createElement('img');img.src=gi.url;img.style.cssText='height:200px;width:auto;border-radius:6px;cursor:pointer;object-fit:cover';img.title=gi.filename||'';img.loading='lazy';img.onerror=function(){this.parentElement.style.display='none';};img.addEventListener('click',function(){_openImgPreview(gi.url,gi.filename||'');});wrap.appendChild(img);if(gi.path)_addDelBtn(wrap,gi);grid.appendChild(wrap);}el('modal-gallery-all').style.display='';});
+el('btn-gallery-view-all').addEventListener('click',function(){if(!_galleryImages.length){toast('暂无返图');return;}el('gallery-all-count').textContent='('+_galleryImages.length+' 张)';var grid=el('gallery-all-grid');grid.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var wrap=document.createElement('div');wrap.className='gallery-img-wrap';wrap.style.position='relative';wrap.style.display='inline-block';wrap.style.height='auto';var img=document.createElement('img');img.src=gi.url;img.style.cssText='height:280px;width:auto;border-radius:6px;cursor:pointer;object-fit:cover';img.title=gi.filename||'';img.loading='lazy';img.onerror=function(){this.parentElement.style.display='none';};img.addEventListener('click',function(){_openImgPreview(gi.url,gi.filename||'');});wrap.appendChild(img);_addGalleryHeart(wrap,gi);_addDelBtn(wrap,gi);if(_isImageInActiveAlbum(gi.url,gi.filename))wrap.style.display='none';grid.appendChild(wrap);}el('modal-gallery-all').style.display='';});
 el('btn-gallery-all-close').addEventListener('click',function(){el('modal-gallery-all').style.display='none';});
 el('modal-gallery-all').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
 // ===== 工作流参数设置 =====
@@ -1096,18 +1099,22 @@ function _loadGallery(){
         var lbl=document.createElement('span');lbl.className='gallery-img-label';lbl.textContent=gi.filename||'';
         info.appendChild(lbl);wrap.appendChild(elm);wrap.appendChild(info);
         _addGalleryHeart(wrap,gi);
-        if(gi.path)_addDelBtn(wrap,gi);
-        if(_isImageInActiveAlbum(gi.url))wrap.style.display='none';
+        _addDelBtn(wrap,gi);
+        if(_isImageInActiveAlbum(gi.url,gi.filename))wrap.style.display='none';
         imgArea.appendChild(wrap);
       }
-      el('gallery-count').textContent=_galleryImages.length+' 张';
+      _updateGalleryCount();
     }
   }catch(e){_galleryImages=[];}
 }
 var _previewState={index:0,scale:1,url:'',panX:0,panY:0,dragging:false,startX:0,startY:0,startPanX:0,startPanY:0,natW:600,natH:600};
+var _previewImageData=null;
+var _previewAlbum=null;
+var _importMode=0;
 function _openImgPreview(url,label){
   var idx=0;for(var i=0;i<_galleryImages.length;i++){if(_galleryImages[i].url===url){idx=i;break;}}
   _previewState.index=idx;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;
+  _previewImageData=_galleryImages[idx]||null;_previewAlbum=null;
   _loadPreviewImage(url);
   el('img-preview-modal').classList.add('active');_updatePreviewNav();
   // 显示提示词和参数
@@ -1123,11 +1130,42 @@ function _loadPreviewImage(url){
   var img=el('img-preview-img');img.src=url;img.style.transform='scale(1)';img.style.cursor='grab';
   img.onload=function(){_previewState.natW=img.naturalWidth;_previewState.natH=img.naturalHeight;el('img-preview-res').textContent=_previewState.natW+'×'+_previewState.natH;el('img-preview-zoom').textContent='100%';_fitToWindow();};
 }
-function _previewNext(){if(_galleryImages.length<2)return;_previewState.index=(_previewState.index+1)%_galleryImages.length;_resetAndLoad(_galleryImages[_previewState.index].url);}
-function _previewPrev(){if(_galleryImages.length<2)return;_previewState.index=(_previewState.index-1+_galleryImages.length)%_galleryImages.length;_resetAndLoad(_galleryImages[_previewState.index].url);}
+function _previewNext(){
+  if(_previewAlbum){
+    if(_previewAlbum.images.length<2)return;
+    _previewState.index=(_previewState.index+1)%_previewAlbum.images.length;
+    _previewImageData=_previewAlbum.images[_previewState.index];
+    _resetAndLoad(_previewImageData.url);
+    var raw=_previewImageData.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');
+    el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');
+    return;
+  }
+  if(_galleryImages.length<2)return;_previewState.index=(_previewState.index+1)%_galleryImages.length;_previewImageData=_galleryImages[_previewState.index];_resetAndLoad(_galleryImages[_previewState.index].url);
+}
+function _previewPrev(){
+  if(_previewAlbum){
+    if(_previewAlbum.images.length<2)return;
+    _previewState.index=(_previewState.index-1+_previewAlbum.images.length)%_previewAlbum.images.length;
+    _previewImageData=_previewAlbum.images[_previewState.index];
+    _resetAndLoad(_previewImageData.url);
+    var raw=_previewImageData.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');
+    el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');
+    return;
+  }
+  if(_galleryImages.length<2)return;_previewState.index=(_previewState.index-1+_galleryImages.length)%_galleryImages.length;_previewImageData=_galleryImages[_previewState.index];_resetAndLoad(_galleryImages[_previewState.index].url);
+}
 function _resetAndLoad(url){_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;_loadPreviewImage(url);_updatePreviewNav();el('img-preview-prompt-popup').style.display='none';}
-function _updatePreviewNav(){el('img-preview-prev').style.display=_galleryImages.length>1?'flex':'none';el('img-preview-next').style.display=_galleryImages.length>1?'flex':'none';}
-function _closeImgPreview(){el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';}
+function _updatePreviewNav(){
+  if(_previewAlbum){
+    var show=_previewAlbum.images.length>1;
+    el('img-preview-prev').style.display=show?'flex':'none';
+    el('img-preview-next').style.display=show?'flex':'none';
+  }else{
+    el('img-preview-prev').style.display=_galleryImages.length>1?'flex':'none';
+    el('img-preview-next').style.display=_galleryImages.length>1?'flex':'none';
+  }
+}
+function _closeImgPreview(){_previewAlbum=null;el('img-preview-modal').classList.remove('active');el('img-preview-prompt-popup').style.display='none';}
 function _updatePreviewTransform(){var img=el('img-preview-img');img.style.transform='translate('+_previewState.panX+'px,'+_previewState.panY+'px) scale('+_previewState.scale+')';el('img-preview-zoom').textContent=Math.round(_previewState.scale*100)+'%';}
 function _fitToWindow(){var cw=el('img-preview-container').clientWidth-140,ch=el('img-preview-container').clientHeight;var nw=_previewState.natW||600,nh=_previewState.natH||600;var s=Math.min(cw/nw,ch/nh,1)*0.9;_previewState.scale=s;_previewState.panX=0;_previewState.panY=0;_updatePreviewTransform();}
 function _zoomIn(){_previewState.scale=Math.min(10,_previewState.scale*1.3);_updatePreviewTransform();}
@@ -1178,14 +1216,14 @@ el('btn-img-download').addEventListener('click',function(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
 });
 function _popupCopyMeta(){
-  var gi=_galleryImages[_previewState.index];if(!gi)return;
+  var gi=_previewImageData;if(!gi)return;
   var raw=gi.prompt||'';var negIdx=raw.indexOf('\n--neg ');if(negIdx<0)negIdx=raw.indexOf('--neg ');
   var text=negIdx>=0?raw.substring(0,negIdx).trim():raw.trim();
   copyText(text);toast('已复制');
   el('img-preview-prompt-popup').style.display='none';
 }
 function _popupSendMeta(){
-  var gi=_galleryImages[_previewState.index];if(!gi)return;
+  var gi=_previewImageData;if(!gi)return;
   var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}
   var raw=gi.prompt||'';var negIdx=raw.indexOf('\n--neg ');if(negIdx<0)negIdx=raw.indexOf('--neg ');
   var pr=negIdx>=0?raw.substring(0,negIdx).trim():raw.trim();
@@ -1283,6 +1321,7 @@ function _renderAlbumCard(){
   var hasImg=album&&album.images.length>0;
   _albumCardIdx=0;
   el('album-card-img').src=hasImg?album.images[0].url:'';
+  el('album-card-img').style.display=hasImg?'block':'none';
   el('album-card-name').textContent=album?album.name:'相册';
   el('album-card-count').textContent=hasImg?('1 / '+album.images.length):'空';
   el('album-card-prev').style.display=hasImg&&album.images.length>1?'flex':'none';
@@ -1293,16 +1332,17 @@ function _renderAlbumCard(){
 }
 function _startCardCarousel(album){_stopCardCarousel();if(!album||album.images.length<2)return;_albumCardTimer=setInterval(function(){var nxt;do{nxt=Math.floor(Math.random()*album.images.length);}while(nxt===_albumCardIdx&&album.images.length>1);_albumCardIdx=nxt;var img=album.images[_albumCardIdx];var cardImg=el('album-card-img');cardImg.style.opacity='0';var cardEl=el('album-card');cardEl.style.borderRadius='20px';setTimeout(function(){cardImg.src=img.url;cardImg.style.opacity='1';el('album-card-count').textContent=(_albumCardIdx+1)+' / '+album.images.length;setTimeout(function(){cardEl.style.borderRadius='14px';},400);},300);},4000);}
 function _stopCardCarousel(){if(_albumCardTimer){clearInterval(_albumCardTimer);_albumCardTimer=null;}}
-function _openCardImage(album,idx){if(!album||!album.images[idx])return;var gi=album.images[idx];_loadPreviewImage(gi.url);_previewState.index=0;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;var raw=gi.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');el('img-preview-prompt-popup').style.display='none';el('img-preview-modal').classList.add('active');el('img-preview-prev').style.display='none';el('img-preview-next').style.display='none';}
+function _openCardImage(album,idx){if(!album||!album.images[idx])return;var gi=album.images[idx];_previewAlbum=album;_previewImageData=gi;_loadPreviewImage(gi.url);_previewState.index=idx;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;var raw=gi.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');el('img-preview-prompt-popup').style.display='none';el('img-preview-modal').classList.add('active');_updatePreviewNav();}
 el('album-card-prev').addEventListener('click',function(e){e.stopPropagation();_stopCardCarousel();_albumCardIdx=Math.max(0,_albumCardIdx-1);var a=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){a=_albumData[i];break;}if(a&&a.images[_albumCardIdx]){var gi=a.images[_albumCardIdx];el('album-card-img').src=gi.url;el('album-card-count').textContent=(_albumCardIdx+1)+' / '+a.images.length;}_startCardCarousel(a);});
 el('album-card-next').addEventListener('click',function(e){e.stopPropagation();_stopCardCarousel();var a=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){a=_albumData[i];break;}if(a){_albumCardIdx=(_albumCardIdx+1)%a.images.length;var gi=a.images[_albumCardIdx];el('album-card-img').src=gi.url;el('album-card-count').textContent=(_albumCardIdx+1)+' / '+a.images.length;}_startCardCarousel(a);});
 // 画廊爱心按钮 - 保存/取消 切换
-function _saveToAlbum(gi){if(!gi||!gi.url)return false;var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;for(var i=0;i<album.images.length;i++)if(album.images[i].url===gi.url)return false;album.images.push({url:gi.url,filename:gi.filename||'',prompt:gi.prompt||''});_saveAlbums();_renderAlbumTabs();_renderAlbumCard();return true;}
+function _saveToAlbum(gi){if(!gi||!gi.url)return false;var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;var fn=gi.filename||'';if(fn){for(var i=0;i<album.images.length;i++)if(album.images[i].filename===fn)return false;}else{for(var i=0;i<album.images.length;i++)if(album.images[i].url===gi.url)return false;}album.images.push({url:gi.url,filename:gi.filename||'',prompt:gi.prompt||''});_saveAlbums();_renderAlbumTabs();_renderAlbumCard();return true;}
 function _removeFromAlbum(url){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;var before=album.images.length;album.images=album.images.filter(function(x){return x.url!==url;});if(album.images.length<before){_saveAlbums();_renderAlbumTabs();_renderAlbumCard();return true;}return false;}
-function _isImageInActiveAlbum(url){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;for(var i=0;i<album.images.length;i++)if(album.images[i].url===url)return true;return false;}
-function _addDelBtn(wrap,gi){var b=document.createElement('div');b.className='gallery-del-btn';b.innerHTML='🗑';b.title='删除(2次)';b.addEventListener('click',function(e){e.stopPropagation();var s=parseInt(this.dataset.n||'0')+1;this.dataset.n=s;if(s<2){this.style.color='var(--danger)';var sl=this;if(sl._t)clearTimeout(sl._t);sl._t=setTimeout(function(){sl.dataset.n='0';sl.style.color='';},2000);}else{api('/api/bind/delete',{method:'POST',body:{path:gi.path||''}});wrap.style.display='none';_galleryImages=_galleryImages.filter(function(x){return x.url!==gi.url;});_saveGallery();el('gallery-count').textContent=_galleryImages.length+' 张';toast('已移入回收站');}});wrap.appendChild(b);}
-function _addGalleryHeart(wrap,gi){var heart=document.createElement('div');heart.className='gallery-heart';if(_isImageInActiveAlbum(gi.url))heart.classList.add('liked');var an=_getActiveAlbumName();heart.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';heart.addEventListener('click',function(e){e.stopPropagation();if(_isImageInActiveAlbum(gi.url)){_removeFromAlbum(gi.url);this.classList.remove('liked');wrap.style.display='block';toast('已取消收藏');}else{_saveToAlbum(gi);this.classList.add('liked');wrap.style.display='none';toast('已收藏到 '+an);}});wrap.appendChild(heart);}
-function _refreshGalleryHearts(){var wraps=document.querySelectorAll('#comfyui-gallery-imgs .gallery-img-wrap');for(var i=0;i<wraps.length;i++){var h=wraps[i].querySelector('.gallery-heart');if(h){var an=_getActiveAlbumName();h.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';var gi=_galleryImages[i];if(gi&&_isImageInActiveAlbum(gi.url))h.classList.add('liked');else h.classList.remove('liked');}}}
+function _isImageInActiveAlbum(url,fn){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;for(var i=0;i<album.images.length;i++)if(album.images[i].url===url||(fn&&album.images[i].filename===fn))return true;return false;}
+function _addDelBtn(wrap,gi){var b=document.createElement('div');b.className='gallery-del-btn';b.innerHTML='🗑';b.title='删除(2次)';b.addEventListener('click',function(e){e.stopPropagation();var s=parseInt(this.dataset.n||'0')+1;this.dataset.n=s;if(s<2){this.style.color='var(--danger)';var sl=this;if(sl._t)clearTimeout(sl._t);sl._t=setTimeout(function(){sl.dataset.n='0';sl.style.color='';},2000);}else{if(gi.path)api('/api/bind/delete',{method:'POST',body:{path:gi.path}});wrap.style.display='none';_galleryImages=_galleryImages.filter(function(x){return x.url!==gi.url;});_saveGallery();_updateGalleryCount();toast(gi.path?'已移入回收站':'已从列表移除');}});wrap.appendChild(b);}
+function _updateGalleryCount(){var cnt=0;for(var i=0;i<_galleryImages.length;i++){if(!_isImageInActiveAlbum(_galleryImages[i].url,_galleryImages[i].filename))cnt++;}el('gallery-count').textContent=cnt+' 张';}
+function _addGalleryHeart(wrap,gi){var heart=document.createElement('div');heart.className='gallery-heart';if(_isImageInActiveAlbum(gi.url,gi.filename))heart.classList.add('liked');var an=_getActiveAlbumName();heart.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';heart.addEventListener('click',function(e){e.stopPropagation();if(_isImageInActiveAlbum(gi.url,gi.filename)){_removeFromAlbum(gi.url);this.classList.remove('liked');wrap.style.display='block';toast('已取消收藏');}else{_saveToAlbum(gi);this.classList.add('liked');wrap.style.display='none';toast('已收藏到 '+an);}_updateGalleryCount();});wrap.appendChild(heart);}
+function _refreshGalleryHearts(){var wraps=document.querySelectorAll('#comfyui-gallery-imgs .gallery-img-wrap');for(var i=0;i<wraps.length;i++){var h=wraps[i].querySelector('.gallery-heart');if(h){var an=_getActiveAlbumName();h.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';var gi=_galleryImages[i];if(gi&&_isImageInActiveAlbum(gi.url,gi.filename))h.classList.add('liked');else h.classList.remove('liked');}}}
 // 相册管理弹窗
 function _openAlbumModal(){_renderModalAlbumList();el('modal-album').style.display='';var mc=el('modal-album').querySelector('.modal-content');if(mc){mc.style.width='860px';mc.style.maxWidth='860px';mc.style.minWidth='860px';}el('album-new-name').focus();}
 var _modalCoverTimers=[];
@@ -1336,6 +1376,8 @@ function _renderModalAlbumList(){
   qsa('.album-modal-act',div).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.stopImmediatePropagation();_activeAlbumId=this.dataset.aid;_saveAlbums();_stopModalCoverTimers();_renderModalAlbumList();_renderAlbumTabs();_renderAlbumCard();_refreshGalleryHearts();});});
   // 删除按钮
   qsa('.album-modal-del',div).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.stopImmediatePropagation();var s=parseInt(this.dataset.strike||'0')+1;this.dataset.strike=s;if(s<5){this.textContent=s;this.style.color='var(--danger)';var self=this;if(this._t)clearTimeout(this._t);this._t=setTimeout(function(){self.dataset.strike='0';self.textContent='🗑';self.style.color='';},3000);}else{var aid=this.dataset.aid;_albumData=_albumData.filter(function(x){return x.id!==aid;});if(_activeAlbumId===aid)_activeAlbumId='default';_saveAlbums();_stopModalCoverTimers();_renderModalAlbumList();_renderAlbumTabs();_renderAlbumCard();_refreshGalleryHearts();toast('相册已删除');}});});
+  // 双击重命名
+  qsa('span[style*="font-weight:600"]',div).forEach(function(sp){sp.title='双击重命名';sp.style.cursor='text';sp.addEventListener('dblclick',function(e){e.stopPropagation();var parent=this.parentElement;var actBtn=parent.querySelector('.album-modal-act');var aid=actBtn?actBtn.dataset.aid:'';var old=this.textContent.replace(/^📁\s*/,'');var inp=document.createElement('input');inp.type='text';inp.value=old;inp.style.cssText='width:100%;padding:2px 4px;border:1px solid var(--accent);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:12px;font-weight:600;outline:none';this.textContent='';this.appendChild(inp);inp.focus();inp.select();function _renameSave(){var nm=inp.value.trim();if(nm&&nm!==old){for(var j=0;j<_albumData.length;j++){if(_albumData[j].name===nm&&_albumData[j].id!==aid){toast('名称已存在');_renderModalAlbumList();return;}}for(var j=0;j<_albumData.length;j++){if(_albumData[j].id===aid){_albumData[j].name=nm;break;}}_saveAlbums();}_renderModalAlbumList();_renderAlbumTabs();_renderAlbumCard();}inp.addEventListener('blur',_renameSave);inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();_renameSave();}});});});
 }
 // 批量删除全局状态
 var _batchMode=false,_batchStrikes=0,_batchAlbum=null;
@@ -1345,6 +1387,10 @@ function _toggleBatchMode(){
   btn.dataset.strike='0';btn.textContent='确认删除 (5次)';
   btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';btn.style.background='transparent';
   var tgl=el('btn-batch-del-toggle');
+  el('btn-batch-del-confirm').style.display=_batchMode?'inline-block':'none';
+  el('btn-batch-select-all').style.display=_batchMode?'inline-block':'none';
+  el('btn-batch-send').style.display=_batchMode?'inline-block':'none';
+  el('btn-batch-reverse').style.display=_batchMode?'inline-block':'none';
   if(_batchMode){
     tgl.style.borderColor='var(--danger)';tgl.style.color='var(--danger)';tgl.style.background='rgba(232,93,110,0.25)';
     _renderBrowseGrid(_batchAlbum,true);
@@ -1361,6 +1407,7 @@ function _executeBatchDel(){
   _batchAlbum.images=_batchAlbum.images.filter(function(x){return urls.indexOf(x.url)<0;});
   _saveAlbums();_batchMode=false;
   var tgl=el('btn-batch-del-toggle');tgl.style.borderColor='var(--accent)';tgl.style.color='var(--accent)';tgl.style.background='transparent';
+  el('btn-batch-del-confirm').style.display='none';el('btn-batch-select-all').style.display='none';el('btn-batch-send').style.display='none';el('btn-batch-reverse').style.display='none';
   _renderBrowseGrid(_batchAlbum,false);_renderAlbumCard();_renderAlbumTabs();toast('已删除 '+urls.length+' 张');
 }
 function _openAlbumBrowse(aid){
@@ -1368,39 +1415,57 @@ function _openAlbumBrowse(aid){
   if(!album){return;}
   _batchAlbum=album;_batchMode=false;_batchStrikes=0;
   el('album-browse-title').textContent='📂 '+album.name+' ('+album.images.length+')';
+  el('album-browse-search').value='';
   el('btn-batch-del-toggle').style.display='inline-block';
   el('btn-batch-del-confirm').style.display='none';
-  el('btn-batch-del-cancel').style.display='none';
+  el('btn-batch-select-all').style.display='none';
+  el('btn-batch-send').style.display='none';
+  el('btn-batch-reverse').style.display='none';
   _renderBrowseGrid(album,false);
   el('modal-album-browse').style.display='';
 }
 var _albumBrowseAid=null;
+var _albumBrowseFilter='';
 function _renderBrowseGrid(album,showDel){
   var grid=el('album-browse-grid');var html='';
-  if(!album.images.length){html='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;grid-column:1/-1">相册为空</div>';}
-  else{for(var i=0;i<album.images.length;i++){var gi=album.images[i];
-    html+='<div class="album-grid-card" data-idx="'+i+'" data-url="'+esc(gi.url)+'" data-filename="'+esc(gi.filename||'')+'" data-prompt="'+esc(gi.prompt||'')+'">';
-    html+='<div style="position:relative"><img src="'+esc(gi.url)+'" loading="lazy">';
-    html+='<div class="grid-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:3px">';
-    if(showDel)html+='<input type="checkbox" class="batch-cb" data-url="'+esc(gi.url)+'" data-filename="'+esc(gi.filename||'')+'" style="width:20px;height:20px;cursor:pointer;accent-color:var(--danger)" onclick="event.stopPropagation()">';
-    else html+='<button class="grid-del-btn" data-url="'+esc(gi.url)+'" style="background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px" title="删除(需2次)">🗑</button>';
-    html+='</div></div>';
-    html+='<div class="grid-label">'+(gi.filename||'#'+(i+1))+'</div>';
-    html+='</div>';
-  }}
+  var filter=_albumBrowseFilter.toLowerCase();
+  var filtered=album.images;
+  if(filter)filtered=album.images.filter(function(x){return(x.filename||'').toLowerCase().indexOf(filter)>=0||(x.prompt||'').toLowerCase().indexOf(filter)>=0;});
+  if(!filtered.length){html='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;grid-column:1/-1">'+(filter?'未找到匹配图片':'相册为空')+'</div>';}
+  else{
+    for(var i=0;i<album.images.length;i++){var gi=album.images[i];
+      if(filter&&(gi.filename||'').toLowerCase().indexOf(filter)<0&&(gi.prompt||'').toLowerCase().indexOf(filter)<0)continue;
+      html+='<div class="album-grid-card" data-idx="'+i+'" data-url="'+esc(gi.url)+'" data-filename="'+esc(gi.filename||'')+'" data-prompt="'+esc(gi.prompt||'')+'">';
+      html+='<div style="position:relative"><img src="'+esc(gi.url)+'" loading="lazy">';
+      html+='<div class="grid-actions" style="position:absolute;top:4px;right:4px;display:flex;gap:3px">';
+      if(showDel)html+='<input type="checkbox" class="batch-cb" data-url="'+esc(gi.url)+'" data-filename="'+esc(gi.filename||'')+'" data-prompt="'+esc(gi.prompt||'')+'" style="width:20px;height:20px;cursor:pointer;accent-color:var(--danger)" onclick="event.stopPropagation()">';
+      else html+='<button class="grid-del-btn" data-url="'+esc(gi.url)+'" style="background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px" title="删除(需2次)">🗑</button>';
+      html+='</div></div>';
+      html+='<div class="grid-label">'+(gi.filename||'#'+(i+1))+'</div>';
+      html+='</div>';
+    }
+  }
   grid.innerHTML=html;
   // 单张删除按钮（2次确认）
   qsa('.grid-del-btn',grid).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var url=this.dataset.url;var s=parseInt(this.dataset.strike||'0')+1;this.dataset.strike=s;if(s<2){this.textContent='🔥';this.style.background='rgba(232,93,110,0.6)';var self=this;if(this._t)clearTimeout(this._t);this._t=setTimeout(function(){self.dataset.strike='0';self.textContent='🗑';self.style.background='rgba(0,0,0,0.5)';},2000);}else{album.images=album.images.filter(function(x){return x.url!==url;});_saveAlbums();_renderBrowseGrid(album,false);_renderAlbumCard();_renderAlbumTabs();toast('已移除');}});});
   // 点击卡片打开大图（批量模式下不打开）
-  qsa('.album-grid-card',grid).forEach(function(card){card.addEventListener('click',function(e){if(e.target.tagName==='INPUT'||e.target.classList.contains('grid-del-btn'))return;if(showDel)return;var gi={url:this.dataset.url,filename:this.dataset.filename,prompt:this.dataset.prompt};_loadPreviewImage(gi.url);_previewState.index=0;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;var raw=gi.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');el('img-preview-prompt-popup').style.display='none';el('img-preview-modal').classList.add('active');el('img-preview-prev').style.display='none';el('img-preview-next').style.display='none';});});
+  qsa('.album-grid-card',grid).forEach(function(card){card.addEventListener('click',function(e){if(e.target.tagName==='INPUT'||e.target.classList.contains('grid-del-btn'))return;if(showDel)return;var gi={url:this.dataset.url,filename:this.dataset.filename,prompt:this.dataset.prompt};_previewAlbum=album;_previewImageData=gi;_loadPreviewImage(gi.url);_previewState.index=parseInt(this.dataset.idx)||0;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;var raw=gi.prompt||'';var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():(raw.trim()||'(无)');el('img-preview-prompt-popup').style.display='none';el('img-preview-modal').classList.add('active');_updatePreviewNav();});});
 }
+el('album-browse-search').addEventListener('input',function(){_albumBrowseFilter=this.value;_renderBrowseGrid(_batchAlbum,_batchMode);});
+el('btn-batch-select-all').addEventListener('click',function(){var cbs=el('album-browse-grid').querySelectorAll('.batch-cb');var allChecked=true;cbs.forEach(function(cb){if(!cb.checked)allChecked=false;});cbs.forEach(function(cb){cb.checked=!allChecked;});this.textContent=allChecked?'☐ 取消全选':'☑ 全选';});
+function _pushToQueue(prompt,wf,w,h){var over=getModelOverrides(),rs=el('comfyui-rand-seed').checked;var wfs=S.wfSettings[wf]||{},clipmap=_getClipMapping(),negTpl=S.negTemplateAuto?S.negTemplate:'';S.comfyuiQueue.push({idx:S.comfyuiQueue.length,body:{prompt:prompt,workflow:wf,width:w,height:h,overrides:over,rand_seed:rs,wf_settings:wfs,clip_mapping:clipmap,neg_template:negTpl,load_image:S.loadImage||null},done:false});}
+function _urlToBase64(url,cb){var x=new XMLHttpRequest();x.responseType='blob';x.onload=function(){var rd=new FileReader();rd.onload=function(e){cb(e.target.result.split(',')[1]);};rd.readAsDataURL(x.response);};x.open('GET',url);x.send();}
+el('btn-batch-send').addEventListener('click',function(){if(!_batchMode){toast('请先点击批量删除');return;}var cbs=el('album-browse-grid').querySelectorAll('.batch-cb:checked');if(!cbs.length){toast('请勾选要发送的图片');return;}var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}var useRefine=el('llm-auto-refine').checked;var sys=el('llm-sysprompt').value.trim()||'你是一个AI绘画提示词转换器';var sent=0;var idx=0;function _next(){if(idx>=cbs.length){if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();toast('批量发送完成，共 '+sent+' 个任务');return;}var cb=cbs[idx];var prompt=cb.dataset.prompt||'';idx++;if(!prompt.trim()){setTimeout(_next,0);return;}var w=parseInt(el('comfyui-width').value)||512,h=parseInt(el('comfyui-height').value)||512;if(useRefine){toast('⏳ AI润色中...');api('/api/llm/translate',{method:'POST',body:{prompt:prompt,sysprompt:sys,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value}}).then(function(r){var finalPrompt=r.ok&&r.text?r.text:prompt;_pushToQueue(finalPrompt,wf,w,h);sent++;setTimeout(_next,0);});}else{_pushToQueue(prompt,wf,w,h);sent++;setTimeout(_next,0);}}_next();});
+el('btn-batch-reverse').addEventListener('click',function(){if(!_batchMode){toast('请先点击批量删除');return;}var cbs=el('album-browse-grid').querySelectorAll('.batch-cb:checked');if(!cbs.length){toast('请勾选要反推的图片');return;}var wf=el('comfyui-workflow').value;if(!wf){toast('请先选择工作流');return;}var sys=el('reverse-sysprompt').value.trim()||'请描述这张图片的内容，输出英文提示词';var sent=0,fail=0;var idx=0;function _next(){if(idx>=cbs.length){if(!S.comfyuiRunning)_execNextQueue();updateQueueUI();toast('反推完成：成功 '+sent+' 个'+(fail?'，失败 '+fail+' 个':''));return;}var cb=cbs[idx];var w=parseInt(el('comfyui-width').value)||512,h=parseInt(el('comfyui-height').value)||512;idx++;toast('⏳ AI反推第 '+idx+' 张...');var url=cb.dataset.url;if(!url){fail++;setTimeout(_next,0);return;}_urlToBase64(url,function(base64){api('/api/llm/translate',{method:'POST',body:{prompt:'[图片]',sysprompt:sys,url:el('llm-url').value,model:el('llm-model').value,key:el('llm-key').value,image:base64}}).then(function(r){if(r.ok&&r.text){var rp=r.text.trim();_pushToQueue(rp,wf,w,h);S.llmHistory.unshift(rp);if(S.llmHistory.length>100)S.llmHistory.pop();saveLlmHistory();sent++;}else{fail++;}setTimeout(_next,0);});});}_next();});
 el('btn-album-browse-close').addEventListener('click',function(){el('modal-album-browse').style.display='none';});
 el('modal-album-browse').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
-el('btn-album-create').addEventListener('click',function(){var nm=el('album-new-name').value.trim();if(!nm){toast('请输入相册名称');return;}_albumData.push({id:'album_'+Date.now(),name:nm,images:[]});_saveAlbums();_renderAlbumTabs();_renderAlbumCard();_renderModalAlbumList();el('album-new-name').value='';toast('相册已创建');});
+el('btn-album-create').addEventListener('click',function(){var nm=el('album-new-name').value.trim();if(!nm){toast('请输入相册名称');return;}for(var i=0;i<_albumData.length;i++){if(_albumData[i].name===nm){toast('相册名已存在');return;}}_albumData.push({id:'album_'+Date.now(),name:nm,images:[]});_saveAlbums();_renderAlbumTabs();_renderAlbumCard();_renderModalAlbumList();el('album-new-name').value='';toast('相册已创建');});
 el('btn-album-close').addEventListener('click',function(){el('modal-album').style.display='none';});
 el('modal-album').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
 // small + button on tabs also opens modal
 el('btn-album-create-small').addEventListener('click',function(){_openAlbumModal();});
+// 批量导入图片到当前相册
+el('btn-album-import').addEventListener('click',function(){var bp=[];try{bp=JSON.parse(localStorage.getItem('grimoire2_bp')||'[]');}catch(e){}el('bind-path-1').value=bp[0]||'';el('bind-path-2').value=bp[1]||'';el('btn-bind-scan').textContent='📥 扫描导入';_importMode=Date.now();el('modal-bind-path').style.display='';});
 // 初始化
 _loadAlbums();
 // 底部区域初始高度
