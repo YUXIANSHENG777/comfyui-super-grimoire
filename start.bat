@@ -6,7 +6,7 @@ echo    超级无敌魔导书 - 智能启动器
 echo ============================================
 echo.
 
-:: ---- 查找 Python ----
+rem ---- 查找 Python ----
 set PY_CMD=
 where python >nul 2>&1
 if %errorlevel% equ 0 (
@@ -31,7 +31,7 @@ if "%PY_CMD%"=="" (
     )
 )
 
-:: ---- 检查依赖 ----
+rem ---- 检查依赖 ----
 echo [检查] 项目依赖...
 %PY_CMD% -c "import flask" >nul 2>&1
 if errorlevel 1 (
@@ -47,7 +47,7 @@ if errorlevel 1 (
     echo [OK] 依赖已就绪
 )
 
-:: ---- 启动服务器 ----
+rem ---- 启动服务器 ----
 echo.
 echo 正在启动服务器...
 echo 手机访问：http://你的IP:5802
