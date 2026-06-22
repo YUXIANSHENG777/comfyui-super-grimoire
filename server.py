@@ -1268,9 +1268,74 @@ def api_bind_delete_by_filename():
                     return jsonify({"ok": True, "path": str(f)})
     return jsonify({"ok": False, "error": "未找到文件"})
 
+@app.route("/api/bind/meta", methods=["POST"])
+def api_bind_meta():
+    """读取本地 PNG 文件的工作流元数据，提取 CLIP 提示词（不依赖 ComfyUI）"""
+    d = request.get_json(force=True) or {}
+    fp = d.get("path", "")
+    if not fp or not os.path.isfile(fp):
+        return jsonify({"ok": False, "error": "文件不存在"})
+    try:
+        with open(fp, "rb") as f:
+            data = f.read()
+        import struct
+        meta = {}
+        if data[:8] == b'\x89PNG\r\n\x1a\n':
+            pos = 8
+            while pos < len(data):
+                length = struct.unpack('>I', data[pos:pos+4])[0]
+                pos += 4
+                chunk_type = data[pos:pos+4].decode('ascii', errors='ignore')
+                pos += 4
+                if chunk_type == 'tEXt':
+                    raw = data[pos:pos+length]
+                    null = raw.find(b'\x00')
+                    if null > 0:
+                        key = raw[:null].decode('ascii', errors='ignore')
+                        val = raw[null+1:].decode('utf-8', errors='ignore')
+                        meta[key] = val
+                elif chunk_type == 'IEND':
+                    break
+                pos += length + 4
+        # 从 workflow JSON 中提取 CLIP 文本节点的提示词
+        prompt_json = meta.get('prompt', '')
+        texts = {}
+        if prompt_json:
+            try:
+                nodes = json.loads(prompt_json)
+                for nid, node in nodes.items():
+                    if not isinstance(node, dict): continue
+                    ct = node.get('class_type', '')
+                    inp = node.get('inputs', {})
+                    txt = inp.get('text', '')
+                    if ct in ('CLIPTextEncode', 'CLIPTextEncodeSD3', 'CLIPTextEncodeFlux') and txt:
+                        label = inp.get('clip', '')
+                        if isinstance(label, list) and len(label) > 1:
+                            label = str(label[1])
+                        else:
+                            label = 'CLIP ' + nid
+                        texts[label] = txt
+            except:
+                pass
+        # 也尝试从 parameters 字段读取（SD WebUI 格式）
+        params = meta.get('parameters', '')
+        sd_pos, sd_neg = '', ''
+        if params:
+            parts = params.split('\n')
+            sd_pos = parts[0] if parts else ''
+            sd_neg = parts[1] if len(parts) > 1 else ''
+        return jsonify({
+            "ok": True,
+            "texts": texts,
+            "positive": sd_pos or next(iter(texts.values()), ''),
+            "negative": sd_neg
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
+
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.65")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.67")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)
