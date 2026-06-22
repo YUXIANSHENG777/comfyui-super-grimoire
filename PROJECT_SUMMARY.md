@@ -34,8 +34,9 @@
 │   ├── comfyui_config.json    # ComfyUI 连接地址
 │   ├── llm_config.json        # LLM API 配置（桌面/手机共享）
 │   ├── llm_presets.json       # 润色预设列表
-│   └── sync_data.json         # 统一同步数据（收藏/上限/模式等）
+│   └── sync_data.json         # 统一同步数据（收藏/上限/模式/相册/隐藏等）
 ├── workflows/                  # ComfyUI API 格式工作流 JSON
+├── screenshots/                # 界面截图
 ├── static/
 │   ├── index.html             # 前端 HTML（所有弹窗、模态框）
 │   ├── app.js                 # 前端逻辑（约 900 行单文件）
@@ -134,6 +135,11 @@ var S = {
 | `grimoire2_negtpl` | 负面提示词预设 |
 | `grimoire2_negtpl_list` | 负面预设列表 |
 | `grimoire2_loadimg` | 加载的图片信息 |
+| `grimoire2_albums` | 相册数据 `[{id,name,images[{url,filename,prompt}]}]` |
+| `grimoire2_active_album` | 当前活跃相册 ID |
+| `grimoire2_bp` | 绑定路径列表 |
+| `grimoire2_bottom_h` | 底部区域高度 |
+| `grimoire2_hidden` | 隐藏的分类/子分类 |
 
 ---
 
@@ -197,7 +203,8 @@ var S = {
 | `/api/bind/img` | GET | 提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 文件移入回收站 |
 | `/api/bind/delete-by-filename` | POST | 按文件名搜索删除到回收站 |
-| `/api/comfyui/image-meta` | GET | 读取 PNG 生成参数元数据 |
+| `/api/bind/meta` | POST | 读取本地 PNG 文件的 tEXt 块，提取 CLIP 提示词（不依赖 ComfyUI） |
+| `/api/comfyui/image-meta` | GET | 从 PNG 元数据读取生成参数（需 ComfyUI） |
 
 ---
 
@@ -307,6 +314,7 @@ var S = {
 | `api_comfyui_generate()` | 核心生成逻辑 |
 | `api_comfyui_result()` | 轮询生成结果 |
 | `api_user_sync_save()` | 同步数据保存（深度合并） |
+| `api_bind_meta()` | 本地 PNG 元数据读取，解析 workflow JSON 提取 CLIP 文本 |
 
 ---
 
@@ -330,6 +338,8 @@ var _isMobile = window.innerWidth <= 768;
 - `#m-overlay` — 抽屉遮罩
 - `#m-selected-bar` — 标签网格下方已选标签区
 - `#disclaimer-modal` — 手机端免责弹窗
+- `#comfyui-gallery` — 画廊容器（生图 Tab 移动到提示词面板底部）
+- `#btn-gallery-album` — 相册管理按钮
 - `<div id="m-tabbar" style="display:none">` — 桌面端隐藏
 
 ---
@@ -353,6 +363,16 @@ var _isMobile = window.innerWidth <= 768;
 ### 手机端看不到图片
 → 检查 ComfyUI 地址是否配置正确（手机不能访问 127.0.0.1）
 → 图片 URL 是否走了 `/api/comfyui/proxy-image` 代理
+
+### 手机端返图区不显示
+→ 检查 HTML 中 `#comfyui-gallery` 容器是否存在
+→ 检查手机端切换到「生图」Tab 后 gallery 是否正确移到 prompt-panel
+
+### 提示词显示"（无）"
+→ 通过 📂 output 扫描的 PNG 图片从本地读取元数据（无需 ComfyUI）
+→ 点击预览时自动调用 `/api/bind/meta` 解析 PNG tEXt 块
+→ 若文件无元数据（非生图软件生成），则显示"（无）"
+→ 预览后提示词自动缓存到 localStorage
 
 ### 刷新后数据丢失
 → 检查对应 `saveXxx()` 是否调用了 `_syncSave()`

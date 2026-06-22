@@ -34,7 +34,7 @@
 │   ├── comfyui_config.json    # ComfyUI 连接地址
 │   ├── llm_config.json        # LLM API 配置（桌面/手机共享）
 │   ├── llm_presets.json       # 润色预设列表
-│   └── sync_data.json         # 统一同步数据（收藏/上限/模式等）
+│   └── sync_data.json         # 统一同步数据（收藏/上限/模式/相册/隐藏等）
 ├── workflows/                  # ComfyUI API 格式工作流 JSON
 ├── screenshots/                # 界面截图
 ├── static/
@@ -200,18 +200,15 @@ var S = {
 | `/api/user/sync` | GET | 获取同步数据 |
 | `/api/user/sync` | POST | 保存同步数据（深度合并） |
 
-### 绑定路径 & 回收站
+### 绑定路径 & 回收站 & 图片元数据
 | 路由 | 方法 | 用途 |
 |------|------|------|
 | `/api/bind/scan` | POST | 扫描 output 文件夹，返回所有图片（最新在前） |
 | `/api/bind/img` | GET | 直接提供绑定目录的图片文件 |
 | `/api/bind/delete` | POST | 删除文件到 Windows 回收站 |
 | `/api/bind/delete-by-filename` | POST | 按文件名在绑定路径中搜索删除到回收站 |
-
-### 图片元数据
-| 路由 | 方法 | 用途 |
-|------|------|------|
-| `/api/comfyui/image-meta` | GET | 读取 PNG 元数据（生成参数） |
+| `/api/bind/meta` | POST | 本地 PNG 元数据读取，解析 tEXt 块提取 CLIP 提示词 |
+| `/api/comfyui/image-meta` | GET | 读取 PNG 元数据（生成参数，需 ComfyUI 运行） |
 ---
 
 
@@ -362,6 +359,8 @@ var S = {
 ## 九、常见 Bug 排查指南
 
 - **手机端看不到图片** → 检查 ComfyUI 地址（手机不能访问 127.0.0.1）→ 图片 URL 是否走了 `/api/comfyui/proxy-image` 代理
+- **手机端返图区不显示** → 检查 `#comfyui-gallery` 容器是否存在，切换生图 Tab 后是否正确放置
+- **提示词显示"（无）"** → 扫描的 PNG 图片通过 `/api/bind/meta` 读取本地元数据（无需 ComfyUI），预览后自动缓存
 - **刷新后数据丢失** → 检查 `saveXxx()` 是否调用了 `_syncSave()` → `_syncLoad()` 是否处理了对应数据键
 - **JS 卡死** → F12 看报错 → `python -c "compile(open('static/app.js').read(),'app.js','exec')"` 快速检查语法
 - **ComfyUI 不生效** → 工作流是否为 API 格式 → CLIP 绑定是否正确 → ComfyUI 是否运行中
