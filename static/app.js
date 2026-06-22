@@ -321,46 +321,51 @@ el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
 var CURRENT_VERSION='1.0.68';
 var _updateInfo=null;
+var _updateURLs=['https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
 function _checkUpdate(silent){
-  fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
-    .then(function(r){return r.json();})
-    .then(function(data){
-      var latest=(data.tag_name||'').replace('v','');
-      if(latest>CURRENT_VERSION.replace('v','')){
+  _tryUpdateCheck(0,silent);
+}
+function _verGt(a,b){
+  var pa=a.split('.').map(Number),pb=b.split('.').map(Number);
+  for(var i=0;i<Math.max(pa.length,pb.length);i++){var va=pa[i]||0,vb=pb[i]||0;if(va>vb)return true;if(va<vb)return false;}
+  return false;
+}
+function _tryUpdateCheck(idx,silent){
+  if(idx>=_updateURLs.length){if(!silent)toast('❌ 检查失败，请检查网络或手动访问 GitHub');return;}
+  fetch(_updateURLs[idx]).then(function(r){return r.json();}).then(function(data){
+    if(data&&data.tag_name){
+      var latest=data.tag_name.replace('v','');
+      if(_verGt(latest,CURRENT_VERSION)){
         _updateInfo={version:'v'+latest,url:data.zipball_url||data.html_url};
         el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
         el('modal-update').style.display='';
       }else if(!silent){
         toast('✅ 已是最新版本 '+CURRENT_VERSION);
       }
-    })
-    .catch(function(){if(!silent)toast('❌ 检查失败，请确保能访问 GitHub');});
+    }else{_tryUpdateCheck(idx+1,silent);}
+  }).catch(function(){_tryUpdateCheck(idx+1,silent);});
 }
 
 // 手动检查
 el('btn-check-update').addEventListener('click',function(){
   var btn=this;btn.textContent='⏳ 检查中...';btn.disabled=true;
-  var t=setTimeout(function(){btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查超时');},10000);
-  fetch('https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest')
-    .then(function(r){return r.json();})
-    .then(function(data){
-      clearTimeout(t);
-      var latest=(data.tag_name||'').replace('v','');
-      if(latest>CURRENT_VERSION.replace('v','')){
-        _updateInfo={version:'v'+latest,url:data.zipball_url};
-        el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
-        el('modal-update').style.display='';
-      }else{
-        toast('✅ 已是最新版本 v'+CURRENT_VERSION);
-      }
-      btn.textContent='🔄 检查更新';btn.disabled=false;
-    })
-    .catch(function(){
-      clearTimeout(t);
-      toast('❌ 检查失败，请确保能访问 GitHub');
-      btn.textContent='🔄 检查更新';btn.disabled=false;
-    });
+  var t=setTimeout(function(){btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查超时');},15000);
+  var idx=0,attempt=function(){
+    if(idx>=_updateURLs.length){clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查失败');return;}
+    fetch(_updateURLs[idx]).then(function(r){return r.json();}).then(function(data){
+      clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;
+      if(data&&data.tag_name){
+        var latest=data.tag_name.replace('v','');
+        if(_verGt(latest,CURRENT_VERSION)){
+          _updateInfo={version:'v'+latest,url:data.zipball_url};
+          el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
+          el('modal-update').style.display='';
+        }else{toast('✅ 已是最新版本 v'+CURRENT_VERSION);}
+      }else{idx++;attempt();}
+    }).catch(function(){idx++;attempt();});
+  };
+  attempt();
 });
 
 // 自动更新按钮
