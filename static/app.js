@@ -313,7 +313,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.65';
+var CURRENT_VERSION='1.0.66';
 var _updateInfo=null;
 
 function _checkUpdate(silent){
