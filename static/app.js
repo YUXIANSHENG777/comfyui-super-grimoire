@@ -319,7 +319,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.67';
+var CURRENT_VERSION='1.0.68';
 var _updateInfo=null;
 
 function _checkUpdate(silent){
@@ -1558,7 +1558,30 @@ function _initMobile(){
     this.style.display='none';clearSearch();
   });
   // 免责声明
-  el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal').classList.add('show');});
+  // UI设置
+el('btn-ui-settings').addEventListener('click',function(){el('modal-ui-settings').style.display='';});
+el('btn-ui-close').addEventListener('click',function(){el('modal-ui-settings').style.display='none';});
+el('modal-ui-settings').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+el('ui-gradient').addEventListener('change',function(){
+  document.body.classList.toggle('no-gradient',!this.checked);
+  localStorage.setItem('grimoire2_ui_gradient',this.checked?'1':'0');
+});
+el('ui-glass').addEventListener('change',function(){
+  document.body.classList.toggle('no-glass',!this.checked);
+  localStorage.setItem('grimoire2_ui_glass',this.checked?'1':'0');
+});
+el('btn-ui-reset').addEventListener('click',function(){
+  localStorage.removeItem('grimoire2_ui_gradient');localStorage.removeItem('grimoire2_ui_glass');
+  document.body.classList.remove('no-gradient','no-glass');
+  el('ui-gradient').checked=true;el('ui-glass').checked=true;
+  el('modal-ui-settings').style.display='none';toast('已重置为默认');
+});
+// 加载UI设置
+(function(){
+  if(localStorage.getItem('grimoire2_ui_gradient')==='0'){document.body.classList.add('no-gradient');el('ui-gradient').checked=false;}
+  if(localStorage.getItem('grimoire2_ui_glass')==='0'){document.body.classList.add('no-glass');el('ui-glass').checked=false;}
+})();
+el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal').classList.add('show');});
   el('btn-disclaimer-close').addEventListener('click',function(){el('disclaimer-modal').classList.remove('show');});
   el('disclaimer-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
   // 抽屉内分类点击

@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.67 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.68 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
-<link rel="stylesheet" href="/style.css?v=5">
+<link rel="stylesheet" href="/style.css?v=33">
 <script src="/i18n.js?v=3"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.birds.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.waves.min.js"></script>
 </head>
 <body>
+<div id="ui-bg-layer"></div>
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.67</span></span>
+    <span class="app-title">🔥 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.68</span></span>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px">❓ 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
+    <button id="btn-ui-settings" class="tool-btn" title="界面设置" style="font-size:11px;padding:3px 10px" onclick="el('modal-ui-settings').style.display=''">⚙ 设置</button>
+
   </div>
   <div class="toolbar-right">
     <button id="btn-quality" class="tool-btn">✨ 基础质量词</button>
@@ -834,6 +840,113 @@
   </div>
 </div>
 
+<!-- 界面设置弹窗 -->
+<div id="modal-ui-settings" class="modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-content" style="max-width:380px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0">⚙ 界面设置</h3>
+      <button onclick="el('modal-ui-settings').style.display='none'" style="border:none;background:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="padding:6px 0;border-bottom:1px solid rgba(42,44,56,0.4)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--text-primary)">🪟 全局透明度</span>
+          <span id="ui-glass-val" style="font-size:12px;color:var(--text-muted)">50%</span>
+        </div>
+        <input type="range" id="ui-glass" min="0" max="100" value="50" onchange="var v=parseInt(this.value);el('ui-glass-val').textContent=v+'%';_applyGlass(v,parseInt(el('ui-blur').value));localStorage.setItem('grimoire2_ui_glass',v)" style="width:100%;accent-color:var(--accent);cursor:pointer">
+      </div>
+      <div style="padding:6px 0;border-bottom:1px solid rgba(42,44,56,0.4)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--text-primary)">🌀 模糊程度</span>
+          <span id="ui-blur-val" style="font-size:12px;color:var(--text-muted)">10px</span>
+        </div>
+        <input type="range" id="ui-blur" min="0" max="40" value="10" onchange="var v=parseInt(this.value);el('ui-blur-val').textContent=v+'px';_applyGlass(parseInt(el('ui-glass').value),v);localStorage.setItem('grimoire2_ui_blur',v)" style="width:100%;accent-color:var(--accent);cursor:pointer">
+      </div>
+      <div style="padding:6px 0;border-bottom:1px solid rgba(42,44,56,0.4)">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">📋 各区域透明度</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text-primary)">左侧栏</span>
+          <span id="ui-left-val" style="font-size:11px;color:var(--text-muted)">50%</span>
+        </div>
+        <input type="range" id="ui-left" min="0" max="100" value="50" onchange="var v=parseInt(this.value);el('ui-left-val').textContent=v+'%';_applyPanelAlpha('sidebar',v);localStorage.setItem('grimoire2_ui_left',v)" style="width:100%;accent-color:var(--accent);cursor:pointer;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text-primary)">中间区域</span>
+          <span id="ui-center-val" style="font-size:11px;color:var(--text-muted)">35%</span>
+        </div>
+        <input type="range" id="ui-center" min="0" max="100" value="35" onchange="var v=parseInt(this.value);el('ui-center-val').textContent=v+'%';_applyPanelAlpha('tag-browser',v);localStorage.setItem('grimoire2_ui_center',v)" style="width:100%;accent-color:var(--accent);cursor:pointer;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text-primary)">右侧面板</span>
+          <span id="ui-right-val" style="font-size:11px;color:var(--text-muted)">50%</span>
+        </div>
+        <input type="range" id="ui-right" min="0" max="100" value="50" onchange="var v=parseInt(this.value);el('ui-right-val').textContent=v+'%';_applyPanelAlpha('prompt-panel',v);localStorage.setItem('grimoire2_ui_right',v)" style="width:100%;accent-color:var(--accent);cursor:pointer">
+      </div>
+      <div style="padding:6px 0">
+        <div onclick="var e=el('ui-effects-list');e.style.display=e.style.display==='none'?'':'none';this.querySelector('.arrow').classList.toggle('open')" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text-primary);padding:4px 0;user-select:none">
+          <span class="arrow" style="font-size:10px;color:var(--text-muted);transition:transform .2s">▶</span>
+          <span>✨ 页面特效</span>
+        </div>
+        <div id="ui-effects-list" style="display:none;padding:8px 0 4px 16px">
+          <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(42,44,56,0.3);cursor:pointer">
+            <span style="font-size:12px;color:var(--text-primary)">💧 水面涟漪点击</span>
+            <input type="checkbox" id="ui-ripple1" onchange="localStorage.setItem('grimoire2_ui_ripple1',this.checked?'1':'0');if(this.checked)_ripple1Init();else _ripple1Destroy()" style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer">
+          </label>
+          <div style="font-size:10px;color:var(--text-muted);padding:4px 0;line-height:1.6">· 点击页面产生 4 层同心圆涟漪扩散<br>· 中心水滴亮点 + 光泽</div>
+          <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(42,44,56,0.3);cursor:pointer">
+            <span style="font-size:12px;color:var(--text-primary)">🕊 3D 群鸟飞舞</span>
+            <input type="checkbox" id="ui-vanta-birds" onchange="localStorage.setItem('grimoire2_ui_vanta_birds',this.checked?'1':'0');if(this.checked)_vantaInit('birds');else _vantaDestroy('birds')" style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer">
+          </label>
+          <div style="font-size:10px;color:var(--text-muted);padding:4px 0;line-height:1.6">· 3D 群鸟在背景盘旋<br>· 鼠标移动驱散鸟群</div>
+          <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;cursor:pointer">
+            <span style="font-size:12px;color:var(--text-primary)">🌊 3D 波浪海面</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="color" id="ui-wave-color" value="#8b7cf7" oninput="_vantaWaveColor(this.value);localStorage.setItem('grimoire2_ui_wave_color',this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;padding:0;cursor:pointer;background:none">
+              <input type="checkbox" id="ui-vanta-waves" onchange="localStorage.setItem('grimoire2_ui_vanta_waves',this.checked?'1':'0');if(this.checked)_vantaInit('waves');else _vantaDestroy('waves')" style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer">
+            </div>
+          </label>
+          <div style="font-size:10px;color:var(--text-muted);padding:4px 0;line-height:1.6">· 3D 波浪网格起伏<br>· 鼠标移动改变视角</div>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;cursor:pointer">
+        <span style="font-size:13px;color:var(--text-primary)">🌙 深色模式</span>
+        <input type="checkbox" id="ui-dark" onchange="var t=this.checked?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('grimoire2_ui_theme',t);setTimeout(function(){_applyGlass(parseInt(el('ui-glass').value),parseInt(el('ui-blur').value));},50)" style="accent-color:var(--accent);width:18px;height:18px;cursor:pointer">
+      </label>
+      <div style="padding:6px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--text-primary)">🖼 自定义背景图</span>
+        </div>
+        <input type="file" id="ui-bg-file" accept="image/*" style="display:none" onchange="_loadBgFile(this)">
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="mini-btn" onclick="document.getElementById('ui-bg-file').click()" style="font-size:11px">📁 选择图片</button>
+          <button class="mini-btn" style="font-size:11px;color:var(--danger)" onclick="_removeBg()">✕ 移除</button>
+        </div>
+        <div id="ui-bg-preview" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;max-height:80px;border:1px solid var(--border)">
+          <img id="ui-bg-preview-img" style="width:100%;height:80px;object-fit:cover;display:block">
+        </div>
+        <div id="ui-bg-controls" style="display:none;margin-top:6px">
+          <select id="ui-bg-size" onchange="_applyBgPos()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:11px;outline:none;margin-bottom:6px">
+            <option value="cover">裁剪填充</option>
+            <option value="contain">完整显示</option>
+            <option value="100% auto">适应宽度</option>
+            <option value="auto 100%">适应高度</option>
+          </select>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:11px;color:var(--text-muted);width:14px">↔</span>
+            <input type="range" id="ui-bg-x" min="-50" max="50" value="0" onchange="_applyBgPos()" style="flex:1;accent-color:var(--accent);cursor:pointer">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text-muted);width:14px">↕</span>
+            <input type="range" id="ui-bg-y" min="-50" max="50" value="0" onchange="_applyBgPos()" style="flex:1;accent-color:var(--accent);cursor:pointer">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(42,44,56,0.4);display:flex;gap:8px;justify-content:flex-end">
+      <button class="action-btn" style="font-size:11px" onclick="localStorage.removeItem('grimoire2_ui_glass');localStorage.removeItem('grimoire2_ui_blur');localStorage.removeItem('grimoire2_ui_theme');localStorage.removeItem('grimoire2_ui_ripple1');localStorage.removeItem('grimoire2_ui_vanta_birds');localStorage.removeItem('grimoire2_ui_vanta_waves');localStorage.removeItem('grimoire2_ui_bg');localStorage.removeItem('grimoire2_ui_bg_x');localStorage.removeItem('grimoire2_ui_bg_y');localStorage.removeItem('grimoire2_ui_bg_size');localStorage.removeItem('grimoire2_ui_left');localStorage.removeItem('grimoire2_ui_center');localStorage.removeItem('grimoire2_ui_right');document.documentElement.setAttribute('data-theme','dark');el('ui-dark').checked=true;el('ui-ripple1').checked=false;_ripple1Destroy();el('ui-vanta-birds').checked=false;_vantaDestroy('birds');el('ui-vanta-waves').checked=false;_vantaDestroy('waves');el('ui-glass').value=50;el('ui-glass-val').textContent='50%';el('ui-blur').value=10;el('ui-blur-val').textContent='10px';_applyGlass(50,10);['left','sidebar',50,'center','tag-browser',35,'right','prompt-panel',50].forEach(function(k,i,a){if(i%3===0){var id='ui-'+k,panel=a[i+1],val=a[i+2];el(id).value=val;el(id+'-val').textContent=val+'%';_applyPanelAlpha(panel,val);}});_removeBg()">重置默认</button>
+      <button class="action-btn primary" style="font-size:11px" onclick="_saveAllSettings();el('modal-ui-settings').style.display='none'">确认</button>
+    </div>
+  </div>
+</div>
+
 <!-- 免责声明 -->
 <footer id="disclaimer">
   <button id="btn-disclaimer-desktop" class="disclaimer-btn" title="点击查看完整免责声明">⚠️ 免责声明：本工具仅供学习交流使用，使用者对生成内容承担全部责任，AI 生成可能存在偏差请理性辨别</button>
@@ -858,6 +971,183 @@
     <div class="modal-actions"><button id="btn-bind-scan" class="action-btn primary" style="font-size:11px">🔍 扫描加载</button><button id="btn-bind-close" class="action-btn" style="font-size:11px">关闭</button></div>
   </div>
 </div>
-<script src="/app.js?v=216"></script>
+<script>
+var _bgData=null;
+function _applyPanelAlpha(panel,v){
+  var el=document.getElementById(panel);
+  if(!el)return;
+  var isLight=document.documentElement.getAttribute('data-theme')==='light';
+  var a=v>0?(100-v)/100:0;
+  if(v<=0){el.style.background='';el.style.backdropFilter='none';return;}
+  var c=isLight?'245,245,248':'22,24,32';
+  if(panel==='tag-browser')c=isLight?'245,245,248':'15,16,23';
+  el.style.background='rgba('+c+','+a+')';
+  var b=document.getElementById('ui-blur');
+  var bv=b?parseInt(b.value):10;
+  if(bv>0)el.style.backdropFilter='blur('+bv+'px)';else el.style.backdropFilter='none';
+}
+function _applyGlass(v,b){
+  if(b===undefined){var bs=document.getElementById('ui-blur');b=bs?parseInt(bs.value):10;}
+  var a=v>0?(100-v)/100:0;
+  var isLight=document.documentElement.getAttribute('data-theme')==='light';
+  var els=document.querySelectorAll('#sidebar,#prompt-panel,#tag-browser,#toolbar,.modal-content,.search-box,.comfyui-panel,.template-section,.llm-section,#disclaimer');
+  els.forEach(function(el){
+    el.style.background='';el.style.backdropFilter='';
+    if(v>0){
+      var c=isLight?'245,245,248':'22,24,32';
+      if(el.id==='tag-browser')c=isLight?'245,245,248':'15,16,23';
+      else if(el.classList.contains('template-section')||el.classList.contains('llm-section'))c=isLight?'238,239,244':'28,30,40';
+      else if(el.id==='disclaimer')c=isLight?'255,255,255':'22,24,32';
+      el.style.background='rgba('+c+','+a+')';
+      if(b>0)el.style.backdropFilter='blur('+b+'px)';
+    }
+  });
+}
+function _loadBgFile(input){
+  var f=input.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(e){
+    _bgData=e.target.result;
+    localStorage.setItem('grimoire2_ui_bg',_bgData);
+    document.getElementById('ui-bg-layer').style.backgroundImage='url('+_bgData+')';
+    var prev=document.getElementById('ui-bg-preview');prev.style.display='';
+    document.getElementById('ui-bg-preview-img').src=_bgData;
+    document.getElementById('ui-bg-controls').style.display='';
+    _applyBgPos();
+  };
+  rd.readAsDataURL(f);
+}
+function _removeBg(){
+  localStorage.removeItem('grimoire2_ui_bg');localStorage.removeItem('grimoire2_ui_bg_x');localStorage.removeItem('grimoire2_ui_bg_y');localStorage.removeItem('grimoire2_ui_bg_size');
+  document.getElementById('ui-bg-layer').style.backgroundImage='';
+  document.getElementById('ui-bg-preview').style.display='none';
+  document.getElementById('ui-bg-controls').style.display='none';
+  document.getElementById('ui-bg-file').value='';
+}
+function _applyBgPos(){
+  var layer=document.getElementById('ui-bg-layer');
+  var x=parseInt(document.getElementById('ui-bg-x').value)||0;
+  var y=parseInt(document.getElementById('ui-bg-y').value)||0;
+  var sz=document.getElementById('ui-bg-size').value;
+  var px=50+x,py=50+y;
+  layer.style.backgroundSize=sz;
+  layer.style.backgroundPosition=px+'% '+py+'%';
+  localStorage.setItem('grimoire2_ui_bg_x',x);
+  localStorage.setItem('grimoire2_ui_bg_y',y);
+  localStorage.setItem('grimoire2_ui_bg_size',sz);
+}
+// ===== 特效1: 水面涟漪点击 =====
+var _rip1Style=null;
+function _ripple1Init(){
+  if(!_rip1Style){_rip1Style=document.createElement('style');_rip1Style.textContent=
+    '@keyframes r1w{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}'+
+    '@keyframes r1d{0%{transform:translate(-50%,-50%) scale(0);opacity:1}60%{transform:translate(-50%,-50%) scale(1.4);opacity:1}100%{transform:translate(-50%,-50%) scale(0.6);opacity:0}}'+
+    '.r1r{position:fixed;pointer-events:none;border-radius:50%;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:r1w 2.4s cubic-bezier(0.2,0.6,0.4,1) forwards}'+
+    '.r1a{width:60px;height:60px;border:2px solid rgba(0,212,255,0.9);box-shadow:0 0 12px rgba(0,212,255,0.5)}'+
+    '.r1b{width:130px;height:130px;border:1.5px solid rgba(0,168,204,0.65);animation-delay:0.12s}'+
+    '.r1c{width:220px;height:220px;border:1px solid rgba(0,120,160,0.4);animation-delay:0.26s}'+
+    '.r1d{width:340px;height:340px;border:0.5px solid rgba(0,90,120,0.25);animation-delay:0.44s}'+
+    '.r1p{position:fixed;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7ef7ff,#00d4ff);transform:translate(-50%,-50%) scale(0);pointer-events:none;z-index:9999;animation:r1d 0.4s cubic-bezier(0.2,0.9,0.4,1) forwards;box-shadow:0 0 14px #00d4ff}';
+  document.head.appendChild(_rip1Style);}
+  document.addEventListener('click',_rip1Click=function(e){
+    ['a','b','c','d'].forEach(function(t,i){
+      var r=document.createElement('div');r.className='r1r r1'+t;r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);
+      setTimeout(function(){r.remove();},2500);
+    });
+    var d=document.createElement('div');d.className='r1p';d.style.left=e.clientX+'px';d.style.top=e.clientY+'px';document.body.appendChild(d);
+    setTimeout(function(){d.remove();},500);
+  });
+}
+function _ripple1Destroy(){
+  document.removeEventListener('click',_rip1Click);
+  document.querySelectorAll('.r1r,.r1p').forEach(function(e){e.remove();});
+}
+
+// ===== Vanta.js 3D 特效 =====
+var _vantaInst={};
+function _vantaInit(eff){
+  if(_vantaInst[eff])return;
+  document.body.classList.add('vanta-active');
+  // 如果另一个效果已运行，保留它
+  var other=eff==='birds'?'waves':'birds';
+  var hadOther=!!_vantaInst[other];
+  // 先创建自己的元素
+  var el=document.createElement('div');el.id='vanta-'+eff;
+  el.style.cssText='position:fixed;inset:0;pointer-events:none';
+  el.style.zIndex=eff==='waves'?'-3':'-2';
+  document.body.insertBefore(el,document.body.firstChild);
+  var opts={el:el,mouseControls:true,touchControls:true,gyroControls:false,minHeight:200,minWidth:200};
+  if(eff==='birds'){opts.backgroundColor=0x000000;opts.color1=0x8b7cf7;opts.color2=0x6355d4;opts.quantity=3;}
+  if(eff==='waves'){var wc=localStorage.getItem('grimoire2_ui_wave_color');if(!wc)wc='#8b7cf7';opts.backgroundColor=0x0f1017;opts.color=parseInt(wc.replace('#',''),16);opts.waveHeight=20;opts.waveSpeed=0.6;}
+  try{_vantaInst[eff]=VANTA[eff==='birds'?'BIRDS':'WAVES'](opts);}catch(e){}
+  // 重建另一个效果保证渲染顺序
+  if(hadOther){_vantaInst[other].destroy();_vantaInst[other]=null;
+    var el2=document.getElementById('vanta-'+other);if(el2)el2.remove();
+    var oel=document.createElement('div');oel.id='vanta-'+other;
+    oel.style.cssText='position:fixed;inset:0;pointer-events:none';
+    oel.style.zIndex=other==='waves'?'-3':'-2';
+    document.body.insertBefore(oel,document.body.firstChild);
+    var oopts={el:oel,mouseControls:true,touchControls:true,gyroControls:false,minHeight:200,minWidth:200};
+    if(other==='birds'){oopts.backgroundColor=0x000000;oopts.color1=0x8b7cf7;oopts.color2=0x6355d4;oopts.quantity=3;}
+    if(other==='waves'){oopts.backgroundColor=0x0f1017;oopts.color=0x8b7cf7;oopts.waveHeight=20;oopts.waveSpeed=0.6;}
+    try{_vantaInst[other]=VANTA[other==='birds'?'BIRDS':'WAVES'](oopts);}catch(e){}
+  }
+}
+function _vantaWaveColor(hex){
+  if(_vantaInst['waves']){_vantaInst['waves'].destroy();_vantaInst['waves']=null;}
+  var el=document.getElementById('vanta-waves');if(el)el.remove();
+  setTimeout(function(){_vantaInit('waves');},50);
+}
+function _vantaDestroy(eff){
+  if(_vantaInst[eff]){_vantaInst[eff].destroy();_vantaInst[eff]=null;}
+  var el=document.getElementById('vanta-'+eff);if(el)el.remove();
+  if(!_vantaInst['birds']&&!_vantaInst['waves'])document.body.classList.remove('vanta-active');
+}
+function _saveAllSettings(){
+  var v=[['ui_glass','ui-glass'],['ui_blur','ui-blur'],['ui_left','ui-left'],['ui_center','ui-center'],['ui_right','ui-right'],['ui_bg_x','ui-bg-x'],['ui_bg_y','ui-bg-y']];
+  v.forEach(function(p){var e=document.getElementById(p[1]);if(e)localStorage.setItem('grimoire2_'+p[0],e.value);});
+  var sz=document.getElementById('ui-bg-size');if(sz)localStorage.setItem('grimoire2_ui_bg_size',sz.value);
+  var t=document.documentElement.getAttribute('data-theme');localStorage.setItem('grimoire2_ui_theme',t);
+  if(_bgData)localStorage.setItem('grimoire2_ui_bg',_bgData);
+  _applyGlass(parseInt(document.getElementById('ui-glass').value),parseInt(document.getElementById('ui-blur').value));
+  _applyPanelAlpha('sidebar',parseInt(document.getElementById('ui-left').value));
+  _applyPanelAlpha('tag-browser',parseInt(document.getElementById('ui-center').value));
+  _applyPanelAlpha('prompt-panel',parseInt(document.getElementById('ui-right').value));
+}
+// 加载保存的设置
+(function(){
+  var keys=['ui-glass','ui-blur','ui-left','ui-center','ui-right','ui-bg-x','ui-bg-y'];
+  var defaults={ui_glass:50,ui_blur:10,ui_left:50,ui_center:35,ui_right:50,ui_bg_x:0,ui_bg_y:0};
+  keys.forEach(function(k){
+    var v=localStorage.getItem('grimoire2_'+k);
+    if(v===null){v=defaults[k]||'';}else{v=v;}
+    var el=document.getElementById(k);if(el)el.value=v;
+    var valEl=document.getElementById(k+'-val');if(valEl){
+      if(k==='ui-blur')valEl.textContent=v+'px';else valEl.textContent=v+'%';
+    }
+  });
+  var sz=localStorage.getItem('grimoire2_ui_bg_size');if(sz){var se=document.getElementById('ui-bg-size');if(se)se.value=sz;}
+  var t=localStorage.getItem('grimoire2_ui_theme');if(t){document.documentElement.setAttribute('data-theme',t);var cb=document.getElementById('ui-dark');if(cb)cb.checked=(t==='dark');}
+  if(localStorage.getItem('grimoire2_ui_ripple1')==='1'){var c1=document.getElementById('ui-ripple1');if(c1)c1.checked=true;_ripple1Init();}
+  if(localStorage.getItem('grimoire2_ui_vanta_birds')==='1'){var c2=document.getElementById('ui-vanta-birds');if(c2)c2.checked=true;_vantaInit('birds');}
+  if(localStorage.getItem('grimoire2_ui_vanta_waves')==='1'){var c3=document.getElementById('ui-vanta-waves');if(c3)c3.checked=true;_vantaInit('waves');}
+  var wc=localStorage.getItem('grimoire2_ui_wave_color');if(wc){var wp=document.getElementById('ui-wave-color');if(wp)wp.value=wc;}
+  _applyGlass(parseInt(document.getElementById('ui-glass').value),parseInt(document.getElementById('ui-blur').value));
+  _applyPanelAlpha('sidebar',parseInt(document.getElementById('ui-left').value));
+  _applyPanelAlpha('tag-browser',parseInt(document.getElementById('ui-center').value));
+  _applyPanelAlpha('prompt-panel',parseInt(document.getElementById('ui-right').value));
+  var bg=localStorage.getItem('grimoire2_ui_bg');
+  if(bg){
+    document.getElementById('ui-bg-layer').style.backgroundImage='url('+bg+')';
+    var p=document.getElementById('ui-bg-preview');if(p){p.style.display='';document.getElementById('ui-bg-preview-img').src=bg;}
+    var bx=localStorage.getItem('grimoire2_ui_bg_x');if(bx!==null)document.getElementById('ui-bg-x').value=bx;
+    var by=localStorage.getItem('grimoire2_ui_bg_y');if(by!==null)document.getElementById('ui-bg-y').value=by;
+    var bz=localStorage.getItem('grimoire2_ui_bg_size');if(bz!==null)document.getElementById('ui-bg-size').value=bz;
+    document.getElementById('ui-bg-controls').style.display='';
+    _applyBgPos();
+  }
+})();
+</script>
+<script src="/app.js?v=217"></script>
 </body>
 </html>

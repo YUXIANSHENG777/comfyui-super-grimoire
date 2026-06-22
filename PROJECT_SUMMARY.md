@@ -140,6 +140,20 @@ var S = {
 | `grimoire2_bp` | 绑定路径列表 |
 | `grimoire2_bottom_h` | 底部区域高度 |
 | `grimoire2_hidden` | 隐藏的分类/子分类 |
+| `grimoire2_ui_glass` | 全局透明度 (0-100) |
+| `grimoire2_ui_blur` | 模糊程度 (0-40px) |
+| `grimoire2_ui_left` | 左侧栏透明度 (0-100) |
+| `grimoire2_ui_center` | 中间区域透明度 (0-100) |
+| `grimoire2_ui_right` | 右侧面板透明度 (0-100) |
+| `grimoire2_ui_theme` | 主题 `"dark"` / `"light"` |
+| `grimoire2_ui_bg` | 自定义背景图 (base64) |
+| `grimoire2_ui_bg_x` | 背景 X 偏移 (-50~50) |
+| `grimoire2_ui_bg_y` | 背景 Y 偏移 (-50~50) |
+| `grimoire2_ui_bg_size` | 背景缩放模式 |
+| `grimoire2_ui_ripple1` | 水面涟漪特效开关 |
+| `grimoire2_ui_vanta_birds` | 3D 群鸟特效开关 |
+| `grimoire2_ui_vanta_waves` | 3D 波浪特效开关 |
+| `grimoire2_ui_wave_color` | 波浪颜色 Hex |
 
 ---
 
