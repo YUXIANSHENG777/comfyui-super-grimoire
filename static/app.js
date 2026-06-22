@@ -321,7 +321,7 @@ el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
 var CURRENT_VERSION='1.0.68';
 var _updateInfo=null;
-var _updateURLs=['https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
+var _updateURLs=['https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://gh.idayer.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
 function _checkUpdate(silent){
   _tryUpdateCheck(0,silent);
@@ -332,7 +332,7 @@ function _verGt(a,b){
   return false;
 }
 function _tryUpdateCheck(idx,silent){
-  if(idx>=_updateURLs.length){if(!silent)toast('❌ 检查失败，请检查网络或手动访问 GitHub');return;}
+  if(idx>=_updateURLs.length){if(!silent)toast('❌ 检查失败，可手动访问 github.com/YUXIANSHENG777/comfyui-super-grimoire/releases 查看最新版本');return;}
   fetch(_updateURLs[idx]).then(function(r){return r.json();}).then(function(data){
     if(data&&data.tag_name){
       var latest=data.tag_name.replace('v','');
@@ -351,8 +351,8 @@ function _tryUpdateCheck(idx,silent){
 el('btn-check-update').addEventListener('click',function(){
   var btn=this;btn.textContent='⏳ 检查中...';btn.disabled=true;
   var t=setTimeout(function(){btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查超时');},15000);
-  var idx=0,attempt=function(){
-    if(idx>=_updateURLs.length){clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查失败');return;}
+  var idx=0,attemptM=function(){
+    if(idx>=_updateURLs.length){clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查失败，可手动访问 github.com/YUXIANSHENG777/comfyui-super-grimoire/releases');return;}
     fetch(_updateURLs[idx]).then(function(r){return r.json();}).then(function(data){
       clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;
       if(data&&data.tag_name){
@@ -362,10 +362,10 @@ el('btn-check-update').addEventListener('click',function(){
           el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
           el('modal-update').style.display='';
         }else{toast('✅ 已是最新版本 v'+CURRENT_VERSION);}
-      }else{idx++;attempt();}
-    }).catch(function(){idx++;attempt();});
+      }else{idx++;attemptM();}
+    }).catch(function(){idx++;attemptM();});
   };
-  attempt();
+  attemptM();
 });
 
 // 自动更新按钮
