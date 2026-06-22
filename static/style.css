@@ -418,4 +418,12 @@ html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primar
   /* 生图Tab: 画廊在手机端也可见 */
   #prompt-panel.m-show #comfyui-gallery-imgs { display: flex !important; }
   #btn-gallery-clear { margin-left: 0; margin-right: auto; }
+  /* 手机端画廊容器适应 */
+  #prompt-panel.m-show #comfyui-gallery { display: block !important; margin-top: 8px; padding: 6px; border-top: 1px solid var(--border); }
+  #prompt-panel.m-show #comfyui-gallery-toolbar { flex-wrap: wrap; gap: 4px; }
+  #prompt-panel.m-show #comfyui-gallery-toolbar .mini-btn { font-size: 10px; padding: 4px 8px; }
+  #prompt-panel.m-show #comfyui-gallery-toolbar span { font-size: 12px; }
+  /* 手机端相册管理弹窗适配 */
+  #modal-album .modal-content { min-width: 0 !important; width: 95vw !important; }
+  #modal-album .modal-content #album-modal-list { grid-template-columns: repeat(auto-fill,minmax(140px,1fr)) !important; }
 }
