@@ -232,6 +232,9 @@ function _syncSave(keys){
   add('loadImg',S.loadImage||{});
   try{add('randprof',JSON.parse(localStorage.getItem('grimoire2_randprof')||'[]'));}catch(e){}
   try{add('uiSettings',JSON.parse(localStorage.getItem('grimoire2_ui')||'{}'));}catch(e){}
+  try{add('albums',{data:JSON.parse(localStorage.getItem('grimoire2_albums')||'[]'),activeId:localStorage.getItem('grimoire2_active_album')||'default'});}catch(e){}
+  try{add('locked',JSON.parse(localStorage.getItem('grimoire2_locked')||'{}'));}catch(e){}
+  add('hidden',S.hidden||{});
   if(Object.keys(d).length)api('/api/user/sync',{method:'POST',body:d});
 }
 function _syncLoad(cb){
@@ -255,6 +258,9 @@ function _syncLoad(cb){
     if(d.loadImg&&d.loadImg.node_id){S.loadImage=d.loadImg;localStorage.setItem('grimoire2_loadimg',JSON.stringify(d.loadImg));}
     if(d.randprof&&d.randprof.length){localStorage.setItem('grimoire2_randprof',JSON.stringify(d.randprof));}
     if(d.uiSettings){localStorage.setItem('grimoire2_ui',JSON.stringify(d.uiSettings));loadUiSettings();}
+    if(d.albums){localStorage.setItem('grimoire2_albums',JSON.stringify(d.albums.data));localStorage.setItem('grimoire2_active_album',d.albums.activeId||'default');_loadAlbums();_refreshGalleryHearts();}
+    if(d.locked){localStorage.setItem('grimoire2_locked',JSON.stringify(d.locked));}
+    if(d.hidden){S.hidden=Object.assign(S.hidden||{},d.hidden);saveHidden();}
     if(d.gallery&&d.gallery.length){
       var merged={};
       for(var i=0;i<d.gallery.length;i++)merged[d.gallery[i].url]=d.gallery[i];
