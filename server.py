@@ -1067,67 +1067,80 @@ def api_update_install():
     data = request.get_json()
     url = data.get("url", "").strip()
     if not url: return jsonify({"error": "缺少下载地址"}), 400
+    # 下载 URL 列表（直连 + 代理兜底）
+    dl_urls = [url, f"https://ghproxy.com/{url}", f"https://gh.idayer.com/{url}"]
+    zip_bytes = None
+    last_err = ""
+    for dl_url in dl_urls:
+        try:
+            req = urllib.request.Request(dl_url, headers={"User-Agent": "ComfyUI-Grimoire"})
+            resp = urllib.request.urlopen(req, timeout=120)
+            zip_bytes = resp.read()
+            if zip_bytes: break
+        except Exception as e:
+            last_err = str(e)[:100]
+            continue
+    if not zip_bytes:
+        return jsonify({"error": f"下载失败: {last_err}"}), 500
     try:
-        # 下载 ZIP
-        req = urllib.request.Request(url, headers={"User-Agent": "ComfyUI-Grimoire"})
-        resp = urllib.request.urlopen(req, timeout=120)
-        zip_bytes = resp.read()
-        # 解压到临时目录
         tmp = tempfile.mkdtemp()
         with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
             zf.extractall(tmp)
-        # GitHub zip 包含一层目录，找到实际内容目录
         dirs = [d for d in Path(tmp).iterdir() if d.is_dir()]
         src = dirs[0] if dirs else Path(tmp)
         project_root = Path(__file__).parent
-        # 备份当前文件（跳过 user_data, data 标签库）
         backup_dir = project_root / "user_data" / "_backup"
         backup_dir.mkdir(parents=True, exist_ok=True)
+        skip_items = {"user_data", "data", "$null", ".git"}
         errors = []
         for item in src.iterdir():
-            if item.name in ("user_data", "data"):
+            if item.name in skip_items or item.name.startswith("."):
                 continue
             dst = project_root / item.name
             try:
                 if item.is_dir():
-                    # 备份旧目录
                     if dst.exists():
                         bak = backup_dir / item.name
-                        if bak.exists():
-                            shutil.rmtree(bak, ignore_errors=True)
-                        try:
-                            shutil.copytree(dst, bak, symlinks=False, ignore_dangling_symlinks=True)
-                        except:
-                            pass
-                    # 替换新目录
-                    if dst.exists():
-                        shutil.rmtree(dst, ignore_errors=True)
+                        if bak.exists(): shutil.rmtree(bak, ignore_errors=True)
+                        try: shutil.copytree(dst, bak, symlinks=False, ignore_dangling_symlinks=True)
+                        except: pass
+                    if dst.exists(): shutil.rmtree(dst, ignore_errors=True)
                     shutil.copytree(item, dst)
                 else:
-                    # 备份旧文件
                     if dst.exists():
-                        try:
-                            shutil.copy2(dst, backup_dir / item.name)
-                        except:
-                            pass
-                    # 替换新文件（处理文件锁）
-                    try:
-                        shutil.copy2(item, dst)
+                        try: shutil.copy2(dst, backup_dir / item.name)
+                        except: pass
+                    try: shutil.copy2(item, dst)
                     except PermissionError:
-                        # Windows 文件被占用，写入临时文件提示
                         tmp_name = str(dst) + ".new"
                         shutil.copy2(item, tmp_name)
-                        errors.append(f"{item.name}（被占用，已存为 .new，重启后生效）")
+                        errors.append(f"{item.name}（被占用，存为 .new）")
             except Exception as ex:
                 errors.append(f"{item.name}: {ex}")
-        # 清理临时目录
         shutil.rmtree(tmp, ignore_errors=True)
         if errors:
-            return jsonify({"ok": True, "message": "部分文件被占用，已备份旧版到 user_data/_backup，重启后新文件生效", "warnings": errors})
+            return jsonify({"ok": True, "message": "更新完成（部分文件被占用），请重启服务器", "warnings": errors})
         shutil.rmtree(backup_dir, ignore_errors=True)
         return jsonify({"ok": True, "message": "更新完成，请重启服务器"})
     except Exception as e:
         return jsonify({"error": f"{type(e).__name__}: {str(e)[:200]}"}), 500
+
+@app.route("/api/update/changelog", methods=["GET"])
+def api_update_changelog():
+    """返回 CHANGELOG.md 最新 3 个版本的内容"""
+    cl = Path(__file__).parent / "CHANGELOG.md"
+    if not cl.exists(): return jsonify({"ok": False})
+    text = cl.read_text("utf-8")
+    parts = text.split("## [")
+    # 取最近 2 个版本的日志（不含标题行）
+    html = ""
+    count = 0
+    for p in parts:
+        if not p.strip(): continue
+        count += 1
+        if count > 3: break
+        html += "## [" + p.strip() + "\n\n"
+    return jsonify({"ok": True, "html": html.strip()})
 
 @app.route("/api/llm/translate", methods=["POST"])
 def api_llm_translate():

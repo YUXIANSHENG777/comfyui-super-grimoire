@@ -348,8 +348,11 @@ function _tryUpdateCheck(idx,silent){
     if(latest){
       if(_verGt(latest,CURRENT_VERSION)){
         _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/tags/v'+latest+'.zip'};
-        el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
+        el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION;
         el('modal-update').style.display='';
+        el('btn-update-install').style.display='';el('btn-update-ignore').style.display='';el('btn-update-restart').style.display='none';
+        el('update-progress').style.display='none';el('update-changelog').style.display='none';
+        api('/api/update/changelog').then(function(d){if(d&&d.ok&&d.html){el('update-changelog').innerHTML=d.html.replace(/##/g,'▎');el('update-changelog').style.display='';}});
       }else if(!silent){
         toast('✅ 已是最新版本 '+CURRENT_VERSION);
       }
@@ -372,8 +375,11 @@ el('btn-check-update').addEventListener('click',function(){
       if(latest){
         if(_verGt(latest,CURRENT_VERSION)){
           _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/tags/v'+latest+'.zip'};
-          el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION+'<br><span style="font-size:10px;color:var(--text-muted)">点击自动更新将下载并安装新版本</span>';
+          el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION;
           el('modal-update').style.display='';
+          el('btn-update-install').style.display='';el('btn-update-ignore').style.display='';el('btn-update-restart').style.display='none';
+          el('update-progress').style.display='none';el('update-changelog').style.display='none';
+          api('/api/update/changelog').then(function(d){if(d&&d.ok&&d.html){el('update-changelog').innerHTML=d.html.replace(/##/g,'▎');el('update-changelog').style.display='';}});
         }else{toast('✅ 已是最新版本 v'+CURRENT_VERSION);}
       }else{idx++;attemptM();}
     }).catch(function(){idx++;attemptM();});
@@ -400,7 +406,7 @@ el('btn-update-install').addEventListener('click',function(){
           el('update-status').textContent=msg;
         }
         toast(msg);
-        setTimeout(function(){location.reload();},4000);
+        el('btn-update-install').style.display='none';el('btn-update-ignore').style.display='none';el('btn-update-restart').style.display='';
       }else{
         el('update-status').textContent='❌ 更新失败: '+(r.error||'未知');
       }
@@ -410,6 +416,7 @@ el('btn-update-install').addEventListener('click',function(){
     });
 });
 el('btn-update-ignore').addEventListener('click',function(){el('modal-update').style.display='none';});
+el('btn-update-restart').addEventListener('click',function(){location.reload();});
 
 // 页面启动时自动检查
 (function(){

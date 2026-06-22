@@ -219,6 +219,8 @@ var S = {
 | `/api/bind/delete-by-filename` | POST | 按文件名搜索删除到回收站 |
 | `/api/bind/meta` | POST | 读取本地 PNG 文件的 tEXt 块，提取 CLIP 提示词（不依赖 ComfyUI） |
 | `/api/comfyui/image-meta` | GET | 从 PNG 元数据读取生成参数（需 ComfyUI） |
+| `/api/bind/meta` | POST | 读取本地 PNG 文件的 tEXt 块，提取 CLIP 提示词（不依赖 ComfyUI） |
+| `/api/update/changelog` | GET | 返回 CHANGELOG.md 最新 3 个版本内容 |
 
 ---
 

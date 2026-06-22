@@ -220,6 +220,8 @@ var S = {
 | `/api/bind/delete-by-filename` | POST | 按文件名在绑定路径中搜索删除到回收站 |
 | `/api/bind/meta` | POST | 本地 PNG 元数据读取，解析 tEXt 块提取 CLIP 提示词 |
 | `/api/comfyui/image-meta` | GET | 读取 PNG 元数据（生成参数，需 ComfyUI 运行） |
+| `/api/bind/meta` | POST | 本地 PNG 元数据读取，解析 tEXt 块提取 CLIP 提示词 |
+| `/api/update/changelog` | GET | 返回 CHANGELOG.md 最新 3 个版本的更新日志 |
 ---
 
 

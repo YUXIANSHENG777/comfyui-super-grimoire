@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>超级无敌魔导书 v1.0.69 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
-<link rel="stylesheet" href="/style.css?v=33">
+<link rel="stylesheet" href="/style.css?v=34">
 <script src="/i18n.js?v=3"></script>
 <script src="/three.min.js"></script>
 <script src="/vanta.birds.min.js"></script>
@@ -51,9 +51,10 @@
 
 <!-- 模态框: 版本更新 -->
 <div id="modal-update" class="modal" style="display:none">
-  <div class="modal-content" style="max-width:420px;text-align:center">
+  <div class="modal-content" style="max-width:500px;text-align:center">
     <h3 style="margin:0 0 8px">🆕 发现新版本！</h3>
-    <p id="update-version-info" style="font-size:13px;color:var(--text-secondary);margin-bottom:16px"></p>
+    <p id="update-version-info" style="font-size:13px;color:var(--text-secondary);margin-bottom:8px"></p>
+    <div id="update-changelog" style="max-height:160px;overflow-y:auto;text-align:left;font-size:11px;color:var(--text-muted);background:var(--bg-tertiary);padding:8px 12px;border-radius:6px;margin-bottom:12px;display:none;line-height:1.7"></div>
     <div id="update-progress" style="display:none;margin-bottom:12px">
       <div style="height:4px;background:var(--bg-primary);border-radius:2px">
         <div id="update-bar" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
@@ -63,6 +64,7 @@
     <div class="modal-actions" style="justify-content:center">
       <button id="btn-update-install" class="action-btn primary">⬇ 自动更新</button>
       <button id="btn-update-ignore" class="action-btn">忽略</button>
+      <button id="btn-update-restart" class="action-btn" style="display:none">🔄 立即重启</button>
     </div>
   </div>
 </div>
@@ -1148,6 +1150,6 @@ function _saveAllSettings(){
   }
 })();
 </script>
-<script src="/app.js?v=219"></script>
+<script src="/app.js?v=220"></script>
 </body>
 </html>
