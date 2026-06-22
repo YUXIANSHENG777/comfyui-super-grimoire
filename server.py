@@ -1337,7 +1337,7 @@ def api_bind_meta():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.70")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.71")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)
