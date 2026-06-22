@@ -7,12 +7,6 @@
 - 📱 **手机端相册入口**：返图区新增「📂 相册」按钮，打开相册管理弹窗，支持收藏/新建/删除/批量操作
 - 🖼 画廊容器添加 `id="comfyui-gallery"`，修复手机端生图 Tab 返图区不显示的问题
 
-### ✨ 优化
-- 🖼 **本地 PNG 元数据读取**：扫描的图片点击预览时自动从本地文件读取 CLIP 提示词，无需 ComfyUI 运行
-  - 新增 `POST /api/bind/meta` 接口，解析 PNG tEXt 块中的 workflow JSON
-  - 自动提取 `CLIPTextEncode` 等节点的文本并显示
-  - 相册导入的图片也保存 `path`，支持同样读取
-
 ### 🐛 Bug 修复
 - 🔄 **数据同步补全**：修复相册(albums)、隐藏分类(hidden)、锁定标签(locked) 未同步到服务端的问题
   - `_syncSave` 新增 `albums`/`locked`/`hidden` 推送
