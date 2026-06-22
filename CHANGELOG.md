@@ -25,6 +25,9 @@
 ### 🐛 Bug 修复
 - 修复 ComfyUI WebSocket 连接参数名错误（clientId → client_id）
 
+### ✨ 优化
+- 🔊 ComfyUI 区新增「完成提示音」开关，可关闭生图完成的声音通知
+
 ## [1.0.69] - 2026-06-23
 
 ### 🐛 Bug 修复
