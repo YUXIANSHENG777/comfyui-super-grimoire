@@ -834,13 +834,13 @@ def api_comfyui_generate():
                 print(f"随机化种子节点 {node_id}")
         
         # 发送
-        client_id = str(uuid.uuid4())
+        client_id = data.get("client_id") or str(uuid.uuid4())
         payload = json.dumps({"prompt": prompt, "client_id": client_id}).encode("utf-8")
         req = urllib.request.Request(f"{COMFYUI_URL}/prompt", data=payload, headers={"Content-Type": "application/json"})
         resp = urllib.request.urlopen(req, timeout=60)
         result = json.loads(resp.read())
         prompt_id = result.get("prompt_id", "")
-        return jsonify({"ok": True, "prompt_id": prompt_id, "comfyui_url": COMFYUI_URL})
+        return jsonify({"ok": True, "prompt_id": prompt_id, "client_id": client_id, "comfyui_url": COMFYUI_URL})
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors='replace') if hasattr(e, 'read') else str(e)
         print("ComfyUI请求失败:", e.code, body[:500])
@@ -1337,7 +1337,7 @@ def api_bind_meta():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.67")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.70")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)

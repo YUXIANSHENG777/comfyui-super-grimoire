@@ -256,8 +256,15 @@ html[lang="en"] .tag-row .tag-info .en { font-size:13px; color:var(--text-primar
 
 /* === Toast === */
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--bg-secondary); color:var(--text-primary); padding:10px 24px; border-radius:var(--radius); font-size:13px; z-index:10000; animation:toast-in .25s ease; border:1px solid var(--border); box-shadow:var(--shadow-lg); }
+.toast.success { background:rgba(78,201,122,0.2); border-color:var(--success); color:var(--success); }
+.toast.error { background:rgba(232,93,110,0.2); border-color:var(--danger); color:var(--danger); }
+.toast.info { background:rgba(139,124,247,0.2); border-color:var(--accent); color:var(--accent); }
 @keyframes toast-in { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 .comfyui-panel { border-top:1px solid rgba(42,44,56,0.4); flex-shrink:0; background:rgba(28,30,40,0.55); overflow:hidden; backdrop-filter:blur(8px); }
+/* 分辨率选择器 */
+.res-item { border:1px solid var(--border); border-radius:6px; text-align:center; cursor:pointer; font-size:11px; transition:all .12s; background:var(--bg-tertiary); user-select:none; }
+.res-item:hover { border-color:var(--accent); }
+.res-item.active { border-color:var(--accent); background:rgba(139,124,247,0.2); box-shadow:0 0 8px var(--accent-glow); }
 
 /* === 免责声明 === */
 /* 渐变和毛玻璃开关 */
@@ -324,11 +331,14 @@ body.no-glass #disclaimer {
 .album-card-nav.prev { left:4px; }
 .album-card-nav.next { right:4px; }
 
+/* 排序下拉菜单 */
+.sort-dropdown-item:hover { background:var(--bg-hover); }
+.sort-dropdown-item.active { background:var(--accent-glow); color:var(--accent); font-weight:600; }
 /* 相册浏览网格 */
-.album-grid-card { border-radius:8px; overflow:hidden; border:1px solid var(--border); background:var(--bg-tertiary); cursor:pointer; transition:all .2s; }
+.album-grid-card { border-radius:8px; overflow:hidden; border:1px solid var(--border); background:var(--bg-tertiary); cursor:pointer; transition:all .2s; display:inline-flex; flex-direction:column; flex-shrink:0; }
 .album-grid-card:hover { border-color:var(--accent); box-shadow:0 2px 12px var(--accent-glow); transform:translateY(-2px); }
-.album-grid-card img { width:100%; aspect-ratio:9/16; object-fit:cover; display:block; }
-.album-grid-card .grid-label { padding:4px 8px; font-size:10px; color:var(--text-muted); text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.album-grid-card img { height:200px; width:auto; display:block; object-fit:contain; border-radius:6px; }
+.album-grid-card .grid-label { padding:4px 8px; font-size:10px; color:var(--text-muted); text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
 
 /* 相册管理卡片 */
 #album-modal-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }

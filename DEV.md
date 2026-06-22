@@ -311,7 +311,14 @@ var S = {
 | `genPrompt(tags)` | 标签数组 → 提示词字符串 |
 | `_queueCuiPrompt(p,wf,w,h,count)` | 将任务加入 ComfyUI 队列 |
 | `_execNextQueue()` | 执行队列中的下一个任务 |
-| `_pollComfyUI(promptId,start,qi)` | 轮询 ComfyUI 生成结果 |
+| `_pollComfyUI(promptId,start,qi)` | 轮询 ComfyUI 生成结果（含步数进度估算） |
+| `_connectCuiWS(clientId,promptId,start,qi,url)` | WebSocket 连接 ComfyUI 获取实时进度 |
+| `_playNotifSound()` | 生图完成播放提示音（Web Audio API） |
+| `_showDesktopNotification(title,body)` | 浏览器桌面通知 |
+| `_openResolutionPicker()` | 打开常用分辨率选择弹窗 |
+| `_resSwitchTab(tab)` | 切换分辨率面板（竖屏/方图/横屏） |
+| `_sortAlbumImages(arr,mode)` | 相册图片排序（8 种模式） |
+| `_loadAllDims(images,cb)` | 异步加载图片真实尺寸（缓存后复用） |
 | `_callLlm(prompt,callback)` | 调用 LLM API |
 | `_buildRawPrompt()` | 构建完整原始提示词（含 `--neg`） |
 | `_tagsToPrompt(pk)` | 标签数组 → 提示词（含模板） |
