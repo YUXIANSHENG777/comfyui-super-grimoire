@@ -352,6 +352,11 @@
         <button id="btn-comfyui-manual" class="tool-btn" style="font-size:11px;padding:3px 10px;margin-left:auto" title="手写正向提示词直接发送生图">✏ 手写生图</button>
         <button id="btn-comfyui-loadimg" class="tool-btn" style="font-size:13px;padding:5px 14px" title="加载图片作为输入，生图时自动发送。支持拖拽图片到按钮">🖼 加载图片</button>
       </div>
+      <div style="padding:0 12px 4px;display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--text-muted)">
+        <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
+          <input type="checkbox" id="comfyui-sound" checked> 🔊 完成提示音
+        </label>
+      </div>
       <div id="comfyui-queue" style="display:none;padding:0 12px 4px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:2px;padding-top:4px">
         <span id="comfyui-queue-text">队列: 0/0</span>
         <button id="btn-comfyui-stop" style="margin-left:4px;border:none;background:none;color:var(--danger);cursor:pointer;font-size:10px;display:none" title="终止队列(当前任务完成后停止)">⏹ 终止</button>
