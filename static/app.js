@@ -181,23 +181,52 @@ function saveTagMode(){localStorage.setItem('grimoire2_tagMode',S.tagMode);_sync
 function saveState(){var d={mobileTab:(function(){var a=document.querySelector('#m-tabbar .m-tab.active');return a?a.dataset.view:'browser';})(),useQuality:S.useQuality,useWeights:S.useWeights,expandedCats:S._expandedCats||[],autoSortPos:S.autoSortPos,autoSortNeg:S.autoSortNeg};localStorage.setItem('grimoire2_state',JSON.stringify(d));}
 function loadState(){try{var d=JSON.parse(localStorage.getItem('grimoire2_state')||'null');if(d){S._expandedCats=d.expandedCats||[];if(d.mobileTab)S._restoreTab=d.mobileTab;if(d.useQuality!==undefined)S.useQuality=d.useQuality;if(d.useWeights!==undefined)S.useWeights=d.useWeights;if(d.autoSortPos!==undefined){S.autoSortPos=d.autoSortPos;if(el('auto-sort-positive'))el('auto-sort-positive').checked=S.autoSortPos;}if(d.autoSortNeg!==undefined)S.autoSortNeg=d.autoSortNeg;}}catch(e){}}
 // 服务端同步
+var _syncDirty={};var _syncTimer=null;
 function _syncSave(keys){
+  if(!keys){_syncFlush();return;}
+  for(var k in keys)_syncDirty[k]=1;
+  if(_syncTimer)clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(_syncFlush,500);
+}
+function _syncFlush(){
+  _syncTimer=null;
+  var keys=Object.keys(_syncDirty);
+  if(!keys.length){
+    // 全量同步
+    var d={};
+    try{var favs=S.favs;if(Object.keys(favs).length)d.favs=favs;}catch(e){}
+    try{var cl=S.catLimits;if(Object.keys(cl).length)d.catLimits=cl;}catch(e){}
+    try{var sl=S.scLimits;if(Object.keys(sl).length)d.scLimits=sl;}catch(e){}
+    try{var cm=S.catModes;if(Object.keys(cm).length)d.catModes=cm;}catch(e){}
+    d.allowNsfw=S.allowNsfw;d.randWeight=S.randWeight;d.spaceMode=S.spaceMode;d.tagMode=S.tagMode;
+    try{var tl=JSON.parse(localStorage.getItem('grimoire2_templates')||'[]');if(tl.length)d.templates=tl;}catch(e){}
+    try{if(Object.keys(S.wfSettings||{}).length)d.wfSettings=S.wfSettings;}catch(e){}
+    try{if(Object.keys(S.clipMaps||{}).length)d.clipMaps=S.clipMaps;}catch(e){}
+    try{var ms=JSON.parse(localStorage.getItem('grimoire2_modelsel')||'{}');if(Object.keys(ms).length)d.modelSel=ms;}catch(e){}
+    try{if(S.llmHistory&&S.llmHistory.length)d.llmHist=S.llmHistory;}catch(e){}
+    try{if(_galleryImages.length)d.gallery=_galleryImages;}catch(e){}
+    try{var nt=JSON.parse(localStorage.getItem('grimoire2_negtpl_list')||'[]');if(nt.length)d.negtpl_list=nt;}catch(e){}
+    try{var np=JSON.parse(localStorage.getItem('grimoire2_negtpl')||'{}');if(Object.keys(np).length)d.negtpl=np;}catch(e){}
+    try{if(S.loadImage&&S.loadImage.node_id)d.loadImg=S.loadImage;}catch(e){}
+    try{var rp=JSON.parse(localStorage.getItem('grimoire2_randprof')||'[]');if(rp.length)d.randprof=rp;}catch(e){}
+    try{var ui=JSON.parse(localStorage.getItem('grimoire2_ui')||'{}');if(Object.keys(ui).length)d.uiSettings=ui;}catch(e){}
+    try{var ad=JSON.parse(localStorage.getItem('grimoire2_albums')||'[]');if(ad.length)d.albums={data:ad,activeId:localStorage.getItem('grimoire2_active_album')||'default'};}catch(e){}
+    try{var lk=JSON.parse(localStorage.getItem('grimoire2_locked')||'{}');if(Object.keys(lk).length)d.locked=lk;}catch(e){}
+    try{if(Object.keys(S.hidden||{}).length)d.hidden=S.hidden;}catch(e){}
+    if(Object.keys(d).length)api('/api/user/sync',{method:'POST',body:d});
+    return;
+  }
+  _syncDirty={};
+  var keysObj={};keys.forEach(function(k){keysObj[k]=1;});
   var d={};
-  function add(k,v){if(!keys||keys[k]){if(typeof v==='object'&&v!==null){if(Array.isArray(v)){if(v.length)d[k]=v;}else{if(Object.keys(v).length)d[k]=v;}}else if(v!==undefined&&v!==null&&v!==''){d[k]=v;}}}
-  add('favs',S.favs);
-  add('catLimits',S.catLimits);
-  add('scLimits',S.scLimits);
-  add('catModes',S.catModes);
-  add('allowNsfw',S.allowNsfw);
-  add('randWeight',S.randWeight);
-  add('spaceMode',S.spaceMode);
-  add('tagMode',S.tagMode);
+  function add(k,v){if(keysObj[k]){if(typeof v==='object'&&v!==null){if(Array.isArray(v)){if(v.length)d[k]=v;}else{if(Object.keys(v).length)d[k]=v;}}else if(v!==undefined&&v!==null&&v!==''){d[k]=v;}}}
+  add('favs',S.favs);add('catLimits',S.catLimits);add('scLimits',S.scLimits);
+  add('catModes',S.catModes);add('allowNsfw',S.allowNsfw);add('randWeight',S.randWeight);
+  add('spaceMode',S.spaceMode);add('tagMode',S.tagMode);
   try{var tl=JSON.parse(localStorage.getItem('grimoire2_templates')||'[]');add('templates',tl);}catch(e){}
-  add('wfSettings',S.wfSettings||{});
-  add('clipMaps',S.clipMaps||{});
+  add('wfSettings',S.wfSettings||{});add('clipMaps',S.clipMaps||{});
   try{add('modelSel',JSON.parse(localStorage.getItem('grimoire2_modelsel')||'{}'));}catch(e){}
-  add('llmHist',S.llmHistory||[]);
-  add('gallery',_galleryImages);
+  add('llmHist',S.llmHistory||[]);add('gallery',_galleryImages);
   try{add('negtpl_list',JSON.parse(localStorage.getItem('grimoire2_negtpl_list')||'[]'));}catch(e){}
   try{add('negtpl',JSON.parse(localStorage.getItem('grimoire2_negtpl')||'{}'));}catch(e){}
   add('loadImg',S.loadImage||{});
@@ -275,7 +304,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.75';
+var CURRENT_VERSION='1.0.76';
 var _updateInfo=null;
 var _updateURLs=['https://cdn.jsdelivr.net/gh/YUXIANSHENG777/comfyui-super-grimoire@main/static/app.js','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
@@ -1364,7 +1393,7 @@ function _galleryReRender(){
   _updateGalleryCount();
 }
 function _isImageInActiveAlbum(url,fn){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;for(var i=0;i<album.images.length;i++)if(album.images[i].url===url)return true;return false;}
-function _addDelBtn(wrap,gi){var b=document.createElement('div');b.className='gallery-del-btn';b.innerHTML='🗑';b.title='删除(2次)';b.addEventListener('click',function(e){e.stopPropagation();var s=parseInt(this.dataset.n||'0')+1;this.dataset.n=s;if(s<2){this.style.color='var(--danger)';var sl=this;if(sl._t)clearTimeout(sl._t);sl._t=setTimeout(function(){sl.dataset.n='0';sl.style.color='';},2000);}else{if(gi.path){api('/api/bind/delete',{method:'POST',body:{path:gi.path}});}else if(gi.filename){var bp=[];try{bp=JSON.parse(localStorage.getItem('grimoire2_bp')||'[]');}catch(e){}if(bp.length)api('/api/bind/delete-by-filename',{method:'POST',body:{filename:gi.filename,paths:bp}});}wrap.style.display='none';_galleryImages=_galleryImages.filter(function(x){return x.url!==gi.url;});_saveGallery();for(var j=0;j<_albumData.length;j++){_albumData[j].images=_albumData[j].images.filter(function(x){return x.url!==gi.url;});}_saveAlbums();_updateGalleryCount();_renderAlbumTabs();toast('已移入回收站');}});wrap.appendChild(b);}
+function _addDelBtn(wrap,gi){var b=document.createElement('div');b.className='gallery-del-btn';b.innerHTML=icon('trash');b.title='删除(2次)';b.addEventListener('click',function(e){e.stopPropagation();var s=parseInt(this.dataset.n||'0')+1;this.dataset.n=s;if(s<2){this.style.color='var(--danger)';var sl=this;if(sl._t)clearTimeout(sl._t);sl._t=setTimeout(function(){sl.dataset.n='0';sl.style.color='';},2000);}else{if(gi.path){api('/api/bind/delete',{method:'POST',body:{path:gi.path}});}else if(gi.filename){var bp=[];try{bp=JSON.parse(localStorage.getItem('grimoire2_bp')||'[]');}catch(e){}if(bp.length)api('/api/bind/delete-by-filename',{method:'POST',body:{filename:gi.filename,paths:bp}});}wrap.style.display='none';_galleryImages=_galleryImages.filter(function(x){return x.url!==gi.url;});_saveGallery();for(var j=0;j<_albumData.length;j++){_albumData[j].images=_albumData[j].images.filter(function(x){return x.url!==gi.url;});}_saveAlbums();_updateGalleryCount();_renderAlbumTabs();toast('已移入回收站');}});wrap.appendChild(b);}
 function _updateGalleryCount(){var cnt=0;for(var i=0;i<_galleryImages.length;i++){if(!_isImageInActiveAlbum(_galleryImages[i].url,_galleryImages[i].filename))cnt++;}el('gallery-count').textContent=cnt+' 张';}
 function _addGalleryHeart(wrap,gi){var heart=document.createElement('div');heart.className='gallery-heart';if(_isImageInActiveAlbum(gi.url,gi.filename))heart.classList.add('liked');var an=_getActiveAlbumName();heart.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';heart.addEventListener('click',function(e){e.stopPropagation();if(!_albumData.length||!_albumData.some(function(a){return a.id===_activeAlbumId;})){toast('请先创建或选择一个相册','');return;}if(_isImageInActiveAlbum(gi.url,gi.filename)){if(!_removeFromAlbum(gi.url)){toast('操作失败，请刷新重试','');return;}this.classList.remove('liked');wrap.style.display='block';toast('已取消收藏');}else{if(!_saveToAlbum(gi)){toast('操作失败，请刷新重试','');return;}this.classList.add('liked');wrap.style.display='none';toast('已收藏到 '+an);}_updateGalleryCount();});wrap.appendChild(heart);}
 function _refreshGalleryHearts(){var wraps=document.querySelectorAll('#comfyui-gallery-imgs .gallery-img-wrap');for(var i=0;i<wraps.length;i++){var h=wraps[i].querySelector('.gallery-heart');if(h){var an=_getActiveAlbumName();h.innerHTML='♥<span class=heart-label>'+(an?esc(an):'')+'</span>';var gi=_galleryImages[i];if(gi&&_isImageInActiveAlbum(gi.url,gi.filename))h.classList.add('liked');else h.classList.remove('liked');}}}
@@ -1604,15 +1633,12 @@ el('btn-ui-reset').addEventListener('click',function(){
   if(localStorage.getItem('grimoire2_ui_gradient')==='0'){document.body.classList.add('no-gradient');el('ui-gradient').checked=false;}
   if(localStorage.getItem('grimoire2_ui_glass')==='0'){document.body.classList.add('no-glass');el('ui-glass').checked=false;}
 })();
-el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal').classList.add('show');});
-  el('btn-disclaimer-close').addEventListener('click',function(){el('disclaimer-modal').classList.remove('show');});
-  el('disclaimer-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
   // 抽屉内分类点击
   el('m-action-favs').addEventListener('click',function(){
     var favs=Object.keys(S.favs);
     var html='<div style="padding:4px 12px 8px">';
-    if(favs.length===0)html+='<div style="font-size:11px;color:var(--text-muted);padding:8px 0">暂无收藏</div>';
-    else for(var i=0;i<favs.length;i++){var en=favs[i];var zh=findZh(en)||en;html+='<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;cursor:pointer" class=m-fav-item data-en="'+esc(en)+'" data-zh="'+esc(zh||'')+'"><span style=flex:1>⭐ '+esc(zh||en)+'</span><span style="font-size:10px;color:var(--text-muted)">'+esc(en)+'</span><button class=m-fav-del data-en="'+esc(en)+'" style="border:none;background:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:4px">✕</button></div>';}
+      if(favs.length===0)html+='<div style="font-size:11px;color:var(--text-muted);padding:8px 0">暂无收藏</div>';
+      else for(var i=0;i<favs.length;i++){var en=favs[i];var zh=findZh(en)||en;html+='<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;cursor:pointer" class=m-fav-item data-en="'+esc(en)+'" data-zh="'+esc(zh||'')+'"><span style=flex:1>'+icon('star')+' '+esc(zh||en)+'</span><span style="font-size:10px;color:var(--text-muted)">'+esc(en)+'</span><button class=m-fav-del data-en="'+esc(en)+'" style="border:none;background:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:4px">✕</button></div>';}
     html+='</div>';
     var div=el('m-favs-content');div.innerHTML=html;
     div.style.display=div.style.display==='none'?'block':'none';
@@ -1653,20 +1679,9 @@ el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal'
   var menuBtn=document.createElement('button');
   menuBtn.id='m-menu-btn';
   menuBtn.style.cssText='flex-shrink:0;font-size:12px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;white-space:nowrap';
-  menuBtn.innerHTML='📁 选择分类';
+  menuBtn.innerHTML=icon('folder')+'选择分类';
   menuBtn.addEventListener('click',function(){el('m-overlay').classList.add('show');el('m-drawer').classList.add('show');_buildMobileDrawer();});
   el('search-input-m').parentElement.insertBefore(menuBtn,el('search-input-m'));
-  // 全屏按钮
-  var fullBtn=document.createElement('button');
-  fullBtn.className='tool-btn';
-  fullBtn.style.cssText='font-size:11px;padding:4px 8px';
-  fullBtn.innerHTML='全屏';
-  fullBtn.title='全屏模式';
-  fullBtn.addEventListener('click',function(){
-    if(document.fullscreenElement){document.exitFullscreen();}else{document.documentElement.requestFullscreen().catch(function(){});}
-  });
-  var tbRight=document.querySelector('#toolbar .toolbar-right');
-  tbRight.appendChild(fullBtn);
   // 初始更新
   _buildMobileDrawer();
   _updateMobileSelected();
@@ -1674,6 +1689,41 @@ el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal'
   if(S._restoreTab){var tb=document.querySelector('#m-tabbar .m-tab[data-view="'+S._restoreTab+'"]');if(tb)tb.click();}
   }catch(e){console.error('InitMobile:',e);}
 }
+// 手机端独立初始化（避免被 _initMobile 的 try/catch 打断）
+function _initMobileUI(){
+  if(!_isMobile)return;
+  try{
+    // 全屏按钮
+    el('btn-fullscreen').addEventListener('click',function(){
+      try{
+        if(document.fullscreenElement||document.webkitFullscreenElement){
+          if(document.exitFullscreen)document.exitFullscreen();
+          else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+        }else{
+          var de=document.documentElement;
+          if(de.requestFullscreen){de.requestFullscreen().catch(function(e){toast('全屏失败:'+e.message);});}
+          else if(de.webkitRequestFullscreen){de.webkitRequestFullscreen();}
+          else{toast('当前浏览器不支持全屏');}
+        }
+      }catch(e){toast('全屏出错:'+e.message);}
+    });
+    // 免责声明
+    el('btn-disclaimer-m').addEventListener('click',function(){el('disclaimer-modal').classList.add('show');});
+    el('btn-disclaimer-close').addEventListener('click',function(){el('disclaimer-modal').classList.remove('show');});
+    el('disclaimer-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+    // 标签分类按钮
+    var oldMenu=document.getElementById('m-menu-btn');
+    if(!oldMenu){
+      var menuBtn=document.createElement('button');
+      menuBtn.id='m-menu-btn';
+      menuBtn.style.cssText='flex-shrink:0;font-size:12px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;white-space:nowrap';
+      menuBtn.innerHTML=icon('folder')+'选择分类';
+      menuBtn.addEventListener('click',function(){el('m-overlay').classList.add('show');el('m-drawer').classList.add('show');_buildMobileDrawer();});
+      el('search-input-m').parentElement.insertBefore(menuBtn,el('search-input-m'));
+    }
+  }catch(e){console.error('MobileUI:',e);}
+}
+_initMobileUI();
 
 function _closeDrawer(){
   el('m-overlay').classList.remove('show');
@@ -1771,8 +1821,8 @@ function _updateMobileSelected(){
   for(var i=0;i<all.length;i++){
     var t=all[i];
     var locked=t.locked;
-    html+='<div class=selected-chip style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:12px;background:#2d2850;border:1px solid '+(locked?'#e6a848':'var(--accent)')+';font-size:11px" data-en="'+esc(t.en)+'" data-panel=positive>';
-    html+='<span class=chip-lock data-en="'+esc(t.en)+'" data-panel=positive style="font-size:14px;cursor:pointer;'+(locked?'color:#e6a848;':'color:#5e6078;')+'" title="'+(locked?'已锁定-点击解锁':'点击锁定')+'">'+(locked?'🔒':'🔓')+'</span>';
+    html+='<div class=selected-chip style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:12px;background:var(--tag-selected-bg);border:1px solid '+(locked?'#e6a848':'var(--accent)')+';font-size:11px" data-en="'+esc(t.en)+'" data-panel=positive>';
+    html+='<span class=chip-lock data-en="'+esc(t.en)+'" data-panel=positive style="font-size:14px;cursor:pointer;display:flex;'+(locked?'color:#e6a848;':'color:#5e6078;')+'" title="'+(locked?'已锁定-点击解锁':'点击锁定')+'">'+(locked?icon('lock'):icon('unlock'))+'</span>';
     html+='<span style=flex:1>'+esc(t.zh||t.en)+'</span>';
     html+='<span class=chip-remove data-en="'+esc(t.en)+'" data-panel=positive style=color:var(--danger);font-weight:bold;cursor:pointer;font-size:14px title=移除>✕</span>';
     html+='</div>';

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.75 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.76 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
 <link rel="stylesheet" href="/style.css?v=43">
 <script src="/i18n.js?v=3"></script>
@@ -16,11 +16,11 @@
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.75</span></span>
+    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.76</span></span>
+    <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 免责声明</button>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px"><span class="svg-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
     <button id="btn-ui-settings" class="tool-btn" title="界面设置" style="font-size:11px;padding:3px 10px" onclick="el('modal-ui-settings').style.display=''"><span class="svg-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> 设置</button>
-
   </div>
   <div class="toolbar-right">
     <button id="btn-quality" class="tool-btn"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M3 21h4L20 8a2.83 2.83 0 0 0-4-4L3 17v4z"/><path d="M14.5 6.5L18 3l3 3-3.5 3.5"/></svg></span> 基础质量词</button>
@@ -33,8 +33,8 @@
     <button id="btn-rand-weight" class="tool-btn" title="随机时是否生成随机权重(关闭则默认1.0)"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v1h6V6a3 3 0 0 0-3-3z"/><path d="M18 8a6 6 0 0 1-12 0"/><path d="M7.5 8h9"/><path d="M6 8v7a6 6 0 0 0 12 0V8"/></svg></span> 随机权重</button>
     <button id="btn-export-batch" class="tool-btn" title="批量导出随机提示词到txt文件"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> 批量导出</button>
     <button id="btn-check-update" class="tool-btn" title="从GitHub检查最新版本"><span class="svg-icon"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span> 检查更新</button>
-    <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 免责声明</button>
     <button id="btn-clear" class="tool-btn danger"><span class="svg-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span> 清空全部</button>
+    <button id="btn-fullscreen" class="tool-btn" title="全屏模式"><span class="svg-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span> 全屏</button>
   </div>
 </header>
 
@@ -144,7 +144,7 @@
   <!-- ====== 中间 ====== -->
   <main id="tag-browser">
     <div class="search-on-mobile" style="display:none">
-      <input type="text" id="search-input-m" placeholder="🔍 搜索标签 (中/英文)...">
+      <input type="text" id="search-input-m" placeholder="搜索标签 (中/英文)...">
       <button id="btn-search-clear-m" style="display:none;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-muted);font-size:11px;cursor:pointer">✕</button>
     </div>
     <div id="browser-header">

@@ -212,7 +212,7 @@ var S = {
 | 路由 | 方法 | 用途 |
 |------|------|------|
 | `/api/user/sync` | GET | 获取同步数据（从 SQLite 读取） |
-| `/api/user/sync` | POST | 保存同步数据（深度合并，写入 SQLite 事务） |
+| `/api/user/sync` | POST | 保存同步数据（深度合并，写入 SQLite 事务）；客户端 500ms 防抖合并发送 |
 
 ### 绑定路径 & 回收站 & 图片元数据
 | 路由 | 方法 | 用途 |
@@ -394,6 +394,8 @@ var S = {
 - **相册删图后图片不回到返图区** → v1.0.74 `_removeFromAlbum`、网格删除、批量删除均补回 `_galleryImages` 并刷新
 - **扫描加载图片误入相册** → v1.0.75 `_restoreScanBtn` 中重置 `_importMode`，关闭弹窗后标记清零
 - **No Human 随机时锁定标签被删除** → v1.0.75 改为删除 `no human` 本身，保留锁定标签
+- **手机端全屏/分类按钮不可见或点击无反应** → v1.0.76 按钮写在 HTML 直接渲染，独立 `_initMobileUI()` 函数绑定事件
+- **客户端同步过于频繁** → v1.0.76 `_syncSave` 增加 500ms 防抖，多次操作合并发送
 - **刷新后数据丢失** → 检查 `saveXxx()` 是否调用了 `_syncSave()` → `_syncLoad()` 是否处理了对应数据键
 - **JS 卡死** → F12 看报错 → `python -c "compile(open('static/app.js').read(),'app.js','exec')"` 快速检查语法
 - **ComfyUI 不生效** → 工作流是否为 API 格式 → CLIP 绑定是否正确 → ComfyUI 是否运行中

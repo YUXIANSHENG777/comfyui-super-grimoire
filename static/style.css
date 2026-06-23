@@ -93,6 +93,8 @@ body {
 .app-title { font-size:17px; font-weight:800; background:linear-gradient(135deg,var(--accent),#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.02em; }
 .toolbar-right { display:flex; gap:6px; align-items:center; }
 .tool-btn { padding:5px 14px; border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-sm); background:rgba(255,255,255,0.03); color:var(--text-secondary); cursor:pointer; font-size:12px; font-weight:500; transition:all .18s; white-space:nowrap; }
+/* 全屏按钮默认隐藏（桌面端隐藏，手机端通过@media显示） */
+#btn-fullscreen { display:none; }
 .tool-btn:hover { background:rgba(255,255,255,0.06); color:var(--text-primary); border-color:rgba(255,255,255,0.1); }
 .tool-btn.active { background:var(--accent-dim); border-color:var(--accent); color:#fff; box-shadow:0 0 12px var(--accent-glow); }
 .tool-btn.danger:hover { background:var(--danger); border-color:var(--danger); color:#fff; }
@@ -393,7 +395,8 @@ body.no-glass #disclaimer {
   #toolbar .app-title { display: none; }
   #toolbar .tool-btn { font-size: 10px; padding: 3px 6px; white-space: nowrap; }
   #toolbar .rand-count-label { display: none; }
-  #toolbar #btn-quality, #toolbar #btn-rand-weight, #toolbar #btn-export-batch, #toolbar #btn-comfyui-help { display: none; }
+  #toolbar #btn-quality, #toolbar #btn-rand-weight, #toolbar #btn-export-batch, #toolbar #btn-comfyui-help, #toolbar #btn-check-update { display: none; }
+  #btn-fullscreen { display: inline-flex !important; }
   #btn-comfyui-help-m { display: inline-block !important; }
 
   /* 隐藏桌面端侧栏和免责 */
@@ -455,6 +458,9 @@ body.no-glass #disclaimer {
   .m-stepper .ms-btn:last-child { border-radius: 0 5px 5px 0; }
   .m-stepper .ms-btn:active { background: var(--bg-active); }
   .m-stepper .ms-val { width: 22px; height: 28px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+  /* 隐藏相册轮播卡片 */
+  #album-card-carousel { display: none !important; }
 
   /* 搜索栏 */
   #tag-browser .search-on-mobile { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
