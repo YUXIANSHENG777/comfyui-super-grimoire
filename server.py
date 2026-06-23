@@ -47,6 +47,12 @@ if _OLD_CUSTOM.exists() and not (CUSTOM_DIR / "custom_tags.json").exists():
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.config['JSON_AS_ASCII'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+@app.after_request
+def _no_cache_js(response):
+    if response.content_type and 'javascript' in response.content_type:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+    return response
 
 def read_json(path, default=None):
     if Path(path).exists():
@@ -321,6 +327,17 @@ def api_comfyui_set_url():
     print(f"[ComfyUI] URL已更新: {url}")
     return jsonify({"ok": True, "url": url})
 
+@app.route("/api/comfyui/free-memory", methods=["POST"])
+def api_comfyui_free_memory():
+    """卸载 ComfyUI 模型并释放显存"""
+    try:
+        payload = json.dumps({"unload_models": True, "free_memory": True}).encode("utf-8")
+        req = urllib.request.Request(f"{COMFYUI_URL}/api/free", data=payload, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=10)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)[:200]}), 500
+
 # LLM配置服务端存储（手机/桌面共享）
 _llm_config_file = BASE / "user_data" / "llm_config.json"
 def _load_llm_config():
@@ -547,9 +564,12 @@ def api_comfyui_workflow_info():
     LOADER_MAP = {
         "CheckpointLoaderSimple": ("checkpoint", "ckpt_name"),
         "UNETLoader": ("unet", "unet_name"),
+        "UNETLoaderGGUF": ("unet", "unet_name"),
         "CLIPLoader": ("clip", "clip_name"),
+        "CLIPLoaderGGUF": ("clip", "clip_name"),
         "VAELoader": ("vae", "vae_name"),
         "DualCLIPLoader": ("dual_clip", "clip_name1"),
+        "DualCLIPLoaderGGUF": ("dual_clip", "clip_name1"),
         "LoraLoader": ("lora", "lora_name"),
         "LoraLoaderModelOnly": ("lora", "lora_name"),
     }
@@ -573,9 +593,12 @@ def api_comfyui_models():
     KIND_KEYS = {
         "CheckpointLoaderSimple": ("checkpoint", "ckpt_name"),
         "UNETLoader": ("unet", "unet_name"),
+        "UNETLoaderGGUF": ("unet", "unet_name"),
         "CLIPLoader": ("clip", "clip_name"),
+        "CLIPLoaderGGUF": ("clip", "clip_name"),
         "VAELoader": ("vae", "vae_name"),
         "DualCLIPLoader": ("dual_clip", "clip_name1"),
+        "DualCLIPLoaderGGUF": ("dual_clip", "clip_name1"),
     }
     try:
         req = urllib.request.Request(f"{COMFYUI_URL}/api/object_info")
@@ -684,7 +707,7 @@ def api_comfyui_generate():
         neg_template = data.get("neg_template", "")  # 负面提示词预设
         if neg_template:
             print(f"[负面预设] 收到负面提示词预设: {neg_template[:80]}...")
-        load_image = data.get("load_image")  # {"node_id": "5", "filename": "xxx.png"}
+        load_image = data.get("load_image")  # [{node_id, filename}, ...] 或旧版单对象
         rand_seed = data.get("rand_seed", True)
         if not prompt_text or not workflow_file:
             return jsonify({"error": "参数不完整"}), 400
@@ -855,12 +878,14 @@ def api_comfyui_generate():
                     if k in node.get("inputs", {}):
                         node["inputs"][k] = v
                         print(f"覆盖 {ct}.{k} = {v}")
-            # 注入加载的图片
-            if load_image and load_image.get("node_id") and load_image.get("filename"):
-                if str(load_image["node_id"]) == str(node_id):
-                    if ct in ("LoadImage", "Load Image"):
-                        node["inputs"]["image"] = load_image["filename"]
-                        print(f"注入加载图片: {load_image['filename']} -> 节点 {node_id}")
+            # 注入加载的图片（支持数组多图/旧版单对象）
+            _load_imgs = load_image if isinstance(load_image, list) else ([load_image] if load_image else [])
+            for _li in _load_imgs:
+                if isinstance(_li, dict) and _li.get("node_id") and _li.get("filename"):
+                    if str(_li["node_id"]) == str(node_id):
+                        if ct in ("LoadImage", "Load Image"):
+                            node["inputs"]["image"] = _li["filename"]
+                            print(f"注入加载图片: {_li['filename']} -> 节点 {node_id}")
             # 应用工作流参数设置
             if wf_settings:
                 if ct == "CheckpointLoaderSimple" and "ckpt_name" in wf_settings:
