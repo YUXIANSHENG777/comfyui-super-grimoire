@@ -1,6 +1,6 @@
 # 更新日志
 
-## [1.0.73] - 2026-06-23
+## [1.0.74] - 2026-06-23
 
 ### 🐛 Bug 修复
 - 🖼 **相册图片提示词为空**：收藏时补存 `path` 字段；相册翻页时增加 `/api/bind/meta` 元数据读取回退
@@ -10,6 +10,10 @@
 - 🗄 **图片元数据缓存**：`/api/bind/meta` 按路径 hash + mtime 缓存，删除时自动清除缓存
 - ⚡ **返图区性能优化**：图片改为 IntersectionObserver 懒加载，仅加载视口附近图片
 - 🧩 **模块拆分**：核心工具函数（S、ICONS、el、api 等）独立为 `app-core.js`，先于 `app.js` 加载
+- 🗄️ **JSON → SQLite**：`sync_data.json` 替换为 SQLite，事务安全零损坏，自动迁移旧数据并备份
+- 🔍 **搜索防抖**：桌面/手机/相册搜索统一 300ms 防抖，减少无效渲染
+- 🖼 **相册浏览懒加载**：`_renderBrowseGrid` 使用 IntersectionObserver 懒加载图片
+- 🔗 **文件判重改 URL**：`_saveToAlbum`、`_syncLoad`、扫描导入等所有判重逻辑统一使用 `url` 而非 `filename`，避免不同文件夹同名文件冲突
 
 ## [1.0.72] - 2026-06-23
 

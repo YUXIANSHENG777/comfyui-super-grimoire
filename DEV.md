@@ -11,7 +11,7 @@
 | 后端 | Python 3 + Flask | 单文件 `server.py`，所有路由集中管理 |
 | 前端 | 原生 JS（零框架）| 单文件 `app.js`，全局状态对象 `S` 统一管理 |
 | 样式 | CSS 变量 + 媒体查询 | 桌面暗色主题，`@media (max-width: 768px)` 手机适配 |
-| 存储 | JSON 文件 + localStorage | 服务端存 `user_data/`，客户端存 `localStorage`，双向同步 |
+| 存储 | SQLite + localStorage | 服务端 `sync.db`（事务安全），客户端 `localStorage`，双向同步 |
 | AI 润色 | OpenAI 兼容 API | 支持 LM Studio / Ollama / 自定义 |
 | 生图 | ComfyUI REST API | 通过 Flask 代理转发 |
 
@@ -34,7 +34,8 @@
 │   ├── comfyui_config.json    # ComfyUI 连接地址
 │   ├── llm_config.json        # LLM API 配置（桌面/手机共享）
 │   ├── llm_presets.json       # 润色预设列表
-│   └── sync_data.json         # 统一同步数据（收藏/上限/模式/相册/隐藏等）
+│   ├── sync.db                # SQLite 同步数据（收藏/上限/模式/相册/隐藏等，v1.0.73+）
+│   └── sync_data.json.bak     # 旧 JSON 同步数据备份（自动迁移后产生）
 ├── workflows/                  # ComfyUI API 格式工作流 JSON
 ├── screenshots/                # 界面截图
 ├── static/
@@ -210,8 +211,8 @@ var S = {
 ### 同步相关
 | 路由 | 方法 | 用途 |
 |------|------|------|
-| `/api/user/sync` | GET | 获取同步数据 |
-| `/api/user/sync` | POST | 保存同步数据（深度合并） |
+| `/api/user/sync` | GET | 获取同步数据（从 SQLite 读取） |
+| `/api/user/sync` | POST | 保存同步数据（深度合并，写入 SQLite 事务） |
 
 ### 绑定路径 & 回收站 & 图片元数据
 | 路由 | 方法 | 用途 |
@@ -388,7 +389,8 @@ var S = {
 - **提示词显示"（无）"** → 扫描的 PNG 图片通过 `/api/bind/meta` 读取本地元数据（无需 ComfyUI），预览后自动缓存；收藏时需确认 `path` 字段一并保存（`_saveToAlbum` 已修复）
 - **正面提示词里出现负面提示词** → `/api/bind/meta` v1.0.72 改为图连接追踪分离正/负面；客户端统一用 `d.positive` 显示
 - **返图区上百张图片卡顿** → v1.0.73 引入 IntersectionObserver 懒加载，仅渲染视口内图片
-- **同步数据损坏警告** → v1.0.73 防抖 500ms + 原子 `.tmp` 替换写入，自动修复截断 JSON
+- **同步数据损坏警告** → v1.0.73 迁移到 SQLite，事务安全，零损坏风险
+- **同名文件冲突**（不同绑定文件夹的同名图片相互覆盖）→ v1.0.73 所有判重逻辑统一使用 `url`（含文件夹路径），不再依赖 `filename`
 - **刷新后数据丢失** → 检查 `saveXxx()` 是否调用了 `_syncSave()` → `_syncLoad()` 是否处理了对应数据键
 - **JS 卡死** → F12 看报错 → `python -c "compile(open('static/app.js').read(),'app.js','exec')"` 快速检查语法
 - **ComfyUI 不生效** → 工作流是否为 API 格式 → CLIP 绑定是否正确 → ComfyUI 是否运行中

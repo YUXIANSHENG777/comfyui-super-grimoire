@@ -1,6 +1,6 @@
 # 超级无敌魔导书 — 项目架构总结
 
-面向 Stable Diffusion / ComfyUI 的标签浏览、随机组合、AI润色、批量生图全功能 Web 工具。桌面/手机双端适配，数据通过 Flask 服务端同步。
+面向 Stable Diffusion / ComfyUI 的标签浏览、随机组合、AI润色、批量生图全功能 Web 工具。桌面/手机双端适配，数据通过 Flask 服务端同步（SQLite 存储）。
 
 ---
 
@@ -11,7 +11,7 @@
 | 后端 | Python 3 + Flask | 单文件 `server.py`，所有路由集中管理 |
 | 前端 | 原生 JS（零框架）| 单文件 `app.js`，全局状态对象 `S` 统一管理 |
 | 样式 | CSS 变量 + 媒体查询 | 桌面暗色主题，`@media (max-width: 768px)` 手机适配 |
-| 存储 | JSON 文件 + localStorage | 服务端存 `user_data/`，客户端存 `localStorage`，双向同步 |
+| 存储 | SQLite + localStorage | 服务端 `sync.db`（事务安全），客户端 `localStorage`，双向同步 |
 | AI 润色 | OpenAI 兼容 API | 支持 LM Studio / Ollama / 自定义 |
 | 生图 | ComfyUI REST API | 通过 Flask 代理转发 |
 

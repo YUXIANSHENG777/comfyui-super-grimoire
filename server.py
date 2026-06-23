@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """超级无敌魔导书 - AI提示词组合器"""
 
-import json, os, random, shutil, time, threading, urllib.request, urllib.error, urllib.parse
+import json, os, random, shutil, time, sqlite3, urllib.request, urllib.error, urllib.parse
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -367,85 +367,67 @@ def api_llm_presets_save():
     _save_llm_presets(data)
     return jsonify({"ok": True})
 
-def _try_fix_json(raw):
-    """尝试修复截断的 JSON：找到最后一个完整的 } 并截取"""
-    try:
-        # 从右向左找第一个完整闭合
-        depth, last_good = 0, -1
-        for i, ch in enumerate(raw):
-            if ch == '{': depth += 1
-            elif ch == '}':
-                depth -= 1
-                if depth == 0: last_good = i
-        if last_good > 0:
-            candidate = raw[:last_good+1]
-            json.loads(candidate)
-            return candidate
-        # 尝试找最后一个 "}\n{" 模式（多对象拼接）
-        idx = raw.rfind('}\n{')
-        if idx >= 0:
-            candidate = raw[:idx+1]
-            json.loads(candidate)
-            return candidate
-    except: pass
-    return None
+# 统一用户同步数据（手机/桌面共享）— SQLite 存储
+_sync_db = BASE / "user_data" / "sync.db"
+_sync_conn = None
 
-# 统一用户同步数据（手机/桌面共享）
-_sync_file = BASE / "user_data" / "sync_data.json"
-_sync_cache = {}          # 防抖缓存
-_sync_timer = None        # 防抖定时器
-_sync_lock = threading.Lock()
-
-def _flush_sync():
-    """实际写入文件（带锁 + 原子替换）"""
-    global _sync_timer
-    with _sync_lock:
-        data = dict(_sync_cache)  # 快照
-        # 剔除值为 None 的条目（缓存删除标记）
-        data = {k: v for k, v in data.items() if v is not None}
-        _sync_file.parent.mkdir(parents=True, exist_ok=True)
-        tmp = _sync_file.with_suffix('.tmp')
-        try:
-            with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            tmp.replace(_sync_file)
-        except Exception as e:
-            print(f"[警告] 同步写入失败: {e}")
-        _sync_timer = None
-
-def _save_sync(data):
-    """防抖写入：累积数据，500ms 无新请求时统一写入"""
-    global _sync_cache, _sync_timer
-    for k, v in data.items():
-        if v is None:
-            _sync_cache.pop(k, None)   # None 表示删除
-        else:
-            _sync_cache[k] = v         # 正常合并
-    if _sync_timer:
-        _sync_timer.cancel()
-    _sync_timer = threading.Timer(0.5, _flush_sync)
-    _sync_timer.daemon = True
-    _sync_timer.start()
+def _get_sync_conn():
+    global _sync_conn
+    if _sync_conn is None:
+        _sync_db.parent.mkdir(parents=True, exist_ok=True)
+        _sync_conn = sqlite3.connect(str(_sync_db), check_same_thread=False)
+        _sync_conn.execute("CREATE TABLE IF NOT EXISTS sync_data (key TEXT PRIMARY KEY, value TEXT)")
+        _sync_conn.commit()
+        # 检测旧 JSON 文件，迁移后备份
+        old_json = _sync_db.with_name("sync_data.json")
+        if old_json.exists():
+            try:
+                raw = open(old_json, "r", encoding="utf-8").read().strip()
+                if raw:
+                    old_data = json.loads(raw)
+                    if isinstance(old_data, dict) and old_data:
+                        cur = _sync_conn.cursor()
+                        for k, v in old_data.items():
+                            cur.execute("INSERT OR REPLACE INTO sync_data (key, value) VALUES (?, ?)",
+                                        (k, json.dumps(v, ensure_ascii=False)))
+                        _sync_conn.commit()
+                        print(f"[信息] 已从 sync_data.json 迁移 {len(old_data)} 条数据到 SQLite")
+                old_json.rename(old_json.with_suffix(".json.bak"))
+                print(f"[信息] 旧 JSON 已备份为 sync_data.json.bak")
+            except Exception as e:
+                print(f"[警告] JSON 迁移失败: {e}")
+    return _sync_conn
 
 def _load_sync():
+    """从 SQLite 读取所有同步数据"""
     try:
-        if _sync_file.exists():
-            raw = open(_sync_file, "r", encoding="utf-8").read().strip()
-            if raw:
-                try:
-                    return json.loads(raw)
-                except json.JSONDecodeError:
-                    # 损坏时尝试修复：截取到最后一个有效完整对象
-                    print(f"[警告] 同步数据损坏，尝试修复...")
-                    fixed = _try_fix_json(raw)
-                    if fixed is not None:
-                        with open(_sync_file, "w", encoding="utf-8") as f:
-                            f.write(fixed)
-                        print(f"[信息] 同步数据已修复")
-                        return json.loads(fixed)
-                    raise
-    except Exception as e: print(f"[警告] 同步数据读取失败: {e}")
-    return {}
+        conn = _get_sync_conn()
+        cur = conn.execute("SELECT key, value FROM sync_data")
+        result = {}
+        for k, v in cur.fetchall():
+            try:
+                result[k] = json.loads(v)
+            except:
+                result[k] = v
+        return result
+    except Exception as e:
+        print(f"[警告] 同步数据读取失败: {e}")
+        return {}
+
+def _save_sync(data):
+    """写入同步数据到 SQLite（事务安全，无需防抖）"""
+    try:
+        conn = _get_sync_conn()
+        cur = conn.cursor()
+        for k, v in data.items():
+            if v is None:
+                cur.execute("DELETE FROM sync_data WHERE key=?", (k,))
+            else:
+                cur.execute("INSERT OR REPLACE INTO sync_data (key, value) VALUES (?, ?)",
+                            (k, json.dumps(v, ensure_ascii=False)))
+        conn.commit()
+    except Exception as e:
+        print(f"[警告] 同步写入失败: {e}")
 
 @app.route("/api/user/sync", methods=["GET"])
 def api_user_sync_get():
@@ -1498,7 +1480,7 @@ def api_bind_meta():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.73")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.74")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)
