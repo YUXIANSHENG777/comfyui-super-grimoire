@@ -204,6 +204,7 @@ var S = {
 | `/api/llm/config/save` | POST | 保存 LLM 配置 |
 | `/api/llm/presets` | GET | 获取润色预设 |
 | `/api/llm/presets/save` | POST | 保存润色预设 |
+| `/api/llm/unload-model` | POST | 代理卸载 LM Studio 模型（避免跨域） |
 
 ### 同步相关
 | 路由 | 方法 | 用途 |
@@ -313,12 +314,15 @@ var S = {
 | `_execNextQueue()` | 执行队列中的下一个任务 |
 | `_pollComfyUI(promptId,start,qi)` | 轮询 ComfyUI 生成结果（含步数进度估算） |
 | `_connectCuiWS(clientId,promptId,start,qi,url)` | WebSocket 连接 ComfyUI 获取实时进度 |
-| `_playNotifSound()` | 生图完成播放提示音（Web Audio API） |
-| `_showDesktopNotification(title,body)` | 浏览器桌面通知 |
 | `_openResolutionPicker()` | 打开常用分辨率选择弹窗 |
 | `_resSwitchTab(tab)` | 切换分辨率面板（竖屏/方图/横屏） |
 | `_sortAlbumImages(arr,mode)` | 相册图片排序（8 种模式） |
 | `_loadAllDims(images,cb)` | 异步加载图片真实尺寸（缓存后复用） |
+| `_galleryReRender()` | 重建返图区 DOM，重新应用相册隐藏状态 |
+| `_unloadLLM()` | 润色后释放显存（Ollama keep_alive=0 / LM Studio API） |
+| `_playNotifSound()` | 生图完成播放提示音（Web Audio API） |
+| `_showDesktopNotification(title,body)` | 浏览器桌面通知 |
+| `_connectCuiWS(clientId,promptId,start,qi,url)` | WebSocket 连接 ComfyUI 获取实时进度 |
 | `_callLlm(prompt,callback)` | 调用 LLM API |
 | `_buildRawPrompt()` | 构建完整原始提示词（含 `--neg`） |
 | `_tagsToPrompt(pk)` | 标签数组 → 提示词（含模板） |

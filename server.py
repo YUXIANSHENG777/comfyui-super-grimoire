@@ -1209,6 +1209,24 @@ def api_llm_translate():
     except Exception as e:
         return jsonify({"error": f"{type(e).__name__}: {str(e)[:200]}"}), 500
 
+@app.route("/api/llm/unload-model", methods=["POST"])
+def api_llm_unload_model():
+    """通过 Flask 代理卸载 LM Studio 模型（避免跨域）"""
+    d = request.get_json(force=True) or {}
+    instance_id = d.get("instance_id", "")
+    base_url = d.get("base_url", "").strip().rstrip("/")
+    if not instance_id or not base_url:
+        return jsonify({"ok": False, "error": "参数不足"}), 400
+    try:
+        url = f"{base_url}/api/v1/models/unload"
+        payload = json.dumps({"instance_id": instance_id}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        resp = urllib.request.urlopen(req, timeout=10)
+        result = json.loads(resp.read())
+        return jsonify({"ok": True, "instance_id": result.get("instance_id", "")})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)[:100]})
+
 # === 绑定路径 & 回收站 ===
 import ctypes
 from ctypes import wintypes
@@ -1354,7 +1372,7 @@ def api_bind_meta():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.71")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.72")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)
