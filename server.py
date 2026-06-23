@@ -1281,6 +1281,23 @@ def api_bind_delete_by_filename():
                     return jsonify({"ok": True, "path": str(f)})
     return jsonify({"ok": False, "error": "未找到文件"})
 
+@app.route("/api/bind/resolve-path", methods=["POST"])
+def api_bind_resolve_path():
+    """根据文件名在指定路径中查找文件，返回完整路径"""
+    d = request.get_json(force=True) or {}
+    fn = d.get("filename", "")
+    search_paths = d.get("paths", [])
+    if not fn or not search_paths:
+        return jsonify({"ok": False, "error": "参数不足"})
+    for folder in search_paths:
+        p = Path(folder)
+        if not p.exists(): continue
+        for ext in ('*.png','*.jpg','*.jpeg','*.webp','*.bmp'):
+            for f in p.rglob(ext):
+                if f.name.lower() == fn.lower():
+                    return jsonify({"ok": True, "path": str(f)})
+    return jsonify({"ok": False, "error": "未找到文件"})
+
 @app.route("/api/bind/meta", methods=["POST"])
 def api_bind_meta():
     """读取本地 PNG 文件的 tEXt 块元数据，提取 CLIP 提示词（不依赖 ComfyUI）"""
