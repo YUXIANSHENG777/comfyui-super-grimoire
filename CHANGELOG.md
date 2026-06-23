@@ -25,6 +25,11 @@
 ### 🔧 优化
 - 将 WebSocket 连接逻辑从 `_pollComfyUI` 抽取为独立 `_connectCuiWS` 函数，减少代码重复
 
+### 🐛 Bug 修复
+- 🖼 **相册图片提示词为空**：收藏时补存 `path` 字段；相册翻页时增加 `/api/bind/meta` 元数据读取回退
+- 📝 **预览混杂负面提示词**：`/api/bind/meta` 改为图连接追踪（解析 KSampler 的 `positive`/`negative` 链路），准确分离正面/负面 CLIP 文本
+- 🗑 **清空回收站异步问题**：改为等待所有 API 响应后再清 UI + 弹 Toast；去除空字符串导致的无效请求；防重入 `_cleared` 标志
+
 ## [1.0.71] - 2026-06-23
 
 ### ✨ 优化

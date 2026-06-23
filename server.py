@@ -1346,18 +1346,64 @@ def api_bind_meta():
                     break
                 pos += length + 4
         # 从 workflow JSON 提取 CLIP 文本节点
-        texts = {}
+        cui_pos, cui_neg = '', ''
         pj = meta.get('prompt', '')
         if pj:
             try:
                 nodes = json.loads(pj)
+                # 收集所有 CLIP 节点
+                clip_nodes = {}  # nid -> {text, title}
                 for nid, node in nodes.items():
                     if not isinstance(node, dict): continue
                     ct = node.get('class_type', '')
                     inp = node.get('inputs', {})
                     txt = inp.get('text', '')
-                    if ct in ('CLIPTextEncode', 'CLIPTextEncodeSD3', 'CLIPTextEncodeFlux') and txt:
-                        texts[nid] = txt
+                    if ct in ('CLIPTextEncode', 'CLIPTextEncodeSD3', 'CLIPTextEncodeFlux') and txt and isinstance(txt, str):
+                        title = (node.get('_meta') or {}).get('title', '') or ''
+                        clip_nodes[nid] = {'text': txt, 'title': title}
+                if clip_nodes:
+                    # 方法一：追踪图连接 — 找 KSampler 的 positive/negative 链路
+                    pos_id, neg_id = None, None
+                    for nid, node in nodes.items():
+                        if not isinstance(node, dict): continue
+                        ct = node.get('class_type', '')
+                        if ct in ('KSampler', 'KSamplerAdvanced', 'KSamplerSelect', 'Sampler'):
+                            inp = node.get('inputs', {})
+                            for key, val in inp.items():
+                                if isinstance(val, (list, tuple)) and len(val) >= 1:
+                                    ref_id = str(val[0])
+                                    if ref_id in clip_nodes:
+                                        if key == 'positive': pos_id = ref_id
+                                        elif key == 'negative': neg_id = ref_id
+                    if pos_id and neg_id:
+                        cui_pos = clip_nodes[pos_id]['text']
+                        cui_neg = clip_nodes[neg_id]['text']
+                    elif len(clip_nodes) == 1:
+                        # 只有一个 CLIP 节点，肯定是正面
+                        cui_pos = list(clip_nodes.values())[0]['text']
+                    else:
+                        # 方法二：用启发式 — 检查标题/内容是否含 "neg"
+                        neg_keys = ['neg', 'negative', '负面']
+                        has_explicit = any(
+                            any(k in (v['title'].lower() if v['title'] else '') or k in v['text'].lower()[:80] for k in neg_keys)
+                            for v in clip_nodes.values()
+                        )
+                        if has_explicit:
+                            # 按标题/内容含 "neg" 区分
+                            items = sorted(clip_nodes.items())
+                            for nid, v in items:
+                                title_low = v['title'].lower() if v['title'] else ''
+                                text_head = v['text'].lower()[:80]
+                                if any(k in title_low or k in text_head for k in neg_keys):
+                                    cui_neg = (cui_neg + '\n' + v['text']).strip()
+                                else:
+                                    cui_pos = (cui_pos + '\n' + v['text']).strip()
+                        else:
+                            # 无明显标记，第一个为正面，最后一个为负面（同 generate 逻辑）
+                            keys = sorted(clip_nodes.keys())
+                            cui_pos = clip_nodes[keys[0]]['text']
+                            if len(keys) > 1:
+                                cui_neg = '\n'.join(clip_nodes[k]['text'] for k in keys[1:])
             except: pass
         # 也尝试 parameters 字段（SD WebUI 格式）
         params = meta.get('parameters', '')
@@ -1366,7 +1412,7 @@ def api_bind_meta():
             parts = params.split('\n')
             sd_pos = parts[0] if parts else ''
             sd_neg = parts[1] if len(parts) > 1 else ''
-        return jsonify({"ok": True, "texts": texts, "positive": sd_pos, "negative": sd_neg})
+        return jsonify({"ok": True, "positive": cui_pos or sd_pos, "negative": cui_neg or sd_neg})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
 
