@@ -14,6 +14,7 @@
 - 🔍 **搜索防抖**：桌面/手机/相册搜索统一 300ms 防抖，减少无效渲染
 - 🖼 **相册浏览懒加载**：`_renderBrowseGrid` 使用 IntersectionObserver 懒加载图片
 - 🔗 **文件判重改 URL**：`_saveToAlbum`、`_syncLoad`、扫描导入等所有判重逻辑统一使用 `url` 而非 `filename`，避免不同文件夹同名文件冲突
+- 🔙 **相册删除补回返图区**：`_removeFromAlbum`、网格删除、批量删除均将图片补回 `_galleryImages` 并刷新显示
 
 ## [1.0.72] - 2026-06-23
 

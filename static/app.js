@@ -1343,7 +1343,7 @@ el('album-card-prev').addEventListener('click',function(e){e.stopPropagation();_
 el('album-card-next').addEventListener('click',function(e){e.stopPropagation();_stopCardCarousel();var a=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){a=_albumData[i];break;}if(a){_albumCardIdx=(_albumCardIdx+1)%a.images.length;var gi=a.images[_albumCardIdx];el('album-card-img').src=gi.url;el('album-card-count').textContent=(_albumCardIdx+1)+' / '+a.images.length;}_startCardCarousel(a);});
 // 画廊爱心按钮 - 保存/取消 切换
 function _saveToAlbum(gi){if(!gi||!gi.url)return false;var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;for(var i=0;i<album.images.length;i++)if(album.images[i].url===gi.url)return false;album.images.push({url:gi.url,filename:gi.filename||'',prompt:gi.prompt||'',path:gi.path||''});_saveAlbums();_renderAlbumTabs();_renderAlbumCard();return true;}
-function _removeFromAlbum(url){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;var before=album.images.length;album.images=album.images.filter(function(x){return x.url!==url;});if(album.images.length<before){_saveAlbums();_renderAlbumTabs();_renderAlbumCard();return true;}return false;}
+function _removeFromAlbum(url){var album=null;for(var i=0;i<_albumData.length;i++)if(_albumData[i].id===_activeAlbumId){album=_albumData[i];break;}if(!album)return false;var rm=null;for(var i=0;i<album.images.length;i++)if(album.images[i].url===url){rm=album.images[i];break;}var before=album.images.length;album.images=album.images.filter(function(x){return x.url!==url;});if(album.images.length<before){_saveAlbums();_renderAlbumTabs();_renderAlbumCard();if(rm&&!_galleryImages.some(function(x){return x.url===url;})){_galleryImages.push(rm);_saveGallery();}_galleryReRender();return true;}return false;}
 function _galleryReRender(){
   if(!_galleryImages.length)return;
   var ia=el('comfyui-gallery-imgs');ia.innerHTML='';
@@ -1425,11 +1425,13 @@ function _toggleBatchMode(){
 }
 function _executeBatchDel(){
   if(!_batchMode){toast('请先点击批量删除');return;}
-  var cbs=el('album-browse-grid').querySelectorAll('.batch-cb:checked');var urls=[],fns=[];
-  cbs.forEach(function(cb){urls.push(cb.dataset.url);fns.push(cb.dataset.filename);});
+  var cbs=el('album-browse-grid').querySelectorAll('.batch-cb:checked');var urls=[];
+  cbs.forEach(function(cb){urls.push({url:cb.dataset.url,filename:cb.dataset.filename||'',prompt:cb.dataset.prompt||''});});
   if(!urls.length){toast('请勾选要删除的图片');return;}
-  _batchAlbum.images=_batchAlbum.images.filter(function(x){return urls.indexOf(x.url)<0;});
-  _saveAlbums();_batchMode=false;_galleryReRender();
+  _batchAlbum.images=_batchAlbum.images.filter(function(x){return !urls.some(function(u){return u.url===x.url;});});
+  _saveAlbums();_batchMode=false;
+  urls.forEach(function(u){if(!_galleryImages.some(function(x){return x.url===u.url;})){_galleryImages.push(u);}});
+  if(urls.length)_saveGallery();_galleryReRender();
   var tgl=el('btn-batch-del-toggle');tgl.style.borderColor='var(--accent)';tgl.style.color='var(--accent)';tgl.style.background='transparent';
   el('btn-batch-del-confirm').style.display='none';el('btn-batch-select-all').style.display='none';el('btn-batch-send').style.display='none';el('btn-batch-reverse').style.display='none';
   _renderBrowseGrid(_batchAlbum,false);_renderAlbumCard();_renderAlbumTabs();toast('已删除 '+urls.length+' 张');
@@ -1473,7 +1475,7 @@ function _renderBrowseGrid(album,showDel){
   // 相册浏览懒加载
   qsa('#album-browse-grid img[data-src]',grid).forEach(function(img){_observeGalImg(img);});
   // 单张删除按钮（2次确认）
-  qsa('.grid-del-btn',grid).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var url=this.dataset.url;var s=parseInt(this.dataset.strike||'0')+1;this.dataset.strike=s;if(s<2){this.textContent='🔥';this.style.background='rgba(232,93,110,0.6)';var self=this;if(this._t)clearTimeout(this._t);this._t=setTimeout(function(){self.dataset.strike='0';self.textContent='🗑';self.style.background='rgba(0,0,0,0.5)';},2000);}else{album.images=album.images.filter(function(x){return x.url!==url;});_saveAlbums();_renderBrowseGrid(album,false);_renderAlbumCard();_renderAlbumTabs();_galleryReRender();toast('已移除');}});});
+  qsa('.grid-del-btn',grid).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var url=this.dataset.url;var s=parseInt(this.dataset.strike||'0')+1;this.dataset.strike=s;if(s<2){this.textContent='🔥';this.style.background='rgba(232,93,110,0.6)';var self=this;if(this._t)clearTimeout(this._t);this._t=setTimeout(function(){self.dataset.strike='0';self.textContent='🗑';self.style.background='rgba(0,0,0,0.5)';},2000);}else{var rmData={url:url,filename:this.dataset.filename||'',prompt:'',path:''};album.images=album.images.filter(function(x){return x.url!==url;});_saveAlbums();if(!_galleryImages.some(function(x){return x.url===url;})){_galleryImages.push(rmData);_saveGallery();}_galleryReRender();_renderBrowseGrid(album,false);_renderAlbumCard();_renderAlbumTabs();toast('已移除');}});});
   // 点击卡片打开大图（批量模式下不打开）
   qsa('.album-grid-card',grid).forEach(function(card){card.addEventListener('click',function(e){if(e.target.tagName==='INPUT'||e.target.classList.contains('grid-del-btn'))return;if(showDel)return;var gi={url:this.dataset.url,filename:this.dataset.filename,prompt:this.dataset.prompt,path:this.dataset.path||''};var giOrig=null;for(var i=0;i<album.images.length;i++)if(album.images[i].url===gi.url){giOrig=album.images[i];break;}_previewAlbum=album;_previewImageData=gi;_loadPreviewImage(gi.url);_previewState.index=parseInt(this.dataset.idx)||0;_previewState.scale=1;_previewState.panX=0;_previewState.panY=0;var raw=gi.prompt||'';if(raw){var ni=raw.indexOf('\n--neg ');if(ni<0)ni=raw.indexOf('--neg ');el('img-preview-meta-text').textContent=ni>=0?raw.substring(0,ni).trim():raw.trim();}else if(gi.path){el('img-preview-meta-text').textContent='⏳ 读取中...';api('/api/bind/meta',{method:'POST',body:{path:gi.path}}).then(function(d){if(d&&d.ok){var txt=d.positive||'';if(giOrig)giOrig.prompt=txt.trim();_saveAlbums();el('img-preview-meta-text').textContent=txt.trim()||'（无）';}else el('img-preview-meta-text').textContent='（无）';}).catch(function(){el('img-preview-meta-text').textContent='（无）';});}else el('img-preview-meta-text').textContent='（无）';el('img-preview-prompt-popup').style.display='none';el('img-preview-modal').classList.add('active');_updatePreviewNav();});});
 }

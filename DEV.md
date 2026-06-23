@@ -391,6 +391,7 @@ var S = {
 - **返图区上百张图片卡顿** → v1.0.73 引入 IntersectionObserver 懒加载，仅渲染视口内图片
 - **同步数据损坏警告** → v1.0.73 迁移到 SQLite，事务安全，零损坏风险
 - **同名文件冲突**（不同绑定文件夹的同名图片相互覆盖）→ v1.0.73 所有判重逻辑统一使用 `url`（含文件夹路径），不再依赖 `filename`
+- **相册删图后图片不回到返图区** → v1.0.74 `_removeFromAlbum`、网格删除、批量删除均补回 `_galleryImages` 并刷新
 - **刷新后数据丢失** → 检查 `saveXxx()` 是否调用了 `_syncSave()` → `_syncLoad()` 是否处理了对应数据键
 - **JS 卡死** → F12 看报错 → `python -c "compile(open('static/app.js').read(),'app.js','exec')"` 快速检查语法
 - **ComfyUI 不生效** → 工作流是否为 API 格式 → CLIP 绑定是否正确 → ComfyUI 是否运行中
