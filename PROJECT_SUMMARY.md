@@ -98,8 +98,8 @@ var S = {
   negTemplate: '',         // 预设文本
   negTemplateAuto: false,  // 是否自动发送
 
-  // 加载图片
-  loadImage: null,         // {node_id, filename}
+  // 加载图片（3插槽）
+  loadImage: [{node_id:null,filename:null},{node_id:null,filename:null},{node_id:null,filename:null}],
 
   // 其他
   undoStack: [],           // 撤销栈
@@ -198,6 +198,7 @@ var S = {
 | `/api/comfyui/result/<id>` | GET | 轮询结果 |
 | `/api/comfyui/proxy-image` | GET | 代理图片（手机能访问） |
 | `/api/comfyui/upload-image` | POST | 上传图片到 ComfyUI |
+| `/api/comfyui/free-memory` | POST | 卸载 ComfyUI 模型并释放显存 |
 
 ### LLM 相关
 | 路由 | 方法 | 用途 |
