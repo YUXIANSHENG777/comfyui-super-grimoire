@@ -1135,14 +1135,14 @@ function _saveAllSettings(){
 }
 // 加载保存的设置
 (function(){
-  var keys=['ui-glass','ui-blur','ui-left','ui-center','ui-right','ui-bg-x','ui-bg-y'];
+  var loadKeys={ui_glass:'ui-glass',ui_blur:'ui-blur',ui_left:'ui-left',ui_center:'ui-center',ui_right:'ui-right',ui_bg_x:'ui-bg-x',ui_bg_y:'ui-bg-y'};
   var defaults={ui_glass:50,ui_blur:10,ui_left:50,ui_center:35,ui_right:50,ui_bg_x:0,ui_bg_y:0};
-  keys.forEach(function(k){
+  Object.keys(loadKeys).forEach(function(k){
     var v=localStorage.getItem('grimoire2_'+k);
-    if(v===null){v=defaults[k]||'';}else{v=v;}
-    var el=document.getElementById(k);if(el)el.value=v;
-    var valEl=document.getElementById(k+'-val');if(valEl){
-      if(k==='ui-blur')valEl.textContent=v+'px';else valEl.textContent=v+'%';
+    if(v===null){v=defaults[k]||'';}
+    var elm=document.getElementById(loadKeys[k]);if(elm)elm.value=v;
+    var valEl=document.getElementById(loadKeys[k]+'-val');if(valEl){
+      if(k==='ui_blur')valEl.textContent=v+'px';else valEl.textContent=v+'%';
     }
   });
   var sz=localStorage.getItem('grimoire2_ui_bg_size');if(sz){var se=document.getElementById('ui-bg-size');if(se)se.value=sz;}
