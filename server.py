@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """超级无敌魔导书 - AI提示词组合器"""
 
-import json, os, random, shutil, time, urllib.request, urllib.error, urllib.parse
+import json, os, random, shutil, time, threading, urllib.request, urllib.error, urllib.parse
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -367,19 +367,85 @@ def api_llm_presets_save():
     _save_llm_presets(data)
     return jsonify({"ok": True})
 
+def _try_fix_json(raw):
+    """尝试修复截断的 JSON：找到最后一个完整的 } 并截取"""
+    try:
+        # 从右向左找第一个完整闭合
+        depth, last_good = 0, -1
+        for i, ch in enumerate(raw):
+            if ch == '{': depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0: last_good = i
+        if last_good > 0:
+            candidate = raw[:last_good+1]
+            json.loads(candidate)
+            return candidate
+        # 尝试找最后一个 "}\n{" 模式（多对象拼接）
+        idx = raw.rfind('}\n{')
+        if idx >= 0:
+            candidate = raw[:idx+1]
+            json.loads(candidate)
+            return candidate
+    except: pass
+    return None
+
 # 统一用户同步数据（手机/桌面共享）
 _sync_file = BASE / "user_data" / "sync_data.json"
+_sync_cache = {}          # 防抖缓存
+_sync_timer = None        # 防抖定时器
+_sync_lock = threading.Lock()
+
+def _flush_sync():
+    """实际写入文件（带锁 + 原子替换）"""
+    global _sync_timer
+    with _sync_lock:
+        data = dict(_sync_cache)  # 快照
+        # 剔除值为 None 的条目（缓存删除标记）
+        data = {k: v for k, v in data.items() if v is not None}
+        _sync_file.parent.mkdir(parents=True, exist_ok=True)
+        tmp = _sync_file.with_suffix('.tmp')
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            tmp.replace(_sync_file)
+        except Exception as e:
+            print(f"[警告] 同步写入失败: {e}")
+        _sync_timer = None
+
+def _save_sync(data):
+    """防抖写入：累积数据，500ms 无新请求时统一写入"""
+    global _sync_cache, _sync_timer
+    for k, v in data.items():
+        if v is None:
+            _sync_cache.pop(k, None)   # None 表示删除
+        else:
+            _sync_cache[k] = v         # 正常合并
+    if _sync_timer:
+        _sync_timer.cancel()
+    _sync_timer = threading.Timer(0.5, _flush_sync)
+    _sync_timer.daemon = True
+    _sync_timer.start()
+
 def _load_sync():
     try:
         if _sync_file.exists():
             raw = open(_sync_file, "r", encoding="utf-8").read().strip()
-            if raw: return json.loads(raw)
+            if raw:
+                try:
+                    return json.loads(raw)
+                except json.JSONDecodeError:
+                    # 损坏时尝试修复：截取到最后一个有效完整对象
+                    print(f"[警告] 同步数据损坏，尝试修复...")
+                    fixed = _try_fix_json(raw)
+                    if fixed is not None:
+                        with open(_sync_file, "w", encoding="utf-8") as f:
+                            f.write(fixed)
+                        print(f"[信息] 同步数据已修复")
+                        return json.loads(fixed)
+                    raise
     except Exception as e: print(f"[警告] 同步数据读取失败: {e}")
     return {}
-def _save_sync(data):
-    _sync_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(_sync_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 @app.route("/api/user/sync", methods=["GET"])
 def api_user_sync_get():
@@ -1268,6 +1334,9 @@ def api_bind_delete():
     d = request.get_json(force=True) or {}
     fp = d.get("path", "")
     if fp and os.path.exists(fp):
+        from hashlib import md5
+        ck = 'meta_' + md5(fp.encode('utf-8')).hexdigest()[:16]
+        _save_sync({ck: None})  # 设 None 表示清除
         buf = ctypes.create_unicode_buffer(os.path.abspath(fp) + "\0\0")
         class SF(ctypes.Structure):
             _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
@@ -1290,13 +1359,17 @@ def api_bind_delete_by_filename():
         for ext in ('*.png','*.jpg','*.jpeg','*.webp','*.bmp'):
             for f in p.rglob(ext):
                 if f.name.lower() == fn.lower():
-                    buf = ctypes.create_unicode_buffer(os.path.abspath(str(f)) + "\0\0")
+                    from hashlib import md5
+                    fp = str(f)
+                    ck = 'meta_' + md5(fp.encode('utf-8')).hexdigest()[:16]
+                    _save_sync({ck: None})
+                    buf = ctypes.create_unicode_buffer(os.path.abspath(fp) + "\0\0")
                     class SF(ctypes.Structure):
                         _fields_ = [("hwnd", wintypes.HWND),("wFunc", wintypes.UINT),("pFrom", wintypes.LPCWSTR),("pTo", wintypes.LPCWSTR),("fFlags", wintypes.WORD)]
                     op = SF(); op.hwnd = None; op.wFunc = 3; op.pFrom = ctypes.cast(buf, wintypes.LPCWSTR); op.pTo = None
                     op.fFlags = 0x40 | 0x4 | 0x400
                     ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
-                    return jsonify({"ok": True, "path": str(f)})
+                    return jsonify({"ok": True, "path": fp})
     return jsonify({"ok": False, "error": "未找到文件"})
 
 @app.route("/api/bind/resolve-path", methods=["POST"])
@@ -1323,6 +1396,14 @@ def api_bind_meta():
     fp = d.get("path", "")
     if not fp or not os.path.isfile(fp):
         return jsonify({"ok": False, "error": "文件不存在"})
+    from hashlib import md5
+    cache_key = 'meta_' + md5(fp.encode('utf-8')).hexdigest()[:16]
+    file_mtime = os.path.getmtime(fp)
+    # 检查缓存（按路径 hash + mtime 失效）
+    sync_data = _load_sync()
+    cached = sync_data.get(cache_key) if sync_data else None
+    if cached and isinstance(cached, dict) and cached.get('mtime') == file_mtime:
+        return jsonify({"ok": True, "positive": cached.get('pos', ''), "negative": cached.get('neg', ''), "cached": True})
     try:
         with open(fp, "rb") as f:
             data = f.read()
@@ -1351,8 +1432,7 @@ def api_bind_meta():
         if pj:
             try:
                 nodes = json.loads(pj)
-                # 收集所有 CLIP 节点
-                clip_nodes = {}  # nid -> {text, title}
+                clip_nodes = {}
                 for nid, node in nodes.items():
                     if not isinstance(node, dict): continue
                     ct = node.get('class_type', '')
@@ -1362,7 +1442,6 @@ def api_bind_meta():
                         title = (node.get('_meta') or {}).get('title', '') or ''
                         clip_nodes[nid] = {'text': txt, 'title': title}
                 if clip_nodes:
-                    # 方法一：追踪图连接 — 找 KSampler 的 positive/negative 链路
                     pos_id, neg_id = None, None
                     for nid, node in nodes.items():
                         if not isinstance(node, dict): continue
@@ -1379,17 +1458,14 @@ def api_bind_meta():
                         cui_pos = clip_nodes[pos_id]['text']
                         cui_neg = clip_nodes[neg_id]['text']
                     elif len(clip_nodes) == 1:
-                        # 只有一个 CLIP 节点，肯定是正面
                         cui_pos = list(clip_nodes.values())[0]['text']
                     else:
-                        # 方法二：用启发式 — 检查标题/内容是否含 "neg"
                         neg_keys = ['neg', 'negative', '负面']
                         has_explicit = any(
                             any(k in (v['title'].lower() if v['title'] else '') or k in v['text'].lower()[:80] for k in neg_keys)
                             for v in clip_nodes.values()
                         )
                         if has_explicit:
-                            # 按标题/内容含 "neg" 区分
                             items = sorted(clip_nodes.items())
                             for nid, v in items:
                                 title_low = v['title'].lower() if v['title'] else ''
@@ -1399,26 +1475,30 @@ def api_bind_meta():
                                 else:
                                     cui_pos = (cui_pos + '\n' + v['text']).strip()
                         else:
-                            # 无明显标记，第一个为正面，最后一个为负面（同 generate 逻辑）
                             keys = sorted(clip_nodes.keys())
                             cui_pos = clip_nodes[keys[0]]['text']
                             if len(keys) > 1:
                                 cui_neg = '\n'.join(clip_nodes[k]['text'] for k in keys[1:])
             except: pass
-        # 也尝试 parameters 字段（SD WebUI 格式）
         params = meta.get('parameters', '')
         sd_pos, sd_neg = '', ''
         if params:
             parts = params.split('\n')
             sd_pos = parts[0] if parts else ''
             sd_neg = parts[1] if len(parts) > 1 else ''
-        return jsonify({"ok": True, "positive": cui_pos or sd_pos, "negative": cui_neg or sd_neg})
+        pos = cui_pos or sd_pos
+        neg = cui_neg or sd_neg
+        # 写入缓存（通过防抖队列持久化）
+        try:
+            _save_sync({cache_key: {'mtime': file_mtime, 'pos': pos, 'neg': neg}})
+        except: pass
+        return jsonify({"ok": True, "positive": pos, "negative": neg})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.72")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.73")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
     app.run(host="0.0.0.0", port=5802, debug=False)
