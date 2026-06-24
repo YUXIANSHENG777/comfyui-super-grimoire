@@ -304,7 +304,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.78';
+var CURRENT_VERSION='1.0.79';
 var _updateInfo=null;
 var _updateURLs=['https://cdn.jsdelivr.net/gh/YUXIANSHENG777/comfyui-super-grimoire@main/static/app.js','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
@@ -926,52 +926,74 @@ el('bind-file-search').addEventListener('input',function(){_renderFmGrid();});
 el('btn-gallery-view-all').addEventListener('click',function(){if(!_galleryImages.length){toast('暂无返图');return;}el('gallery-all-count').textContent='('+_galleryImages.length+' 张)';var grid=el('gallery-all-grid');grid.innerHTML='';for(var i=0;i<_galleryImages.length;i++){var gi=_galleryImages[i];var wrap=document.createElement('div');wrap.className='gallery-img-wrap';wrap.style.position='relative';wrap.style.display='inline-block';wrap.style.height='auto';var img=document.createElement('img');img.dataset.src=gi.url;img.style.cssText='height:280px;width:auto;border-radius:6px;cursor:pointer;object-fit:cover;background:var(--bg-tertiary)';img.title=gi.filename||'';img.onerror=function(){this.parentElement.style.display='none';};_observeGalImg(img);img.addEventListener('click',function(){_openImgPreview(gi.url,gi.filename||'');});wrap.appendChild(img);_addGalleryHeart(wrap,gi);_addDelBtn(wrap,gi);if(_isImageInActiveAlbum(gi.url,gi.filename))wrap.style.display='none';grid.appendChild(wrap);}el('modal-gallery-all').style.display='';});
 el('btn-gallery-all-close').addEventListener('click',function(){el('modal-gallery-all').style.display='none';});
 el('modal-gallery-all').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
-// ===== 工作流参数设置 =====
+// ===== 工作流参数设置（动态节点渲染）=====
 S.wfSettings={};try{var _wfs_=localStorage.getItem('grimoire2_wfsettings');if(_wfs_)S.wfSettings=JSON.parse(_wfs_);}catch(e){S.wfSettings={};}
 function _saveWfSettings(){localStorage.setItem('grimoire2_wfsettings',JSON.stringify(S.wfSettings));_syncSave({wfsettings:1});}
+function _renderWfWidget(nid,key,val,w,ovr){
+  var v=ovr!==undefined?ovr:val,t=w&&w.type||'',opts=w&&w.opts||[],vs=String(v!==null&&v!==undefined?v:'');
+  if(t==='COMBO'||opts.length){if(!opts.length&&v!==null&&v!=='')opts=[vs];var h='<select data-nid="'+nid+'" data-key="'+key+'" style=width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:10px;outline:none>';h+='<option value="">--</option>';for(var i=0;i<opts.length;i++){var sel=opts[i]===vs?' selected':'';h+='<option value="'+esc(opts[i])+'"'+sel+'>'+esc(opts[i])+'</option>';}h+='</select>';return h;}
+  if(t==='BOOLEAN')return '<input type=checkbox data-nid="'+nid+'" data-key="'+key+'"'+(v?' checked':'')+'>';
+  var isNum=typeof v==='number'||(typeof v==='string'&&/^-?\d+(\.\d+)?$/.test(v));
+  var a=isNum?'type=number':'type=text';
+  a+=' style=width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);font-size:10px;outline:none';
+  if(isNum&&w&&w.min!==undefined)a+=' min='+w.min;if(isNum&&w&&w.max!==undefined)a+=' max='+w.max;if(isNum&&w&&w.step!==undefined)a+=' step='+w.step;
+  return '<input '+a+' data-nid="'+nid+'" data-key="'+key+'" value="'+esc(vs)+'">';
+}
 el('btn-comfyui-settings').addEventListener('click',function(){
   var f=el('comfyui-workflow').value;if(!f){toast('请先选择工作流');return;}
-  el('wf-settings-wf-name').textContent='当前工作流: '+el('comfyui-workflow').selectedOptions[0].textContent;
+  el('wf-settings-wf-name').textContent=el('comfyui-workflow').selectedOptions[0].textContent||f;
   el('wf-settings-body').innerHTML='<div style=text-align:center;padding:20px;color:var(--text-muted)>⏳ 读取中...</div>';
   el('modal-wf-settings').style.display='';
   api('/api/comfyui/workflow-params?file='+encodeURIComponent(f)).then(function(p){
-    if(p.error){el('wf-settings-body').innerHTML='<div style=color:var(--danger);font-size:12px;text-align:center;padding:20px>'+esc(p.error)+'</div>';return;}
-    var s=S.wfSettings[f]||{};
-    var sampler=p.sampler||{},res=p.resolution||{};
-    var html='';
-    if(p.checkpoint)html+='<div style=margin-bottom:12px><div style=font-size:10px;color:var(--text-muted);margin-bottom:3px>🧠 模型</div><input id=wfs-ckpt style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+esc(s.ckpt_name||p.checkpoint||'')+'></div>';
-    if(res.width!==undefined||res.height!==undefined){
-      html+='<div style=margin-bottom:12px><div style=font-size:10px;color:var(--text-muted);margin-bottom:3px>📐 尺寸</div><div style=display:flex;gap:6px>';
-      html+='<input id=wfs-w type=number min=64 max=8192 step=64 style=flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+(s.width||res.width||512)+'>';
-      html+='<span style=line-height:32px>×</span>';
-      html+='<input id=wfs-h type=number min=64 max=8192 step=64 style=flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+(s.height||res.height||512)+'>';
+    var nodes=p&&p.nodes||{};var nids=Object.keys(nodes);
+    if(!nids.length){el('wf-settings-body').innerHTML='<div style=color:var(--text-muted);font-size:12px;text-align:center;padding:30px>该工作流没有可编辑参数节点</div>';return;}
+    // 自动迁移旧版平铺格式到新版按节点格式
+    var old=S.wfSettings[f]||{};
+    var ovrs={};
+    if(nids.length){
+      var isNew=false;for(var k in old){if(nids.indexOf(k)>=0){isNew=true;break;}}
+      if(isNew){ovrs=old;}else{
+        // 旧版格式：按 widget key 匹配到对应节点
+        for(var ni=0;ni<nids.length;ni++){
+          var nid=nids[ni],nd=nodes[nid],wkeys=Object.keys(nd.widgets);
+          var no={};var matched=false;
+          for(var wi=0;wi<wkeys.length;wi++){
+            var wk=wkeys[wi];
+            if(wk in old){no[wk]=old[wk];matched=true;}
+          }
+          if(matched){ovrs[nid]=no;}
+        }
+        if(Object.keys(ovrs).length){S.wfSettings[f]=ovrs;_saveWfSettings();}
+      }
+    }
+    var html='<div style=display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px>';
+    for(var ni=0;ni<nids.length;ni++){
+      var nid=nids[ni],nd=nodes[nid],wkeys=Object.keys(nd.widgets);
+      html+='<div style=border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--bg-secondary)><div style=padding:5px 8px;background:var(--accent-glow);font-size:10px;font-weight:600;color:var(--accent);border-bottom:1px solid var(--border)><span style=font-size:8px;color:var(--text-muted);font-weight:normal>['+esc(nid)+']</span> '+esc(nd.title||nd.class_type)+'</div><div style=padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px>';
+      for(var wi=0;wi<wkeys.length;wi++){
+        var wk=wkeys[wi],wv=nd.widgets[wk],ov=ovrs[nid]&&ovrs[nid][wk];
+        html+='<div><div style=font-size:8px;color:var(--text-muted);margin-bottom:1px>'+esc(wk)+'</div>'+_renderWfWidget(nid,wk,wv.value,wv,ov)+'</div>';
+      }
       html+='</div></div>';
     }
-    html+='<div style=margin-bottom:12px><div style=font-size:10px;color:var(--text-muted);margin-bottom:3px>⚡ 采样</div>';
-    html+='<div style=display:grid;grid-template-columns:1fr 1fr;gap:6px>';
-    html+='<div><span style=font-size:10px;color:var(--text-muted)>Steps</span><input id=wfs-steps type=number min=1 max=200 style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+(s.steps||sampler.steps||20)+'></div>';
-    html+='<div><span style=font-size:10px;color:var(--text-muted)>CFG</span><input id=wfs-cfg type=number min=0 max=30 step=0.5 style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+(s.cfg||sampler.cfg||7)+'></div>';
-    html+='<div><span style=font-size:10px;color:var(--text-muted)>Sampler</span><select id=wfs-sampler style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none><option value=euler>euler</option><option value=euler_ancestral>euler_ancestral</option><option value=dpmpp_2m>dpmpp_2m</option><option value=dpmpp_sde>dpmpp_sde</option><option value=uni_pc>uni_pc</option><option value=ddim>ddim</option><option value=lcm>lcm</option></select></div>';
-    html+='<div><span style=font-size:10px;color:var(--text-muted)>Scheduler</span><select id=wfs-scheduler style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none><option value=normal>normal</option><option value=karras>karras</option><option value=exponential>exponential</option><option value=sgm_uniform>sgm_uniform</option><option value=simple>simple</option><option value=ddim_uniform>ddim_uniform</option></select></div>';
-    html+='</div></div>';
-    html+='<div style=margin-bottom:12px><span style=font-size:10px;color:var(--text-muted)>Denoise</span><input id=wfs-denoise type=number min=0 max=1 step=0.01 style=width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg-primary);color:var(--text-primary);outline:none value='+(s.denoise!==undefined?s.denoise:(sampler.denoise!==undefined?sampler.denoise:1.0))+'></div>';
+    html+='</div>';
     el('wf-settings-body').innerHTML=html;
-    if(s.sampler_name)el('wfs-sampler').value=s.sampler_name;else if(sampler.sampler_name)el('wfs-sampler').value=sampler.sampler_name;
-    if(s.scheduler)el('wfs-scheduler').value=s.scheduler;else if(sampler.scheduler)el('wfs-scheduler').value=sampler.scheduler;
   });
 });
 el('btn-wf-settings-apply').addEventListener('click',function(){
   var f=el('comfyui-workflow').value;if(!f)return;
-  var s={};
-  var ckpt=el('wfs-ckpt');if(ckpt)s.ckpt_name=ckpt.value;
-  var wi=el('wfs-w');if(wi)s.width=parseInt(wi.value)||null;
-  var hi=el('wfs-h');if(hi)s.height=parseInt(hi.value)||null;
-  var steps=el('wfs-steps');if(steps)s.steps=parseInt(steps.value)||20;
-  var cfg=el('wfs-cfg');if(cfg)s.cfg=parseFloat(cfg.value)||7;
-  var sampler=el('wfs-sampler');if(sampler)s.sampler_name=sampler.value;
-  var scheduler=el('wfs-scheduler');if(scheduler)s.scheduler=scheduler.value;
-  var denoise=el('wfs-denoise');if(denoise)s.denoise=parseFloat(denoise.value);
-  S.wfSettings[f]=s;_saveWfSettings();
+  var inputs=el('wf-settings-body').querySelectorAll('[data-nid][data-key]');
+  var ovrs={};
+  for(var ii=0;ii<inputs.length;ii++){
+    var inp=inputs[ii],nid=inp.dataset.nid,key=inp.dataset.key;
+    if(!nid||!key)continue;
+    if(!ovrs[nid])ovrs[nid]={};
+    if(inp.type==='checkbox')ovrs[nid][key]=inp.checked;
+    else if(inp.type==='number'){var nv=parseFloat(inp.value);ovrs[nid][key]=isNaN(nv)?inp.value:nv;}
+    else ovrs[nid][key]=inp.value;
+  }
+  if(!Object.keys(ovrs).length){toast('没有可保存的参数');return;}
+  S.wfSettings[f]=ovrs;_saveWfSettings();
   el('modal-wf-settings').style.display='none';
   toast('⚙ 参数已保存，下次生图生效');
 });

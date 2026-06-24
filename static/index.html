@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.78 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.79 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
 <link rel="stylesheet" href="/style.css?v=43">
 <script src="/i18n.js?v=3"></script>
@@ -16,7 +16,7 @@
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.78</span></span>
+    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.79</span></span>
     <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 免责声明</button>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px"><span class="svg-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
@@ -523,15 +523,17 @@
   </div>
 </div>
 
-<!-- 模态框: 工作流参数设置 -->
+<!-- 模态框: 工作流参数设置（动态节点卡片） -->
 <div id="modal-wf-settings" class="modal" style="display:none">
-  <div class="modal-content" style="max-width:540px">
-    <h3>⚙ 工作流参数设置</h3>
-    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px" id="wf-settings-wf-name">当前工作流: --</p>
-    <div id="wf-settings-body" style="max-height:450px;overflow-y:auto">
-      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">请先选择一个工作流</div>
+  <div class="modal-content" style="max-width:780px;max-height:80vh;display:flex;flex-direction:column;padding:10px 14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0">
+      <h3 style="margin:0;font-size:14px">⚙ 工作流参数</h3>
+      <span style="font-size:11px;color:var(--text-muted)" id="wf-settings-wf-name">--</span>
     </div>
-    <div class="modal-actions">
+    <div id="wf-settings-body" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--bg-primary)">
+      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:30px">请先选择一个工作流</div>
+    </div>
+    <div class="modal-actions" style="margin-top:8px;flex-shrink:0">
       <button id="btn-wf-settings-refresh" class="action-btn" title="重新读取工作流参数"><span class="svg-icon"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span> 刷新</button>
       <button id="btn-wf-settings-apply" class="action-btn primary">✅ 应用并关闭</button>
     </div>

@@ -3,7 +3,8 @@ var ICONS={settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><pa
 function icon(n){var s=ICONS[n];return s?'<span class="svg-icon">'+s+'</span>':n;}
 var S={allData:null,activeCat:null,activeSc:null,isSearching:false,posTags:[],autoSortPos:true,negTags:[],autoSortNeg:true,activeTab:'positive',useQuality:false,useWeights:false,allowNsfw:false,randWeight:false,spaceMode:0,template:'',favs:{},catLimits:{},scLimits:{},catModes:{},hidden:{categories:{},subcategories:{}},comfyuiPath:'',comfyuiLang:'en',comfyuiQueue:[],comfyuiRunning:false,comfyuiStopped:false,llmRunning:false,llmHistory:(function(){try{return JSON.parse(localStorage.getItem('grimoire2_llmhist')||'[]');}catch(e){return[];}})(),undoStack:[],undoIdx:-1,tagMode:'phrase'};
 var QW=['masterpiece level, highest quality, breathtaking','8K resolution, insanely detailed, tack sharp'];
-function el(id){return document.getElementById(id);}
+function el(id){var e=document.getElementById(id);return e;}
+window.addEventListener('unhandledrejection',function(e){if(e.reason&&e.reason.message&&e.reason.message.indexOf('Failed to fetch')>=0){toast('网络请求失败，请检查网络连接','');}else{console.warn('[Promise] Unhandled rejection:',e.reason);}e.preventDefault();});
 function qs(s,p){return (p||document).querySelector(s);}
 function qsa(s,p){return (p||document).querySelectorAll(s);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}

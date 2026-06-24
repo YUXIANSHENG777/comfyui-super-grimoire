@@ -18,7 +18,7 @@ _cui_config_file = BASE / "user_data" / "comfyui_config.json"
 def _load_comfyui_url():
     try:
         if _cui_config_file.exists():
-            return json.loads(open(_cui_config_file, "r", encoding="utf-8").read()).get("url", "http://127.0.0.1:8188")
+            with open(_cui_config_file, "r", encoding="utf-8") as f: return json.loads(f.read()).get("url", "http://127.0.0.1:8188")
     except:
         pass
     return "http://127.0.0.1:8188"
@@ -343,7 +343,7 @@ _llm_config_file = BASE / "user_data" / "llm_config.json"
 def _load_llm_config():
     try:
         if _llm_config_file.exists():
-            return json.loads(open(_llm_config_file, "r", encoding="utf-8").read())
+            with open(_llm_config_file, "r", encoding="utf-8") as f: return json.loads(f.read())
     except Exception as e: print(f"[警告] LLM配置读取失败: {e}")
     return {}
 def _save_llm_config(cfg):
@@ -366,7 +366,7 @@ _llm_presets_file = BASE / "user_data" / "llm_presets.json"
 def _load_llm_presets():
     try:
         if _llm_presets_file.exists():
-            return json.loads(open(_llm_presets_file, "r", encoding="utf-8").read())
+            with open(_llm_presets_file, "r", encoding="utf-8") as f: return json.loads(f.read())
     except Exception as e: print(f"[警告] 润色预设读取失败: {e}")
     return []
 def _save_llm_presets(data):
@@ -399,7 +399,7 @@ def _get_sync_conn():
         old_json = _sync_db.with_name("sync_data.json")
         if old_json.exists():
             try:
-                raw = open(old_json, "r", encoding="utf-8").read().strip()
+                with open(old_json, "r", encoding="utf-8") as f: raw = f.read().strip()
                 if raw:
                     old_data = json.loads(raw)
                     if isinstance(old_data, dict) and old_data:
@@ -627,70 +627,93 @@ def api_comfyui_models():
 
 @app.route("/api/comfyui/workflow-params")
 def api_comfyui_workflow_params():
-    """读取工作流中可编辑的参数（采样器/步数/CFG/种子/尺寸等）"""
+    """读取工作流所有节点的可编辑参数（利用 object_info 推断 widget 类型）"""
     fname = request.args.get("file", "")
     if not fname:
         return jsonify({"error": "缺少参数"}), 400
     raw = _load_workflow_raw(fname)
     if not raw:
         return jsonify({"error": "工作流加载失败"}), 400
-    # 解析节点
-    params = {
-        "sampler": {},       # KSampler / SamplerCustom 等参数
-        "resolution": {},    # EmptyLatentImage 尺寸
-        "checkpoint": "",    # 模型名称
-        "seed": 0,
-        "nodes": {}          # 所有识别到的可编辑节点
-    }
     if not isinstance(raw, dict):
-        return jsonify(params)
-    # 兼容 "nodes" 列表格式 和 节点 dict 格式
-    nodes = {}
+        return jsonify({})
+    # 从 ComfyUI 获取节点定义（用于推断 widget 类型）
+    obj_info = {}
+    try:
+        req = urllib.request.Request(f"{COMFYUI_URL}/api/object_info")
+        resp = urllib.request.urlopen(req, timeout=5)
+        obj_info = json.loads(resp.read())
+    except:
+        pass
+    # 模型节点映射（用于注入模型列表）
+    MODEL_MAP = {
+        "CheckpointLoaderSimple": ("checkpoint", "ckpt_name"),
+        "UNETLoader": ("unet", "unet_name"), "UNETLoaderGGUF": ("unet", "unet_name"),
+        "CLIPLoader": ("clip", "clip_name"), "CLIPLoaderGGUF": ("clip", "clip_name"),
+        "VAELoader": ("vae", "vae_name"),
+        "DualCLIPLoader": ("dual_clip", "clip_name1"), "DualCLIPLoaderGGUF": ("dual_clip", "clip_name1"),
+        "LoraLoader": ("lora", "lora_name"), "LoraLoaderModelOnly": ("lora", "lora_name"),
+    }
+    # 收集所有节点
+    all_nodes = {}
     if "nodes" in raw and isinstance(raw["nodes"], list):
         for n in raw["nodes"]:
             nid = str(n.get("id", ""))
             ct = n.get("type", n.get("class_type", ""))
-            if nid and ct:
-                nodes[nid] = {"class_type": ct, "inputs": {}}
-                # 解析 inputs
-                for inp in n.get("inputs", []):
-                    if isinstance(inp, dict) and "name" in inp:
-                        nodes[nid]["inputs"][inp["name"]] = inp.get("widget", {}).get("value", inp.get("default", ""))
-                    elif isinstance(inp, list) and len(inp) >= 2:
-                        nodes[nid]["inputs"][inp[0]] = inp[1]
+            if not nid or not ct:
+                continue
+            all_nodes[nid] = {"class_type": ct, "title": n.get("title", "") or ct, "inputs": {}}
+            for inp in n.get("inputs", []):
+                if isinstance(inp, dict) and "name" in inp:
+                    all_nodes[nid]["inputs"][inp["name"]] = inp.get("widget", {}).get("value", inp.get("default", ""))
+                elif isinstance(inp, list) and len(inp) >= 2:
+                    all_nodes[nid]["inputs"][inp[0]] = inp[1]
     else:
         for nid, node in raw.items():
             if isinstance(node, dict) and "class_type" in node:
-                nodes[nid] = node
-    # 识别关键节点
-    for nid, node in nodes.items():
-        ct = node.get("class_type", "")
-        inp = node.get("inputs", {})
-        # KSampler 系列
-        if ct in ("KSampler", "KSamplerAdvanced", "SamplerCustom", "BasicScheduler"):
-            for key in ("seed", "steps", "cfg", "sampler_name", "scheduler", "denoise"):
-                if key in inp:
-                    params["sampler"][key] = inp[key]
-            params["nodes"][nid] = {"class_type": ct, "params": params["sampler"]}
-        # EmptyLatentImage
-        elif ct in ("EmptyLatentImage", "EmptySD3LatentImage"):
-            for key in ("width", "height", "batch_size"):
-                if key in inp:
-                    params["resolution"][key] = inp[key]
-            params["nodes"][nid] = {"class_type": ct, "params": params["resolution"]}
-        # Checkpoint
-        elif ct == "CheckpointLoaderSimple":
-            params["checkpoint"] = inp.get("ckpt_name", "")
-            params["nodes"][nid] = {"class_type": ct, "checkpoint": params["checkpoint"]}
-        # CLIPTextEncode
-        elif ct == "CLIPTextEncode":
-            txt = inp.get("text", "")
-            if isinstance(txt, str):
-                params["nodes"][nid] = {"class_type": ct, "text_preview": txt[:100]}
-    # 种子取第一个 sampler 的
-    if params["sampler"].get("seed") is not None:
-        params["seed"] = params["sampler"]["seed"]
-    return jsonify(params)
+                ct = node.get("class_type", "")
+                all_nodes[nid] = {"class_type": ct, "title": ct, "inputs": node.get("inputs", {})}
+    # 提取每个节点的 widget 参数
+    result_nodes = {}
+    for nid, nd in all_nodes.items():
+        ct = nd["class_type"]
+        inp = nd.get("inputs", {})
+        # 跳过 CLIPTextEncode（提示词本身）
+        if ct == "CLIPTextEncode":
+            continue
+        ndef = obj_info.get(ct, {}).get("input", {}).get("required", {})
+        widgets = {}
+        for key, val in inp.items():
+            # 跳过非标量值（连线引用）
+            if isinstance(val, (list, tuple)):
+                continue
+            # 从 object_info 推断类型
+            idef = ndef.get(key)
+            wtype, wopts, wmin, wmax, wstep = "STRING", [], None, None, None
+            if idef and isinstance(idef, list) and len(idef) > 0:
+                if isinstance(idef[0], list):
+                    wtype = "COMBO"
+                    wopts = [str(x) for x in idef[0]]
+                elif isinstance(idef[0], str):
+                    wtype = idef[0]
+                    if len(idef) > 1 and isinstance(idef[1], dict):
+                        wmin = idef[1].get("min")
+                        wmax = idef[1].get("max")
+                        wstep = idef[1].get("step")
+            # 模型节点注入模型列表
+            mkey = None
+            if ct in MODEL_MAP and MODEL_MAP[ct][1] == key:
+                mkind = MODEL_MAP[ct][0]
+                if wtype == "STRING":
+                    wtype = "COMBO"
+                wopts = []
+            entry = {"value": val, "type": wtype, "opts": wopts}
+            if wmin is not None: entry["min"] = wmin
+            if wmax is not None: entry["max"] = wmax
+            if wstep is not None: entry["step"] = wstep
+            widgets[key] = entry
+        if widgets:
+            result_nodes[nid] = {"class_type": ct, "title": nd["title"], "widgets": widgets}
+    return jsonify({"nodes": result_nodes})
 
 @app.route("/api/comfyui/generate", methods=["POST"])
 def api_comfyui_generate():
@@ -886,21 +909,27 @@ def api_comfyui_generate():
                         if ct in ("LoadImage", "Load Image"):
                             node["inputs"]["image"] = _li["filename"]
                             print(f"注入加载图片: {_li['filename']} -> 节点 {node_id}")
-            # 应用工作流参数设置
+            # 应用工作流参数设置（支持旧版扁平格式和新版按节点格式）
             if wf_settings:
-                if ct == "CheckpointLoaderSimple" and "ckpt_name" in wf_settings:
-                    node["inputs"]["ckpt_name"] = wf_settings["ckpt_name"]
-                    print(f"工作流设置: ckpt={wf_settings['ckpt_name']}")
-                if ct in ("EmptyLatentImage", "EmptySD3LatentImage"):
-                    if "width" in wf_settings and "width" in node.get("inputs", {}):
-                        node["inputs"]["width"] = wf_settings["width"]
-                    if "height" in wf_settings and "height" in node.get("inputs", {}):
-                        node["inputs"]["height"] = wf_settings["height"]
-                if ct in ("KSampler", "KSamplerAdvanced", "SamplerCustom", "BasicScheduler"):
-                    for key in ("steps", "cfg", "sampler_name", "scheduler", "denoise"):
-                        if key in wf_settings and key in node.get("inputs", {}):
-                            node["inputs"][key] = wf_settings[key]
-                            print(f"工作流设置: {ct}.{key}={wf_settings[key]}")
+                # 新版：按节点 ID 覆盖
+                if nid in wf_settings and isinstance(wf_settings[nid], dict):
+                    for k, v in wf_settings[nid].items():
+                        if k in node.get("inputs", {}):
+                            node["inputs"][k] = v
+                            print(f"工作流设置(节点): {nid}.{k}={v}")
+                # 旧版：按节点类型覆盖（兼容）
+                else:
+                    if ct == "CheckpointLoaderSimple" and "ckpt_name" in wf_settings:
+                        node["inputs"]["ckpt_name"] = wf_settings["ckpt_name"]
+                    if ct in ("EmptyLatentImage", "EmptySD3LatentImage"):
+                        if "width" in wf_settings and "width" in node.get("inputs", {}):
+                            node["inputs"]["width"] = wf_settings["width"]
+                        if "height" in wf_settings and "height" in node.get("inputs", {}):
+                            node["inputs"]["height"] = wf_settings["height"]
+                    if ct in ("KSampler", "KSamplerAdvanced", "SamplerCustom", "BasicScheduler"):
+                        for key in ("steps", "cfg", "sampler_name", "scheduler", "denoise"):
+                            if key in wf_settings and key in node.get("inputs", {}):
+                                node["inputs"][key] = wf_settings[key]
             # 随机化种子
             if rand_seed and "seed" in node.get("inputs", {}) and node["inputs"]["seed"] is not None:
                 node["inputs"]["seed"] = random.randint(0, 2**63 - 1)
