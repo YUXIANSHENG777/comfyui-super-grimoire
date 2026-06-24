@@ -306,7 +306,7 @@ el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
 var CURRENT_VERSION='1.0.79';
 var _updateInfo=null;
-var _updateURLs=['https://cdn.jsdelivr.net/gh/YUXIANSHENG777/comfyui-super-grimoire@main/static/app.js','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
+var _updateURLs=['https://cdn.jsdelivr.net/gh/YUXIANSHENG777/comfyui-super-grimoire@main/static/app.js','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/git/refs/tags','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
 function _checkUpdate(silent){
   _tryUpdateCheck(0,silent);
@@ -320,6 +320,7 @@ function _tryUpdateCheck(idx,silent){
   if(idx>=_updateURLs.length){if(!silent)toast('❌ 检查失败，可手动访问 github.com/YUXIANSHENG777/comfyui-super-grimoire/releases');return;}
   var url=_updateURLs[idx];
   var isJsDelivr=url.indexOf('jsdelivr')>=0;
+  var isTags=url.indexOf('git/refs/tags')>=0;
   fetch(url).then(function(r){
     if(isJsDelivr)return r.text();else return r.json();
   }).then(function(data){
@@ -327,6 +328,12 @@ function _tryUpdateCheck(idx,silent){
     if(isJsDelivr){
       var m=data.match(/CURRENT_VERSION='([\d.]+)'/);
       if(m)latest=m[1];
+    }else if(isTags&&Array.isArray(data)&&data.length){
+      for(var ti=data.length-1;ti>=0;ti--){
+        var ref=data[ti].ref||'';
+        var tag=ref.replace('refs/tags/','').replace(/^v/,'');
+        if(tag&&/^\d/.test(tag)){latest=tag;break;}
+      }
     }else if(data&&data.tag_name){
       latest=data.tag_name.replace('v','');
     }
@@ -351,11 +358,12 @@ el('btn-check-update').addEventListener('click',function(){
   var t=setTimeout(function(){btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查超时');},15000);
   var idx=0,attemptM=function(){
     if(idx>=_updateURLs.length){clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;toast('❌ 检查失败');return;}
-    var url=_updateURLs[idx],isJs=url.indexOf('jsdelivr')>=0;
+    var url=_updateURLs[idx],isJs=url.indexOf('jsdelivr')>=0,isTg=url.indexOf('git/refs/tags')>=0;
     fetch(url).then(function(r){return isJs?r.text():r.json();}).then(function(data){
       clearTimeout(t);btn.textContent='🔄 检查更新';btn.disabled=false;
       var latest='';
       if(isJs){var m=data.match(/CURRENT_VERSION='([\d.]+)'/);if(m)latest=m[1];}
+      else if(isTg&&Array.isArray(data)&&data.length){for(var ti=data.length-1;ti>=0;ti--){var ref=data[ti].ref||'',tag=ref.replace('refs/tags/','').replace(/^v/,'');if(tag&&/^\d/.test(tag)){latest=tag;break;}}}
       else if(data&&data.tag_name)latest=data.tag_name.replace('v','');
       if(latest){
         if(_verGt(latest,CURRENT_VERSION)){
