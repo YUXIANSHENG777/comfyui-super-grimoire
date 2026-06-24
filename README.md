@@ -107,6 +107,7 @@
 ### 国际化
 - 🌐 中英文界面一键切换（顶部 English/中文 按钮）
 - 全 UI 覆盖：工具栏/分类/标签/弹窗/提示/placeholder
+
 - 英文模式下标签自动大字英语 + 小字中文参考
 - ComfyUI 使用说明、免责声明全部双语
 
@@ -155,3 +156,7 @@
 ---
 
 > 📖 开发者文档见 [DEV.md](DEV.md)
+
+---
+🆓 本 Web 应用完全免费开源（GitHub: YUXIANSHENG777/comfyui-super-grimoire），**禁止倒卖**！
+📺 有什么问题欢迎到 B 站私信：[@余余先生呀AIGC](https://space.bilibili.com/20844060)（space.bilibili.com/20844060）

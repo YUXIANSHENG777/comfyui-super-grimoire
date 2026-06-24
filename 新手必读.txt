@@ -178,3 +178,6 @@ user_data/       你的个人数据（配置/收藏/预设/历史）
 • 桌面端：点顶部 ❓ 使用说明 → 弹窗完整教程
 • 手机端：ComfyUI 区点 ❓ 按钮
 • 开发者：见 DEV.md
+
+🆓 本 Web 应用完全免费开源（GitHub: YUXIANSHENG777/comfyui-super-grimoire），禁止倒卖！
+📺 有什么问题欢迎到 B 站私信：@余余先生呀AIGC（space.bilibili.com/20844060）
