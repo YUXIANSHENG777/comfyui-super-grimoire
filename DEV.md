@@ -224,6 +224,8 @@ var S = {
 | `/api/bind/meta` | POST | 本地 PNG 元数据读取，解析 tEXt 块提取 CLIP 提示词；**v1.0.72** 增强：按图连接（KSampler positive/negative 链路）准确分离正面/负面提示词；**v1.0.73** 增强：按路径 hash + mtime 缓存，删除时自动清除缓存 |
 | `/api/bind/resolve-path` | POST | 根据文件名在绑定路径中搜索，返回完整路径 |
 | `/api/comfyui/image-meta` | GET | 读取 PNG 元数据（生成参数，需 ComfyUI 运行） |
+| `/api/comfyui/free-memory` | POST | 卸载 ComfyUI 模型并释放显存 |
+| `/api/bind/subdirs` | POST | 获取绑定路径的子目录结构及图片计数 |
 | `/api/update/changelog` | GET | 返回 CHANGELOG.md 最新 3 个版本的更新日志 |
 ---
 

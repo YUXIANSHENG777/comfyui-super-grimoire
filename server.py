@@ -1304,26 +1304,51 @@ def api_llm_unload_model():
 import ctypes
 from ctypes import wintypes
 
+@app.route("/api/bind/subdirs", methods=["POST"])
+def api_bind_subdirs():
+    """获取绑定路径的子目录结构"""
+    d = request.get_json(force=True) or {}
+    paths = d.get("paths", [])
+    result = {}
+    for folder in paths:
+        if not folder:
+            continue
+        p = Path(folder)
+        if not p.exists():
+            continue
+        # 根目录自身图片计数
+        root_count = sum(1 for ext in ('*.png', '*.jpg', '*.jpeg', '*.webp', '*.bmp') for _ in p.glob(ext))
+        subdirs = [{"name": "(根目录)", "path": str(p), "count": root_count, "root": True}]
+        for child in sorted(p.iterdir()):
+            if child.is_dir():
+                img_count = sum(1 for ext in ('*.png', '*.jpg', '*.jpeg', '*.webp', '*.bmp') for _ in child.glob(ext))
+                subdirs.append({"name": child.name, "path": str(child), "count": img_count})
+        result[folder] = subdirs
+    return jsonify(result)
+
 @app.route("/api/bind/scan", methods=["POST"])
 def api_bind_scan():
     d = request.get_json(force=True) or {}
     paths = d.get("paths", [])
+    subfolder = d.get("subfolder", "")  # 可选：限定子目录
     images, seen = [], set()
     for folder in paths:
         if not folder: continue
-        p = Path(folder)
-        if not p.exists(): continue
+        base = Path(folder)
+        if not base.exists(): continue
+        scan_dir = base / subfolder if subfolder else base
+        if not scan_dir.exists(): continue
         files = []
         for ext in ('*.png','*.jpg','*.jpeg','*.webp','*.bmp'):
-            files.extend(p.rglob(ext))
+            files.extend(scan_dir.rglob(ext))
         for f in files:
-            rel = str(f.relative_to(p))
+            rel = str(f.relative_to(base))
             if rel not in seen:
                 seen.add(rel)
                 images.append({
                     "filename": f.name,
                     "path": str(f),
-                    "url": f"/api/bind/img?p={urllib.parse.quote(str(p))}&n={urllib.parse.quote(f.name)}"
+                    "url": f"/api/bind/img?p={urllib.parse.quote(str(base))}&n={urllib.parse.quote(f.name)}"
                 })
     images.sort(key=lambda x: os.path.getmtime(x["path"]), reverse=True)
     return jsonify({"ok": True, "images": images})

@@ -308,7 +308,7 @@ body.no-glass #disclaimer {
 #comfyui-gallery-imgs::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:4px; }
 #comfyui-gallery-imgs::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
 #comfyui-gallery-imgs::-webkit-scrollbar-track { background:var(--bg-tertiary); border-radius:4px; }
-.gallery-img-wrap { position:relative; height:100%; border-radius:var(--radius); overflow:hidden; background:var(--bg-primary); border:1px solid var(--border); transition:all .25s ease; animation:img-pop .4s ease; flex-shrink:0; }
+.gallery-img-wrap { position:relative; height:100%; border-radius:var(--radius); overflow:hidden; background:var(--bg-primary); border:1px solid var(--border); transition:all .25s ease; animation:img-pop .4s ease; flex-shrink:0; content-visibility:auto; contain-intrinsic-size:180px; }
 .gallery-img-wrap:hover { border-color:var(--accent); box-shadow:0 4px 24px var(--accent-glow); }
 @keyframes img-pop { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
 .gallery-img-wrap img { height:100%; width:auto; display:block; object-fit:cover; cursor:zoom-in; }
