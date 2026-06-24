@@ -169,6 +169,7 @@ var S = {
 | `/api/custom-tags/add` | POST | 添加单条标签 |
 | `/api/custom-tags/delete` | POST | 删除标签 |
 | `/api/custom-tags/edit` | POST | 编辑标签 |
+| `/api/tags/conflict-rules` | POST | 保存标签冲突规则 |
 | `/api/custom-tags/add-category` | POST | 新建大类 |
 | `/api/custom-tags/delete-category` | POST | 删除大类 |
 | `/api/custom-tags/add-subcategory` | POST | 新建子类 |

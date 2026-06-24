@@ -304,7 +304,7 @@ el('btn-copy').addEventListener('click',function(){var t=el('prompt-output').val
 el('btn-copy-cn').addEventListener('click',function(){var pos=getSorted('positive');var neg=getSorted('negative');var parts=[];if(pos.length>0)parts.push(genPromptCN(pos));if(neg.length>0)parts.push('--neg '+genPromptCN(neg));var t=parts.join(', ');if(!t.trim()){toast('没有可复制的内容');return;}copyText(t);toast('已复制中文提示词!');});
 el('btn-clear').addEventListener('click',clearAll);
 // 检查更新
-var CURRENT_VERSION='1.0.79';
+var CURRENT_VERSION='1.0.80';
 var _updateInfo=null;
 var _updateURLs=['https://cdn.jsdelivr.net/gh/YUXIANSHENG777/comfyui-super-grimoire@main/static/app.js','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest','https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/git/refs/tags','https://ghproxy.com/https://api.github.com/repos/YUXIANSHENG777/comfyui-super-grimoire/releases/latest'];
 
@@ -339,7 +339,7 @@ function _tryUpdateCheck(idx,silent){
     }
     if(latest){
       if(_verGt(latest,CURRENT_VERSION)){
-        _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/tags/v'+latest+'.zip'};
+        _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/heads/main.zip'};
         el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION;
         el('modal-update').style.display='';
         el('btn-update-install').style.display='';el('btn-update-ignore').style.display='';el('btn-update-restart').style.display='none';
@@ -367,7 +367,7 @@ el('btn-check-update').addEventListener('click',function(){
       else if(data&&data.tag_name)latest=data.tag_name.replace('v','');
       if(latest){
         if(_verGt(latest,CURRENT_VERSION)){
-          _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/tags/v'+latest+'.zip'};
+          _updateInfo={version:'v'+latest,url:'https://github.com/YUXIANSHENG777/comfyui-super-grimoire/archive/refs/heads/main.zip'};
           el('update-version-info').innerHTML='最新 <b>v'+latest+'</b>，当前 v'+CURRENT_VERSION;
           el('modal-update').style.display='';
           el('btn-update-install').style.display='';el('btn-update-ignore').style.display='';el('btn-update-restart').style.display='none';
@@ -411,6 +411,59 @@ el('btn-update-install').addEventListener('click',function(){
 el('btn-update-ignore').addEventListener('click',function(){el('modal-update').style.display='none';});
 el('btn-update-restart').addEventListener('click',function(){location.reload();});
 
+// ===== 防冲突规则 =====
+function _openConflictRules(){
+  el('modal-conflict').style.display='';
+  if(!S.allData||!S.allData.categories){el('conflict-body').innerHTML='<div style=text-align:center;padding:20px;color:var(--text-muted)>⏳ 数据加载中，请稍后再试</div>';return;}
+  var html='';
+  for(var ci=0;ci<S.allData.categories.length;ci++){
+    var c=S.allData.categories[ci];var rm=c.randomMode||'';var isNsfw=c.name==='NSFW'||c.name==='NSFW标签';
+    html+='<div style=margin-bottom:8px;padding:6px 8px;border:1px solid var(--border);border-radius:4px>'+(isNsfw?'<div style=font-size:9px;color:var(--warning);margin-bottom:2px>🔞 NSFW 分类 — 受「允许 NSFW」开关控制，关闭时整个大类不参与随机（改名会导致开关失效）</div>':'');
+    html+='<div style=display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap><b>📂 '+esc(c.name)+'</b> 随机模式: <select class=cr-cat data-cat="'+esc(c.name)+'" style=font-size:10px;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);outline:none><option value="">正常</option><option value="singlePool"'+(rm==='singlePool'?' selected':'')+'>全局互斥</option></select></div>';
+    for(var si=0;si<c.subcategories.length;si++){
+      var sc=c.subcategories[si];var st=sc.type||'';var pg=sc.poolGroup||'';
+      html+='<div style=display:flex;align-items:center;gap:4px;margin:2px 0;padding:2px 6px;font-size:10px;border-radius:3px;background:var(--bg-tertiary)><span style=flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>📁 '+esc(sc.name)+'</span>';
+      html+='互斥: <select class=cr-sc data-cat="'+esc(c.name)+'" data-sc="'+esc(sc.name)+'" style=font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);outline:none><option value="">正常</option><option value="single"'+(st==='single'?' selected':'')+'>互斥</option></select>';
+      html+=' 同组: <input class=cr-pg data-cat="'+esc(c.name)+'" data-sc="'+esc(sc.name)+'" value="'+esc(pg)+'" placeholder="组名" style=width:60px;font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg-primary);color:var(--text-primary);outline:none>';
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  el('conflict-body').innerHTML=html||'<div style=text-align:center;padding:20px;color:var(--text-muted)>暂无分类数据</div>';
+}
+el('btn-conflict-open').addEventListener('click',_openConflictRules);
+el('btn-conflict-close').addEventListener('click',function(){el('modal-conflict').style.display='none';});
+el('btn-conflict-reset').addEventListener('click',function(){
+  if(!S.allData||!S.allData.categories){toast('数据未加载');return;}
+  // 将所有下拉框和输入框重置为默认值（空）
+  el('conflict-body').querySelectorAll('.cr-cat').forEach(function(s){s.value='';});
+  el('conflict-body').querySelectorAll('.cr-sc').forEach(function(s){s.value='';});
+  el('conflict-body').querySelectorAll('.cr-pg').forEach(function(i){i.value='';});
+  toast('已恢复默认，点击「保存并生效」即可写入');
+});
+el('btn-conflict-save').addEventListener('click',function(){
+  var mode=document.querySelector('#modal-ui-settings')?'phrase':'phrase';
+  var cats=el('conflict-body').querySelectorAll('[class^=cr-]');if(!cats.length){toast('没有可保存的规则');return;}
+  // 使用之前加载时确定的模式
+  var tagMode=S.tagMode||'phrase';
+  // 收集大类规则
+  var rules={};
+  el('conflict-body').querySelectorAll('.cr-cat').forEach(function(sel){
+    var cn=sel.dataset.cat;if(!rules[cn])rules[cn]={};
+    rules[cn].randomMode=sel.value||null;
+  });
+  // 收集子类规则
+  el('conflict-body').querySelectorAll('.cr-sc,.cr-pg').forEach(function(el2){
+    var cn=el2.dataset.cat,sc=el2.dataset.sc;if(!cn||!sc)return;
+    if(!rules[cn])rules[cn]={};if(!rules[cn].subs)rules[cn].subs={};if(!rules[cn].subs[sc])rules[cn].subs[sc]={};
+    if(el2.classList.contains('cr-sc'))rules[cn].subs[sc].type=el2.value||null;
+    if(el2.classList.contains('cr-pg'))rules[cn].subs[sc].poolGroup=el2.value||null;
+  });
+  api('/api/tags/conflict-rules',{method:'POST',body:{mode:tagMode,rules:rules}}).then(function(r){
+    if(r.ok){S._conflictUnsaved=true;toast('✅ 规则已保存，将在下次随机时生效','success');el('modal-conflict').style.display='none';loadAllData();}
+    else{toast('保存失败: '+(r.error||'未知错误'));}
+  });
+});
 // 页面启动时自动检查
 (function(){
   var lastCheck=localStorage.getItem('grimoire2_update_last_check')||'';

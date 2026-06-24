@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>超级无敌魔导书 v1.0.79 — AI绘画提示词组合器</title>
+<title>超级无敌魔导书 v1.0.80 — AI绘画提示词组合器</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d1b4f'/><text y='26' font-size='22'>🪄</text></svg>">
 <link rel="stylesheet" href="/style.css?v=43">
 <script src="/i18n.js?v=3"></script>
@@ -16,11 +16,12 @@
 
 <header id="toolbar">
   <div class="toolbar-left">
-    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.79</span></span>
+    <span class="app-title"><span class="svg-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 超级无敌魔导书 <span style="font-size:10px;opacity:0.6">v1.0.80</span></span>
     <button id="btn-disclaimer-m" class="tool-btn" title="免责声明" style="display:none"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 免责声明</button>
     <button id="btn-comfyui-help" class="tool-btn" title="ComfyUI使用说明 & 玩法指南" style="margin-left:8px;font-size:11px;padding:3px 10px"><span class="svg-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 使用说明</button>
     <button id="btn-lang-switch" class="tool-btn" title="Switch Language" style="font-size:10px;padding:3px 8px" onclick="i18nSwitch()">English</button>
     <button id="btn-ui-settings" class="tool-btn" title="界面设置" style="font-size:11px;padding:3px 10px" onclick="el('modal-ui-settings').style.display=''"><span class="svg-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> 设置</button>
+
   </div>
   <div class="toolbar-right">
     <button id="btn-quality" class="tool-btn"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M3 21h4L20 8a2.83 2.83 0 0 0-4-4L3 17v4z"/><path d="M14.5 6.5L18 3l3 3-3.5 3.5"/></svg></span> 基础质量词</button>
@@ -115,6 +116,7 @@
 
     <div class="sidebar-head">
       <span class="nav-section-title"><span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span> 标签分类</span>
+      <button id="btn-conflict-open" class="tool-btn" title="设置标签分类的抽取规则（互斥/分组）" style="font-size:10px;padding:2px 8px">🧩 冲突规则</button>
       <button id="btn-tag-mode" class="tool-btn" title="切换标签库：短语标签 ↔ 单一标签" style="font-size:10px;padding:2px 8px">🏷 单一标签</button>
       <button id="btn-add-category" class="mini-btn" title="新建大类">✚</button>
     </div>
@@ -798,6 +800,35 @@
       - <span class="svg-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span> 删除送回收站（支持文件名搜索定位）<br>
       - <span class="svg-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> 按文件名/添加顺序/分辨率 排序<br>
       - <span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> 导入图片 / 批量发送 / 批量反推生图
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 防冲突规则 -->
+<div id="modal-conflict" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:520px;max-height:80vh;display:flex;flex-direction:column;padding:10px 14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0">
+      <h3 style="margin:0;font-size:14px">🧩 防冲突规则</h3>
+      <span style="font-size:10px;color:var(--text-muted)">控制标签随机时的互斥关系</span>
+    </div>
+    <div id="conflict-body" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:4px;padding:6px;background:var(--bg-primary);font-size:11px">
+      <div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ 加载中...</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-shrink:0">
+      <div style="flex:1;font-size:10px;color:var(--text-muted);line-height:1.5">
+        <b>💡 规则说明（高阶操作，不需要可忽略）：</b><br>
+        大部分用户无需修改此处，默认规则已足够日常使用。<br>
+        <span style="color:var(--accent)">如果你只需要添加分类或子分类：</span>直接点左侧「✚」新建大类/子类即可，冲突规则会自动适配，无需来这里设置。<br>
+        • 大类「全局互斥」→ 该大类所有标签全局只抽1个<br>
+        • 子类「互斥」→ 该子类内最多抽1个<br>
+        • 子类「同组名」→ 填相同组名的子类共享1个名额<br>
+        • 改完点「保存并生效」，下次随机自动应用
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:6px;flex-shrink:0">
+      <button id="btn-conflict-save" class="action-btn primary">✅ 保存并生效</button>
+      <button id="btn-conflict-reset" class="action-btn" style="color:var(--danger)">↺ 恢复默认</button>
+      <button id="btn-conflict-close" class="action-btn">取消</button>
     </div>
   </div>
 </div>

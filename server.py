@@ -217,6 +217,42 @@ def api_custom_tags_save():
     write_json(CUSTOM_DIR / "custom_tags.json", request.get_json())
     return jsonify({"ok": True})
 
+@app.route("/api/tags/conflict-rules", methods=["POST"])
+def api_tags_conflict_rules():
+    """保存标签冲突规则（大类randomMode + 子类type/poolGroup）"""
+    data = request.get_json(force=True) or {}
+    mode = data.get("mode", "phrase")  # phrase 或 single
+    tag_file = BASE / "data" / f"tags{mode == 'single' and '_single' or ''}.json"
+    rules = data.get("rules", {})
+    if not tag_file.exists():
+        return jsonify({"error": "标签文件不存在"}), 404
+    tag_data = read_json(tag_file, {"categories": []})
+    for cat in tag_data.get("categories", []):
+        cname = cat["name"]
+        cr = rules.get(cname)
+        if cr:
+            if "randomMode" in cr:
+                cat["randomMode"] = cr["randomMode"] or None
+                if not cat["randomMode"]:
+                    cat.pop("randomMode", None)
+            for sc in cat.get("subcategories", []):
+                scname = sc["name"]
+                sr = cr.get("subs", {}).get(scname)
+                if sr:
+                    if "type" in sr:
+                        sc["type"] = sr["type"] or None
+                        if not sc["type"]:
+                            sc.pop("type", None)
+                    if "poolGroup" in sr:
+                        sc["poolGroup"] = sr["poolGroup"] or None
+                        if not sc["poolGroup"]:
+                            sc.pop("poolGroup", None)
+    write_json(tag_file, tag_data)
+    # 强制下次加载时刷新
+    global _tag_cache
+    _tag_cache = {}
+    return jsonify({"ok": True})
+
 @app.route("/api/custom-tags/add", methods=["POST"])
 def api_custom_tags_add():
     data = request.get_json()

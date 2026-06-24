@@ -168,6 +168,7 @@ var S = {
 | `/api/custom-tags/add` | POST | 添加单条标签 |
 | `/api/custom-tags/delete` | POST | 删除标签 |
 | `/api/custom-tags/edit` | POST | 编辑标签 |
+| `/api/tags/conflict-rules` | POST | 保存标签冲突规则（randomMode/type/poolGroup） |
 | `/api/custom-tags/add-category` | POST | 新建大类 |
 | `/api/custom-tags/delete-category` | POST | 删除大类 |
 | `/api/custom-tags/add-subcategory` | POST | 新建子类 |
@@ -401,6 +402,8 @@ var S = {
 - **刷新后数据丢失** → 检查 `saveXxx()` 是否调用了 `_syncSave()` → `_syncLoad()` 是否处理了对应数据键
 - **JS 卡死** → F12 看报错 → `python -c "compile(open('static/app.js').read(),'app.js','exec')"` 快速检查语法
 - **ComfyUI 不生效** → 工作流是否为 API 格式 → CLIP 绑定是否正确 → ComfyUI 是否运行中
+- **冲突规则不生效** → 检查 `_genRandomTags` 中的 `_occSP`/`_occPG`/`_occSC` 变量是否正确匹配分类名/子类名/poolGroup
+- **NSFW 开关失效** → 检查分类名是否为 `NSFW` 或 `NSFW标签`，改名会导致开关无法识别
 
 ---
 
