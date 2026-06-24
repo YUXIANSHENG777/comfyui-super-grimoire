@@ -870,8 +870,8 @@ function fetchModels(){var f=el('comfyui-workflow').value;if(!f)return;el('model
 el('btn-comfyui-models').addEventListener('click',function(){fetchModels();el('modal-models').style.display='';});
 // 模型搜索过滤
 el('model-search-input').addEventListener('input',function(){var q=this.value.toLowerCase().trim();qsa('.cui-model-sel').forEach(function(sel){var found=false;qsa('option',sel).forEach(function(opt,idx){if(idx===0){opt.style.display='';return;}var match=!q||opt.value.toLowerCase().indexOf(q)>=0;opt.style.display=match?'':'none';if(match)found=true;});sel.closest('[style*="display:flex"]').style.display=found||!q?'':'none';});});
-// 工作流切换自动刷新
-el('comfyui-workflow').addEventListener('change',function(){loadWorkflows();checkComfyUI();if(this.value&&!S._wfAutoRefreshing){S._wfAutoRefreshing=true;setTimeout(function(){S._wfAutoRefreshing=false;},2000);}});
+// 工作流切换自动刷新（不重建列表，仅刷新状态）
+el('comfyui-workflow').addEventListener('change',function(){checkComfyUI();var _v=this.value;if(_v){api('/api/comfyui/workflow-size?file='+encodeURIComponent(_v)).then(function(r){if(r&&r.width)el('comfyui-width').value=r.width;if(r&&r.height)el('comfyui-height').value=r.height;});}});
 el('btn-comfyui-free').addEventListener('click',function(){api('/api/comfyui/free-memory',{method:'POST'}).then(function(r){if(r.ok){toast('🧹 模型已卸载，显存已释放','success');}else{toast('操作失败: '+(r.error||'未知错误'));}}).catch(function(e){toast('操作失败: '+e.message);});});
 el('btn-models-close').addEventListener('click',function(){el('modal-models').style.display='none';});
 el('btn-gallery-album').addEventListener('click',function(){_openAlbumModal();});
