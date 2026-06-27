@@ -11,6 +11,7 @@ USER_DIR = BASE / "user_data"
 PRESETS_DIR = USER_DIR / "presets"
 HISTORY_DIR = USER_DIR / "history"
 CUSTOM_DIR = USER_DIR
+TAG_ASSETS_DIR = USER_DIR / "tag_assets"
 import re
 WORKFLOWS_DIR = BASE / "workflows"
 # ComfyUI URL: 优先从配置文件读取，支持运行时修改
@@ -65,8 +66,10 @@ def read_json(path, default=None):
 
 def write_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
 
 def merge_tags():
     tags = read_json(DATA_DIR / "tags.json", {"categories": [], "presets": []})
@@ -1593,9 +1596,67 @@ def api_bind_meta():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
 
+# === 标签关联图片持久化 ===
+TAG_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+
+@app.route("/api/tag-img/save", methods=["POST"])
+def api_tag_img_save():
+    """将标签关联的图片复制到 tag_assets 目录（直接走 ComfyUI，避免自调用死锁）"""
+    d = request.get_json(force=True) or {}
+    url = d.get("url", "")
+    if not url:
+        return jsonify({"error": "缺少 url"}), 400
+    import urllib.request, urllib.parse
+    try:
+        # 从 URL 中提取 filename/subfolder/type，构造 ComfyUI 直连 URL
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(url)
+        params = parse_qs(parsed.query)
+        fn = (params.get("filename") or [""])[0]
+        sf = (params.get("subfolder") or [""])[0]
+        tp = (params.get("type") or ["output"])[0]
+        if not fn:
+            return jsonify({"error": "无法解析文件名"}), 400
+        cui_url = f"{COMFYUI_URL}/view?filename={urllib.parse.quote(fn)}&subfolder={urllib.parse.quote(sf)}&type={urllib.parse.quote(tp)}"
+        req = urllib.request.Request(cui_url)
+        resp = urllib.request.urlopen(req, timeout=30)
+        data = resp.read()
+        import hashlib, time
+        suffix = hashlib.md5((fn + str(time.time())).encode()).hexdigest()[:8]
+        save_name = f"{suffix}_{fn}"
+        save_path = TAG_ASSETS_DIR / save_name
+        with open(save_path, "wb") as f:
+            f.write(data)
+        return jsonify({"ok": True, "localUrl": f"/api/tag-img/serve/{save_name}", "filename": save_name})
+    except Exception as e:
+        return jsonify({"error": f"保存失败: {str(e)[:100]}"}), 500
+
+@app.route("/api/tag-img/serve/<filename>")
+def api_tag_img_serve(filename):
+    """提供标签关联的图片"""
+    safe = Path(filename).name  # 防止路径遍历
+    filepath = TAG_ASSETS_DIR / safe
+    if filepath.exists():
+        return send_from_directory(str(TAG_ASSETS_DIR), safe, conditional=True)
+    return "", 404
+
+@app.route("/api/tag-img/delete", methods=["POST"])
+def api_tag_img_delete():
+    """删除标签关联的图片文件"""
+    d = request.get_json(force=True) or {}
+    fn = (d.get("filename") or "").strip()
+    if not fn:
+        return jsonify({"error": "缺少 filename"}), 400
+    safe = Path(fn).name
+    fp = TAG_ASSETS_DIR / safe
+    if fp.exists():
+        fp.unlink()
+        return jsonify({"ok": True})
+    return jsonify({"error": "not found"}), 404
+
 if __name__ == "__main__":
     print("=" * 50)
-    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.76")
+    print("  超级无敌魔导书 - AI绘画提示词组合器  v1.0.81")
     print("  访问 http://127.0.0.1:5802")
     print("=" * 50)
-    app.run(host="0.0.0.0", port=5802, debug=False)
+    app.run(host="0.0.0.0", port=5802, debug=False, threaded=True)
